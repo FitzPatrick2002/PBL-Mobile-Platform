@@ -1,1 +1,101 @@
 # PBL-Mobile-Platform
+Celem projektu jest budowa zdalnie sterowanej platformy, mogącej skanować otoczenie za pomocą lidara.
+
+Gdzie platforma:
+
+12-14.11.2025 -> MR (testy kontrolera)
+15-17.11.2025 -> ML (testy odometrii + montaż enkoderów)
+...
+
+TO DO + podział zadań:
+
+* Platforma:
+    1. System jezdny
+    Hardware:
+        - Montaż enkoderów (ML)
+    Software:
+        - Klasa kontrolująca silniczki (MŚ & JG)
+
+    2. System pomiarowy:
+    Hardware:
+        - Montaż Lidara (ML)
+    Software:
+        - Test klasy kontrolującej lidar (ML)
+
+    3. System pozycyjny:
+    Hardware:
+        - Enkodery z (1.)
+    Software:
+        - Test klasy z Odometrią (ML)
+
+    4. Kontroler:
+    Hardware:
+        - ?
+    Software:
+        - Test przesyłu danych na platformę (MR)
+
+    5. System wykrywania przeszkód
+    Hardware:
+        - Zaprojektowanie systemu (MR)
+    Software:
+        - Klasa kontrolująca system wykrywania przeszkód (MR)
+        - Asembler sczytujący wartości z pinów (MR)
+
+* PC / Laptop:
+    1. Aplikacja Desktopowa (wyświetla zebrane pomiary, przechowuje je w folderach):
+        - Komunikacja z esp (https://l.messenger.com/l.php?u=https%3A%2F%2Fgithub.com%2FChuckMash%2FESPythoNOW&h=AT2EF5bl9oDyyULc6AOVDYfJnaDLg0rnqc17YCFMh-ZsuMV3QM-s7jL485ft-QLvyfkwyixq_B6JFsWAXf7_GO_xhrHctCMNtKN3DZeXKmGdo-a4BtHtPcib_21fGNs)
+
+        - Przechowywanie skanów z pojedynczego skanu w pliku .pcd (https://pointclouds.org/documentation/tutorials/pcd_file_format.html)
+        - Pliki .pcd w jednym folderze. Jeden folder na jedną sesję jeżdżenia roverem. 
+        - (JG & MŚ)
+
+* Zakupy:
+    1. Sformułowanie zapotrzebowania
+        - (MR)
+    2. Zamówienie
+        - (MR)
+    3. Odbiór 
+        - (Kto będzie ten będzie)
+
+* Odległa przyszłość (luźne pomysły jakby został kiedyś czas):
+    1. Pełna wizualizacja 3D zebranych skanów
+    2. SLAM ?
+    3. Lidar obracany pod różnymi kątami, zbierający punkty z różnych płaszczyzn skanowania
+    4. Pomiar nachylenia platformy / terenu
+        - Dane same w sobie na temat terenu
+        - 3D odometria (x, y, z)
+    5. Algorytmy przetwarzania chmur punktów
+        - Voxel Downsampling
+        - Ball Pivoting 
+        - Surface reconstruction
+        - Poisson surface reconstruction
+        - Plane fitting 
+        - etc.
+
+* Zasoby (biblioteki, schematy, takie tam):
+    1. Komunikacja esp <-> komputer
+        - (https://l.messenger.com/l.php?u=https%3A%2F%2Fgithub.com%2FChuckMash%2FESPythoNOW&h=AT2EF5bl9oDyyULc6AOVDYfJnaDLg0rnqc17YCFMh-ZsuMV3QM-s7jL485ft-QLvyfkwyixq_B6JFsWAXf7_GO_xhrHctCMNtKN3DZeXKmGdo-a4BtHtPcib_21fGNs)
+
+    2. Format plików
+        - https://pointclouds.org/documentation/tutorials/pcd_file_format.html
+
+    3. Biblioteki do analizy chmur punktów
+        - https://www.open3d.org/docs/latest/introduction.html
+        - https://docs.opencv.org/4.12.0/
+
+    4. Teoria
+        - Odometria:
+            - https://medium.com/@nahmed3536/wheel-odometry-model-for-differential-drive-robotics-91b85a012299
+
+    4. Dokumentacje techniczne
+        - Lidar
+            - https://bucket-download.slamtec.com/d1e428e7efbdcd65a8ea111061794fb8d4ccd3a0/LD108_SLAMTEC_rplidar_datasheet_A1M8_v3.0_en.pdf
+        - L298N
+            - https://botland.com.pl/sterowniki-silnikow-moduly/3164-l298n-dwukanalowy-sterownik-silnikow-modul-12v-2a-5904422359317.html 
+        - HCSR-04
+            - https://web.eece.maine.edu/~zhu/book/lab/HC-SR04%20User%20Manual.pdf
+            - https://botland.com.pl/content/144-pomiar-odleglosci-z-wykorzystaniem-arduino-i-czujnika-hc-sr04-lub-us-015
+        - Platforma:
+            - https://botland.com.pl/podwozia-robotow/13744-chassis-round-2wd-2-kolowe-podwozie-robota-z-napedem-aluminiowe-szare-5904422342098.html
+        
+    
