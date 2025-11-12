@@ -20,6 +20,7 @@ TO DO + podział zadań:
     Hardware:
         - Montaż Lidara (ML)
     Software:
+        - test lidara na kompie (ML)
         - Test klasy kontrolującej lidar (ML)
 
     3. System pozycyjny:
@@ -90,6 +91,7 @@ TO DO + podział zadań:
     4. Dokumentacje techniczne
         - Lidar
             - https://bucket-download.slamtec.com/d1e428e7efbdcd65a8ea111061794fb8d4ccd3a0/LD108_SLAMTEC_rplidar_datasheet_A1M8_v3.0_en.pdf
+            - http://bucket.download.slamtec.com/351a5409ddfba077ad11ec5071e97ba5bf2c5d0a/LR002_SLAMTEC_rplidar_sdk_v1.0_en.pdf
         - L298N
             - https://botland.com.pl/sterowniki-silnikow-moduly/3164-l298n-dwukanalowy-sterownik-silnikow-modul-12v-2a-5904422359317.html 
         - HCSR-04
