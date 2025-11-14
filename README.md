@@ -101,4 +101,6 @@ TO DO + podział zadań:
             - https://botland.com.pl/podwozia-robotow/13744-chassis-round-2wd-2-kolowe-podwozie-robota-z-napedem-aluminiowe-szare-5904422342098.html
         
     5. Test change.
+
+    6. Test na 2 kompie sry for that
     
