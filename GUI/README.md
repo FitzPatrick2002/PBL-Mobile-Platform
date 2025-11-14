@@ -1,1 +1,0 @@
-Zamysł aplikacji here:
