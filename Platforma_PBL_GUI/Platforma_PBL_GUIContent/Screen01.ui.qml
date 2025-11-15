@@ -11,48 +11,96 @@ import QtQuick.Controls
 import Platforma_PBL_GUI
 
 Rectangle {
+    id: rectangle1
     width: Constants.width
     height: Constants.height
     color: "#071622"
-    property alias stopButtonFlat: stopButton.flat
 
-    Rectangle {
-        id: rectangle
-        x: 61
-        y: 168
-        width: 615
-        height: 395
-        color: "#ffffff"
+    Image {
+        id: image
+        x: 0
+        y: 0
+        width: 1200
+        height: 800
+        source: "images/WelcomeWindow.png"
+        fillMode: Image.PreserveAspectFit
 
         Button {
-            id: button
-            x: 131
-            y: 56
-            text: qsTr("Button")
+            id: about_us_button
+            x: 81
+            y: 628
+            width: 201
+            height: 44
+            text: qsTr("About Us")
+            hoverEnabled: false
+            font.family: "Arial"
+            font.bold: true
+            font.pointSize: 20
+            flat: true
+
+            Connections {
+                target: about_us_button
+                function onClicked() {
+                    aboutUsOpening.open_webbrowser()
+                }
+            }
         }
 
-        SwitchDelegate {
-            id: switchDelegate
-            x: 90
-            y: 277
-            text: qsTr("Switch Delegate")
-        }
-
-        StopButton {
-            id: stopButton
-            x: 254
-            y: 87
-            width: 300
-            height: 100
-            text: "My Button"
-            scale: 0.7
+        Button {
+            id: hi_dora_button
+            x: 317
+            y: 628
+            width: 200
+            height: 44
+            text: qsTr("HI DORA")
+            hoverEnabled: false
             clip: false
-            autoRepeat: false
             autoExclusive: false
-            checked: false
-            checkable: false
-            display: AbstractButton.IconOnly
-            highlighted: false
+            font.bold: true
+            font.pointSize: 20
+            font.family: "Arial"
+            flat: true
+
+            Connections {
+                target: hi_dora_button
+                function onClicked() {
+                    navigation.closeCurrentWindow()
+                    Qt.resolvedUrl("Screen02.ui.qml")
+                }
+            }
+        }
+
+        Button {
+            id: quit_button
+            x: 918
+            y: 698
+            width: 202
+            height: 44
+            text: qsTr("QUIT")
+            icon.color: "#c82424"
+            wheelEnabled: false
+            hoverEnabled: false
+            font.kerning: false
+            font.preferShaping: false
+            layer.mipmap: false
+            layer.smooth: false
+            focus: false
+            antialiasing: false
+            activeFocusOnTab: false
+            enabled: true
+            smooth: false
+            layer.enabled: false
+            font.bold: true
+            font.pointSize: 16
+            font.family: "Arial"
+            flat: true
+
+            Connections {
+                target: quit_button
+                function onClicked() {
+                    Qt.quit()
+                }
+            }
         }
     }
 }

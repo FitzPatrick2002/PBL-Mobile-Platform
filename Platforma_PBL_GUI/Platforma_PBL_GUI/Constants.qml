@@ -1,6 +1,5 @@
 pragma Singleton
 import QtQuick
-import QtQuick.Studio.Application
 
 QtObject {
     readonly property int width: 1200
@@ -20,8 +19,8 @@ QtObject {
 
     readonly property color backgroundColor: "#EAEAEA"
 
-
-    property StudioApplication application: StudioApplication {
-        fontPath: Qt.resolvedUrl("../Platforma_PBL_GUIContent/" + relativeFontDirectory)
+    // Zamiast StudioApplication korzystamy z czystego QtObject
+    property QtObject application: QtObject {
+        property url fontPath: Qt.resolvedUrl("../Platforma_PBL_GUIContent/" + relativeFontDirectory)
     }
 }
