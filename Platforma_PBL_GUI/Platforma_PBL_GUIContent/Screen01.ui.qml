@@ -64,8 +64,7 @@ Rectangle {
             Connections {
                 target: hi_dora_button
                 function onClicked() {
-                    navigation.closeCurrentWindow()
-                    Qt.resolvedUrl("Screen02.ui.qml")
+                    navigation.openScreen("screen2")
                 }
             }
         }

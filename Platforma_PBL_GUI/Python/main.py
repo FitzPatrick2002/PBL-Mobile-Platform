@@ -25,7 +25,7 @@ def main():
     about_us_opening = AboutUsOpening()
     engine.rootContext().setContextProperty("aboutUsOpening", about_us_opening)
 
-    nav = Navigation()
+    nav = Navigation(engine)
     engine.rootContext().setContextProperty("navigation", nav)
 
 

@@ -14,19 +14,12 @@ class AboutUsOpening(QObject):
     
 
 class Navigation(QObject):
+    def __init__(self, engine):
+        super().__init__()
+        self.engine = engine
 
-    @Slot()
-    def closeCurrentWindow(self):
-        app = QGuiApplication.instance()
-        if not app:
-            print("Brak instancji aplikacji.")
-            return
-
-        for w in app.allWindows():
-            # Szukamy widocznego QML-owego okna
-            if isinstance(w, QQuickWindow) and w.isVisible():
-                w.close()
-                print("Zamknięto okno:", w)
-                return
-
-        print("Nie znaleziono widocznego okna do zamknięcia.")
+    @Slot(str)
+    def openScreen(self, name: str):
+        root = self.engine.rootObjects()[0]  # to jest Window z App.qml
+        root.openScreen(name)
+        print(f"Przełączono na ekran: {name}")
