@@ -1,0 +1,14 @@
+<RCC>
+    <qresource>
+        <file>Platforma_PBL_GUI.qmlproject</file>
+        <file>Platforma_PBL_GUI/Constants.qml</file>
+        <file>Platforma_PBL_GUI/EventListModel.qml</file>
+        <file>Platforma_PBL_GUI/EventListSimulator.qml</file>
+        <file>Platforma_PBL_GUI/qmldir</file>
+        <file>Platforma_PBL_GUIContent/App.qml</file>
+        <file>Platforma_PBL_GUIContent/images/Stop_button.png</file>
+        <file>Platforma_PBL_GUIContent/Screen01.ui.qml</file>
+        <file>Platforma_PBL_GUIContent/StopButton.ui.qml</file>
+        <file>qtquickcontrols2.conf</file>
+    </qresource>
+</RCC>
