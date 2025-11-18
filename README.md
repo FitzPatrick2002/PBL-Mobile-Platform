@@ -5,6 +5,7 @@ Gdzie platforma:
 
 12-14.11.2025 -> MR (testy kontrolera)
 15-17.11.2025 -> ML (testy odometrii + montaż enkoderów)
+18-?.11.2025 -> MR (testy kontrolera)
 ...
 
 TO DO + podział zadań:
@@ -51,11 +52,9 @@ TO DO + podział zadań:
         - (JG & MŚ)
 
 * Zakupy:
-    1. Sformułowanie zapotrzebowania
+    1. Zamówienie
         - (MR)
-    2. Zamówienie
-        - (MR)
-    3. Odbiór 
+    2. Odbiór 
         - (Kto będzie ten będzie)
 
 * Odległa przyszłość (luźne pomysły jakby został kiedyś czas):
@@ -101,4 +100,6 @@ TO DO + podział zadań:
             - https://botland.com.pl/podwozia-robotow/13744-chassis-round-2wd-2-kolowe-podwozie-robota-z-napedem-aluminiowe-szare-5904422342098.html
         
     5. Test change.
+
+    6. Test na 2 kompie sry for that
     
