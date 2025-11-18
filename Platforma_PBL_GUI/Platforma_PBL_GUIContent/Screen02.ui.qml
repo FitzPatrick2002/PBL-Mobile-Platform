@@ -10,7 +10,6 @@ import QtQuick
 import QtQuick.Controls
 import QtCharts
 
-
 Item {
     id: root
     width: 1200
@@ -41,6 +40,13 @@ Item {
                 hoverEnabled: false
                 display: AbstractButton.IconOnly
                 flat: true
+
+                Connections {
+                    target: start_button
+                    function onClicked() {
+                        console.log("clicked")
+                    }
+                }
             }
 
             Button {
@@ -53,6 +59,13 @@ Item {
                 hoverEnabled: false
                 flat: true
                 display: AbstractButton.IconOnly
+
+                Connections {
+                    target: pause_button
+                    function onClicked() {
+                        console.log("clicked")
+                    }
+                }
             }
 
             Button {
@@ -65,6 +78,13 @@ Item {
                 hoverEnabled: false
                 flat: true
                 display: AbstractButton.IconOnly
+
+                Connections {
+                    target: stop_button
+                    function onClicked() {
+                        console.log("clicked")
+                    }
+                }
             }
 
             Button {
@@ -77,6 +97,13 @@ Item {
                 hoverEnabled: false
                 flat: true
                 display: AbstractButton.IconOnly
+
+                Connections {
+                    target: rotate_right
+                    function onClicked() {
+                        console.log("clicked")
+                    }
+                }
             }
 
             Button {
@@ -89,6 +116,13 @@ Item {
                 hoverEnabled: false
                 flat: true
                 display: AbstractButton.IconOnly
+
+                Connections {
+                    target: rotate_left
+                    function onClicked() {
+                        console.log("clicked")
+                    }
+                }
             }
 
             Button {
@@ -101,6 +135,13 @@ Item {
                 hoverEnabled: false
                 flat: true
                 display: AbstractButton.IconOnly
+
+                Connections {
+                    target: forward_button
+                    function onClicked() {
+                        console.log("clicked")
+                    }
+                }
             }
 
             Button {
@@ -113,6 +154,13 @@ Item {
                 hoverEnabled: false
                 flat: true
                 display: AbstractButton.IconOnly
+
+                Connections {
+                    target: back_button
+                    function onClicked() {
+                        console.log("clicked")
+                    }
+                }
             }
 
             Button {
@@ -125,6 +173,13 @@ Item {
                 hoverEnabled: false
                 flat: true
                 display: AbstractButton.IconOnly
+
+                Connections {
+                    target: right_button
+                    function onClicked() {
+                        console.log("clicked")
+                    }
+                }
             }
 
             Button {
@@ -137,18 +192,25 @@ Item {
                 hoverEnabled: false
                 flat: true
                 display: AbstractButton.IconOnly
+
+                Connections {
+                    target: left_button
+                    function onClicked() {
+                        console.log("clicked")
+                    }
+                }
             }
 
             SpinBox {
                 id: spinBox
-                x: 66
-                y: 443
+                x: 48
+                y: 425
             }
 
             SpinBox {
                 id: spinBox1
-                x: 66
-                y: 500
+                x: 48
+                y: 486
             }
 
             ProgressBar {
@@ -165,6 +227,171 @@ Item {
                         root.state = ""
                     }
                 }
+            }
+
+            Rectangle {
+                id: rectangle1
+                x: 417
+                y: 416
+                width: 200
+                height: 200
+                color: "#ffffff"
+            }
+
+            Text {
+                id: text1
+                x: 418
+                y: 399
+                text: qsTr("Terminal:")
+                font.pixelSize: 12
+            }
+
+            Text {
+                id: text2
+                x: 38
+                y: 389
+                width: 262
+                height: 17
+                text: qsTr("Zmiana położenia o wpisaną wartość:")
+                font.pixelSize: 12
+                font.bold: false
+                font.family: "Verdana"
+            }
+
+            Text {
+                id: text3
+                x: 50
+                y: 409
+                text: qsTr("X:")
+                font.pixelSize: 12
+            }
+
+            Text {
+                id: text4
+                x: 50
+                y: 470
+                text: qsTr("Y:")
+                font.pixelSize: 12
+            }
+
+            Button {
+                id: button
+                x: 48
+                y: 535
+                width: 120
+                height: 32
+                text: qsTr("Wyślij wartość:")
+            }
+
+            Text {
+                id: text5
+                x: 48
+                y: 615
+                width: 262
+                height: 17
+                text: qsTr("Stan aktualnego zlecenia:")
+                font.pixelSize: 12
+                font.family: "Verdana"
+                font.bold: false
+            }
+
+            Text {
+                id: text6
+                x: 424
+                y: 421
+                width: 164
+                height: 16
+                text: qsTr("linijka")
+                font.pixelSize: 12
+                font.family: "Courier"
+            }
+
+            Text {
+                id: text7
+                x: 424
+                y: 441
+                width: 164
+                height: 16
+                text: qsTr("linijka")
+                font.pixelSize: 12
+                font.family: "Courier"
+            }
+
+            Text {
+                id: text8
+                x: 424
+                y: 463
+                width: 164
+                height: 16
+                text: qsTr("linijka")
+                font.pixelSize: 12
+                font.family: "Courier"
+            }
+
+            Text {
+                id: text9
+                x: 424
+                y: 486
+                width: 164
+                height: 16
+                text: qsTr("linijka")
+                font.pixelSize: 12
+                font.family: "Courier"
+            }
+
+            Text {
+                id: text10
+                x: 424
+                y: 508
+                width: 164
+                height: 16
+                text: qsTr("linijka")
+                font.pixelSize: 12
+                font.family: "Courier"
+            }
+
+            Text {
+                id: text11
+                x: 424
+                y: 530
+                width: 164
+                height: 16
+                text: qsTr("linijka")
+                font.pixelSize: 12
+                font.family: "Courier"
+            }
+
+            Text {
+                id: text12
+                x: 424
+                y: 552
+                width: 164
+                height: 16
+                text: qsTr("linijka")
+                font.pixelSize: 12
+                font.family: "Courier"
+            }
+
+            Text {
+                id: text13
+                x: 424
+                y: 574
+                width: 164
+                height: 16
+                text: qsTr("linijka")
+                font.pixelSize: 12
+                font.family: "Courier"
+            }
+
+            Text {
+                id: text14
+                x: 424
+                y: 596
+                width: 164
+                height: 16
+                text: qsTr("linijka")
+                font.pixelSize: 12
+                font.family: "Courier"
             }
         }
     }
