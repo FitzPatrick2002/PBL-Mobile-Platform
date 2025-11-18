@@ -18,16 +18,36 @@ message rx_message;
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len){
   memcpy(&rx_message, incomingData,len);
-  Serial.println(rx_message.x);
-  Serial.println(rx_message.y);
-  Serial.println(rx_message.state);
+
+  Serial.println("*|==========================================================|*");
+  Serial.print("Joystick: X: "); Serial.print(rx_message.x);Serial.print(" | Y: "); Serial.print(rx_message.y); 
+  Serial.print(" |\nButtons: A: "); Serial.print(rx_message.a_b); Serial.print(" | B: "); Serial.print(rx_message.b_b);
+  Serial.print(" | X: "); Serial.print(rx_message.x_b); Serial.print(" | Y: "); Serial.print(rx_message.y_b);
+  Serial.print(" | Start: "); Serial.print(rx_message.start); Serial.print(" | Select: "); Serial.println(rx_message.select);
+  Serial.print("State: ");  
+  String state;
+  switch(rx_message.state)
+  {
+    case STANDBY:
+      state = "STANDBY";
+      break;
+    case MOVING:
+      state = "MOVING";
+      break;
+    case SCANNING:
+      state = "SCANNING";
+      break;
+    case UPLOADING:
+      state = "UPLOADING";
+      break;
+  }
+  Serial.println(state);
 }
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   delay(100);
-  Serial.println("dd");
   WiFi.mode(WIFI_STA);
 
   if(esp_now_init() != ESP_OK){

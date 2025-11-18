@@ -17,6 +17,7 @@ uint32_t button_mask = (1UL << BUTTON_X) | (1UL << BUTTON_Y) | (1UL << BUTTON_ST
 uint8_t receiverAddress[] = {0xB8, 0xF8, 0x62, 0x2D, 0x58, 0x30};
 
 esp_now_peer_info_t peerInfo;
+
 enum manager_state{
   STANDBY = 0,
   MOVING = 1,
@@ -38,18 +39,19 @@ void constructMessage(message& new_message)
 {
   int x = 1023 - ss.analogRead(14);
   int y = 1023 - ss.analogRead(14);
-  //Serial.print(x); Serial.print(", "); Serial.println(y);
   new_message.a_b = false;
   new_message.b_b = false;
   new_message.x_b = false;
   new_message.y_b = false;
+  new_message.start = false;
+  new_message.select = false;
   new_message.state = last_man_state;
   
 
   if(new_message.state!= SCANNING)
   {
     if((abs(x-last_x)>3) || (abs(y-last_y)>3)){
-      Serial.print("X: "); Serial.print(x); Serial.print(", Y: "); Serial.println(y);
+      //Serial.print("X: "); Serial.print(x); Serial.print(", Y: "); Serial.println(y);
       last_x = x; last_y = y;
       new_message.x = x; new_message.y = y;
       new_message.state = MOVING;
@@ -59,12 +61,10 @@ void constructMessage(message& new_message)
   uint32_t buttons = ss.digitalReadBulk(button_mask);
 
   if(!(buttons & (1UL << BUTTON_A))){
-    Serial.println("Button A pressed");
     new_message.a_b = true;
     new_message.state = SCANNING;
   }
   if(!(buttons & (1UL << BUTTON_B))){
-    Serial.println("Button B pressed");
     new_message.b_b = true;
     if(new_message.state != SCANNING)
     {
@@ -73,7 +73,6 @@ void constructMessage(message& new_message)
   }
   if(!(buttons & (1UL << BUTTON_Y)))
   {
-    Serial.println("Button Y pressed");
     new_message.y_b = true;
     if(new_message.state == SCANNING || new_message.state == UPLOADING)
     {
@@ -83,30 +82,48 @@ void constructMessage(message& new_message)
 
   if(!(buttons & (1UL << BUTTON_X)))
   {
-    Serial.println("Button X pressed");
     new_message.x_b = true;
   }
   if(!(buttons & (1UL << BUTTON_SELECT)))
-  {
-    Serial.println("Select pressed");
+  { 
     new_message.select = true;
   }
   if(!(buttons & (1UL << BUTTON_START)))
   {
-    Serial.println("Start pressed");
     new_message.start = true;
   }
 
   last_man_state = new_message.state;
+
+  //printing data
+  Serial.println("*|==========================================================|*");
+  Serial.print("Values: X: "); Serial.print(new_message.x);Serial.print(" | Y: "); Serial.print(new_message.y); 
+  Serial.print(" |\nButtons: A: "); Serial.print(new_message.a_b); Serial.print(" | B: "); Serial.print(new_message.b_b);
+  Serial.print(" | X: "); Serial.print(new_message.x_b); Serial.print(" | Y: "); Serial.print(new_message.y_b);
+  Serial.print(" | Start: "); Serial.print(new_message.start); Serial.print(" | Select: "); Serial.println(new_message.select);
+  Serial.print("State: ");  
+  String state;
+  switch(new_message.state)
+  {
+    case STANDBY:
+      state = "STANDBY";
+      break;
+    case MOVING:
+      state = "MOVING";
+      break;
+    case SCANNING:
+      state = "SCANNING";
+      break;
+    case UPLOADING:
+      state = "UPLOADING";
+      break;
+  }
+  Serial.println(state);
 }
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status){
-  Serial.print("\r\nLast Packet Send Status:\t");
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Failure");
 }
-
-
-
 
 
 void setup() {
@@ -120,8 +137,6 @@ void setup() {
     Serial.println("Error seesaw not found");
     while(1) delay(1);
   }
-
-  Serial.println("Gamepad QT example");
 
   uint32_t version = ((ss.getVersion() >> 16) & 0xFFFF);
   if (version != 5743) {
@@ -160,10 +175,9 @@ void loop() {
   esp_err_t result = esp_now_send(receiverAddress, (uint8_t *) &tx_message, sizeof(tx_message));
 
   if(result == ESP_OK){
-    Serial.println("Sent with success");
+    Serial.print("Sent with success ");
   }else{
-    Serial.println("Error sending the data");
+    Serial.print("Error sending the data ");
   }
-
-  delay(500);
+  delay(200);
 }
