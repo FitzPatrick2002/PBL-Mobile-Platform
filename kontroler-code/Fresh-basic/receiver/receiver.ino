@@ -19,12 +19,12 @@ message rx_message;
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len){
   memcpy(&rx_message, incomingData,len);
 
-  Serial.println("*|==========================================================|*");
+  //Serial.println("*|==========================================================|*");
   Serial.print("Joystick: X: "); Serial.print(rx_message.x);Serial.print(" | Y: "); Serial.print(rx_message.y); 
-  Serial.print(" |\nButtons: A: "); Serial.print(rx_message.a_b); Serial.print(" | B: "); Serial.print(rx_message.b_b);
+  Serial.print(" | Buttons: A: "); Serial.print(rx_message.a_b); Serial.print(" | B: "); Serial.print(rx_message.b_b);
   Serial.print(" | X: "); Serial.print(rx_message.x_b); Serial.print(" | Y: "); Serial.print(rx_message.y_b);
-  Serial.print(" | Start: "); Serial.print(rx_message.start); Serial.print(" | Select: "); Serial.println(rx_message.select);
-  Serial.print("State: ");  
+  Serial.print(" | Start: "); Serial.print(rx_message.start); Serial.print(" | Select: "); Serial.print(rx_message.select);
+  Serial.print(" | State: ");  
   String state;
   switch(rx_message.state)
   {

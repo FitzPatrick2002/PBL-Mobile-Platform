@@ -14,7 +14,7 @@ Adafruit_seesaw ss;
 uint32_t button_mask = (1UL << BUTTON_X) | (1UL << BUTTON_Y) | (1UL << BUTTON_START) |
                        (1UL << BUTTON_A) | (1UL << BUTTON_B) | (1UL << BUTTON_SELECT);
 
-uint8_t receiverAddress[] = {0xB8, 0xF8, 0x62, 0x2D, 0x58, 0x30};
+uint8_t receiverAddress[] = {0xE4, 0xB0, 0x63, 0xAF, 0x36, 0xBC};
 
 esp_now_peer_info_t peerInfo;
 
@@ -48,10 +48,9 @@ void constructMessage(message& new_message)
   new_message.state = last_man_state;
   
 
-  if(new_message.state!= SCANNING)
+  if(new_message.state!= SCANNING || new_message.state!= UPLOADING)
   {
     if((abs(x-last_x)>3) || (abs(y-last_y)>3)){
-      //Serial.print("X: "); Serial.print(x); Serial.print(", Y: "); Serial.println(y);
       last_x = x; last_y = y;
       new_message.x = x; new_message.y = y;
       new_message.state = MOVING;
@@ -62,7 +61,10 @@ void constructMessage(message& new_message)
 
   if(!(buttons & (1UL << BUTTON_A))){
     new_message.a_b = true;
-    new_message.state = SCANNING;
+    if(new_message.state != UPLOADING)
+    {
+      new_message.state = SCANNING;
+    }
   }
   if(!(buttons & (1UL << BUTTON_B))){
     new_message.b_b = true;
@@ -82,6 +84,10 @@ void constructMessage(message& new_message)
 
   if(!(buttons & (1UL << BUTTON_X)))
   {
+    if(new_message.state == MOVING)
+    {
+      new_message.state = STANDBY;
+    }
     new_message.x_b = true;
   }
   if(!(buttons & (1UL << BUTTON_SELECT)))
