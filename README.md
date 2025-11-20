@@ -3,43 +3,51 @@ Celem projektu jest budowa zdalnie sterowanej platformy, mogącej skanować otoc
 
 Gdzie platforma:
 
-12-14.11.2025 -> MR (testy kontrolera)
-15-17.11.2025 -> ML (testy odometrii + montaż enkoderów)
-18-?.11.2025 -> MR (testy kontrolera)
-...
+ - 12-14.11.2025 -> MR (testy kontrolera) (ok)
+ - 15-17.11.2025 -> ML (testy odometrii + montaż enkoderów) (ok)
+ - 18-19.11.2025 -> MR (testy kontrolera) (ok)
+ - 19-? .11.2025 -> JG 
 
 TO DO + podział zadań:
 
 * Platforma:
+    0. Główna pętla
+     - Software:
+        - Integracja z kodem z receivera
+        - Integracja z kodem z odometrii
+        - Integracja z kodem do sterowania silniczkami
+        - Integracja z kodem do lidara
+        - Możliwość przesyłu danych na kompa (zrobić to jako osobną klasę zarządzającą danymi / zapis na microSD / przesył na kompa / kontroler.)
+
     1. System jezdny
-    Hardware:
-        - Montaż enkoderów (ML)
-    Software:
+     - Hardware:
+        - Montaż enkoderów (ML) (ok)
+     - Software:
         - Klasa kontrolująca silniczki (MŚ & JG)
 
     2. System pomiarowy:
-    Hardware:
+     - Hardware:
         - Montaż Lidara (ML)
-    Software:
-        - test lidara na kompie (ML)
-        - Test klasy kontrolującej lidar (ML)
+     - Software:
+        - Test lidara na kompie (ML)
+        - Test 1 klasy kontrolującej lidar (ML)
 
     3. System pozycyjny:
-    Hardware:
-        - Enkodery z (1.)
-    Software:
-        - Test klasy z Odometrią (ML)
+     - Hardware:
+        - Enkodery z (1.) (ok)
+     - Software:
+        - Test 1 klasy z Odometrią (ML) (ok)
 
     4. Kontroler:
-    Hardware:
-        - ?
-    Software:
+     - Hardware:
+        - (ok)
+     - Software:
         - Test przesyłu danych na platformę (MR)
 
     5. System wykrywania przeszkód
-    Hardware:
+     - Hardware:
         - Zaprojektowanie systemu (MR)
-    Software:
+     - Software:
         - Klasa kontrolująca system wykrywania przeszkód (MR)
         - Asembler sczytujący wartości z pinów (MR)
 
@@ -53,7 +61,8 @@ TO DO + podział zadań:
 
 * Zakupy:
     1. Zamówienie
-        - (MR)
+        - Zapotrzebowanie 2 (MR) (ok)
+        - Zapotrzebowanie 3 (MR) (ok)
     2. Odbiór 
         - (Kto będzie ten będzie)
 
