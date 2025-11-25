@@ -1,10 +1,8 @@
 /// @file mainloop-test.ino
 /// @brief Contains the skeleton for main loop of the rover.
 
-#include <esp_now.h>
-#include <WiFi.h>
-#include <LittleFS.h>
-#include "FS.h"
+//#include <esp_now.h>
+//#include <WiFi.h>
 
 // Tutorials
 // 0. https://www.freertos.org/message_passing_performance
@@ -34,21 +32,21 @@
 
 #define DEBUG_RECEIVE_MSG ///< When message is received via ESP NOW it is logged through UART. COmment this out to disable
 
+/// @brief Defines possible states of operation for the rover
+typedef enum ManagerState{
+  STANDBY = 0,  ///< Rover is not performing any actions that could break communication
+  MOVING = 1,   ///< Rover is changing position using engines.
+  SCANNING = 2, ///< Rover is gathering environmental data, can't move now.
+  UPLOADING = 3 ///< Rover is uploading data to PC.
+  // Another state for uploading to controller
+} op_mode;
+
 /// @brief Message struct is used to exchange data between rover and controller.
-ty
-pedef struct struct_message {
+typedef struct struct_message {
   int x, y; ///< Analog values of joystick potentiometers in range (0, 1023).
   bool start, select, x_button, y_button, b_button, a_button; ///< Status of controllers buttons.
   op_mode state; ///< Some esp32 specific thingie?
 } struct_message;
-
-/// @brief Defines possible states of operation for the rover
-enum ManagerState{
-  STANDBY = 0,   ///< Rover is not performing any actions that could break communication
-  MOVING = 1,   ///< Rover is changing position using engines.
-  SCANNING = 2, ///< Rover is gathering environmental data, can't move now.
-  UPLOADING = 3 ///< Rover is uploading data to PC.
-};
 
 class Manager{
 private:
@@ -118,6 +116,8 @@ public:
       // Set the state based on message data (buttons status, joystick status, etc)
       // Mutex 
       //state = (ManagerState)(controllerMessage.newState);
+      //state = ManagerState::STANDBY;
+      Serial.println("Message is processed.");
 
       // Set the flag status = false, as message is already processed.
       messageReceived = false; 
@@ -191,14 +191,22 @@ public:
   }
 
   /// @brief Returns the address of the @controllerMessage field which stores the message issued by the controller.
-  /// @return Address of @controllerMessage.
+  /// @return Address of #controllerMessage.
   struct_message* getControllerMessageLocation(){
-    return &this.controllerMessage;
+    return &this->controllerMessage;
   }
 
   /// @brief Sets the status of @messageReceived flag.
   void setMessageReceived(bool status){
     messageReceived = status;
+  }
+
+  void setState(op_mode newState){
+    state = newState;
+  }
+
+  ManagerState getState(){
+    return state;
   }
 };
 
@@ -211,6 +219,7 @@ Manager manager;
 /// @param mac Mac address of the receiver device.
 /// @param incomingData Incoming data bytes.
 /// @param len Number of bytes to read.
+/*
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   // Copy the received bytes into the appropriate field of the manager
   memcpy (manager.getControllerMessageLocation(), incomingData, len);
@@ -218,7 +227,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
 
   // In debug mode, print all stuff into the console
   #ifdef DEBUG_RECEIVE_MSG
-    struct_message rx_message = manager.getControllerMessage();
+    struct_message rx_message = manager.getControllerLastMessage();
 
     Serial.print("X: ");
     Serial.println(rx_message.x);
@@ -240,19 +249,62 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     Serial.println(rx_message.state);
   #endif
 }
+*/
 
-  // -------------- Rover Operations -------------- //
+void emptySerialBuffer(){
+  while(Serial.available()){
+    char c = Serial.read();
+  }
+}
+
+// -------------- Rover Operations -------------- //
 
 void setup() {
   // put your setup code here, to run once:
 
-  // Lots of ESP NOW stuff here
+  // Setup serial communication
+  Serial.begin(115200);
+  while(!Serial){
+    delay(10);
+  }
+  Serial.println("Working");
 
+/*
+  // Setup device as wifi station
+  WiFi.mode(WIFI_STA);
+
+  // Init esp-now
+  if (esp_now_init != ESP_OK){
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+
+  // Register callback that will be called when receiver receives a message
   esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
+  */
+
+  // Setup went well message
+  Serial.println("All went good");
 }
+
+ManagerState seqStates[5] = {ManagerState::STANDBY, ManagerState::SCANNING, ManagerState::MOVING, ManagerState::SCANNING, ManagerState::UPLOADING};
+uint8_t counter = 0;
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  if(Serial.available()){
+    char c = Serial.read();
+    emptySerialBuffer();
+
+    manager.setMessageReceived(true);
+    manager.setState(seqStates[counter]);
+    counter = (counter + 1) % 5;
+    Serial.println((int)manager.getState());
+  }
+
+  //delay(500);
+  manager.mainLoop();
 
 }
 
