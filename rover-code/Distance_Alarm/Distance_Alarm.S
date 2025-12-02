@@ -10,7 +10,7 @@ set_output_enable: #setting the pin 1 - trigger as output
   lui t0, 0x60004 #base address for GPIO registers
   addi t0, t0, 0x020 #offset for the GPIO_ENABLE_REG to enable output, input is by default
 
-  li t1, 0x2 # the specific pin numero 1
+  li t1, 0x5 # the specific pin numero 1 and 3 00101
   sw t1, 0(t0) #set the pin, but unfortunately now it's overwritting sorta the rest.
 
   ret
