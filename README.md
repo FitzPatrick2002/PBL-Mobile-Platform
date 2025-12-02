@@ -6,7 +6,9 @@ Gdzie platforma:
  - 12-14.11.2025 -> MR (testy kontrolera) (ok)
  - 15-17.11.2025 -> ML (testy odometrii + montaż enkoderów) (ok)
  - 18-19.11.2025 -> MR (testy kontrolera) (ok)
- - 19-? .11.2025 -> JG 
+ - 19-25.11.2025 -> JG
+ - 26-27.11.2025 -> ML
+ - 28.11-?.12.2025 -> JG
 
 TO DO + podział zadań:
 
