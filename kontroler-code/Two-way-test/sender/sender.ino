@@ -5,6 +5,8 @@ Adafruit_seesaw ss;
 #include <esp_now.h>
 #include <WiFi.h>
 
+#define built_in_led 5
+
 #define BUTTON_X         6
 #define BUTTON_Y         2
 #define BUTTON_A         5
@@ -63,6 +65,9 @@ void constructMessage(message& new_message)
       last_x = x; last_y = y;
       new_message.x = x; new_message.y = y;
       new_message.state = MOVING;
+
+      send_message();
+      Serial.println("Sending a message");
     }
   }
 
@@ -110,6 +115,8 @@ void constructMessage(message& new_message)
   if(!(buttons & (1UL << BUTTON_START)))
   {
     new_message.start = true;
+    send_message();
+    Serial.println("Sending a message");
   }
 
   last_man_state = new_message.state;
@@ -136,17 +143,34 @@ void constructMessage(message& new_message)
     case UPLOADING:
       state = "UPLOADING";
       break;
+    case STATUS_UPDATE:
+      state = "requesting update";
+      break;
   }
   Serial.println(state);
 }
 
+void send_message()
+{
+  esp_err_t result = esp_now_send(receiverAddress, (uint8_t *) &tx_message, sizeof(tx_message));
+
+  if(result == ESP_OK){
+    Serial.print("Sent with success ");
+  }else{
+    Serial.print("Error sending the data ");
+  }
+}
+
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status){
+  digitalWrite(built_in_led, HIGH);
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Failure");
+  delay(100);
+  digitalWrite(built_in_led, LOW);
 }
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len){
   memcpy(&rx_message, incomingData,len);
-  last_man_state = STANDBY;
+  //last_man_state = STANDBY;
   Serial.println(rx_message.status_text);
 }
 
@@ -155,6 +179,9 @@ void setup() {
   Serial.begin(115200);
 
   Wire.begin(8,9);
+  //output LED 
+  //now its just built in
+  pinMode(built_in_led, OUTPUT);
   delay(50);
 
   if(!ss.begin(0x50)){
@@ -196,14 +223,6 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  constructMessage(tx_message);
-  esp_err_t result = esp_now_send(receiverAddress, (uint8_t *) &tx_message, sizeof(tx_message));
-
-  if(result == ESP_OK){
-    Serial.print("Sent with success ");
-  }else{
-    Serial.print("Error sending the data ");
-  }
-  delay(200);
+    constructMessage(tx_message);
+    delay(200);
 }
