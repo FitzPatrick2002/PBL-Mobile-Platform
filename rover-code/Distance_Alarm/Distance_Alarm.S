@@ -12,10 +12,15 @@
 
 set_output_enable: #setting the pin 1 - trigger as output
   lui t0, 0x60004 #base address for GPIO registers
-  addi t0, t0, 0x020 #offset for the GPIO_ENABLE_REG to enable output, input is by default
+  addi t0, t0, 0x024 #offset for the GPIO_ENABLE_REG to enable output, input is by default
 
-  li t1, 0x2A # pins 1,3,5 (5 does not work, unsure as to why)
-  sw t1, 0(t0) #set the pin, but unfortunately now it's overwritting sorta the rest.
+  lw t1, 0(t0) # in order not to overwrite, read the current value
+  ori t1, t1, 0x2A #pin number 1
+  #li t1, 0x2 #pin number 1
+  sw t1, 0(t0)
+
+  #li t1, 0x2A # pins 1,3,5 (5 does not work, unsure as to why)
+  #sw t1, 0(t0) #set the pin, but unfortunately now it's overwritting sorta the rest.
 
   ret
 

@@ -1,8 +1,8 @@
-#define echo_uno 0 //3 0
-#define trigger_uno 1 //0 1
-#define echo_dos 2 //4 2
-#define trigger_dos 3 //1 3
-#define led_uno 5 //2 4
+#define echo_uno 0
+#define trigger_uno 1
+#define echo_dos 2 
+#define trigger_dos 3
+#define led_uno 5
 
 float duration_uno, distance_uno;
 float duration_dos, distance_dos;
@@ -16,6 +16,7 @@ extern "C"{
     void reset_pin_dos();
     void led_high();
     void led_low();
+    void set_output_enable_led();
 } 
 
 void setup() {
@@ -24,7 +25,7 @@ void setup() {
   pinMode(echo_dos, INPUT);
 
   set_output_enable();
-  pinMode(led_uno, OUTPUT); //will need to check the assembly for why it is not setting properly
+  pinMode(led_uno, OUTPUT); //unable to set pin 5, no known reason. documentation checked
 
   Serial.println("Starting to measure the distance: ");
   Serial.begin(115200);
@@ -39,7 +40,7 @@ void loop() {
   // digitalWrite(trigger_uno,LOW);
 
   duration_uno = pulseIn(echo_uno, HIGH);
-  distance_uno = 0.0343 * duration_uno / 2; //this will stay in c++ due to 
+  distance_uno = 0.0343 * duration_uno / 2; //this will stay in c++
 
   Serial.print("Distance Uno: "); Serial.println(distance_uno);
   
@@ -51,13 +52,12 @@ void loop() {
   {
     led_low();
     delayMicroseconds(35);
-
   }
 
   trigger_pin_dos();
 
   duration_dos = pulseIn(echo_dos, HIGH);
-  distance_dos = 0.0343 * duration_dos / 2; //this will stay in c++ due to 
+  distance_dos = 0.0343 * duration_dos / 2; //this will stay in c++
   Serial.print("Distance Dos: "); Serial.println(distance_dos);
   if(distance_dos <= alarm_distance)
   {
