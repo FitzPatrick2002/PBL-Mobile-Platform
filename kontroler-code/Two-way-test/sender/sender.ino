@@ -5,6 +5,7 @@ Adafruit_seesaw ss;
 #include <esp_now.h>
 #include <WiFi.h>
 
+//custom e-ink display setup
 #include <GxEPD2_BW.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
 //#include "GxEPD2_display_selection_new_style.h"
@@ -13,8 +14,11 @@ Adafruit_seesaw ss;
 #define EPD_RST   2
 #define EPD_BUSY  3
 
+//own constructor
 GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>
 display(GxEPD2_154_D67(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
+
+#include "bitmaps.h"
 
 #define blue_led 21
 
@@ -49,7 +53,7 @@ message tx_message;
 
 struct platforma_message{
   bool is_scanning;
-  String status_text;;
+  String status_text;
 };
 
 platforma_message rx_message;
@@ -57,29 +61,82 @@ platforma_message rx_message;
 int last_x = 0, last_y =0;
 manager_state last_man_state = STANDBY;
 
+void drawBitmaps(int choice)
+{
+  display.setRotation(1);
+  display.setFullWindow();
+  if(choice > 1 || choice < 0)
+    return;
 
+  display.firstPage();
+  do{
+    display.fillScreen(GxEPD_WHITE);
+    display.drawInvertedBitmap(0, 0, bitmaps[choice], 200, 200, GxEPD_BLACK);
+  }while(display.nextPage());
+}
+
+void cleanDisplay()
+{
+  display.setFullWindow();
+  display.firstPage();
+  do {
+    display.fillScreen(GxEPD_WHITE);
+  } while (display.nextPage());
+}
 
 const char HelloWorld[] = "Hello World!";
 
-void helloWorld()
+void displayMessage(const char message[])
 {
+  //cleanDisplay();
   display.setRotation(1);
   display.setFont(&FreeMonoBold9pt7b);
   display.setTextColor(GxEPD_BLACK);
-  int16_t tbx, tby; uint16_t tbw, tbh;
-  display.getTextBounds(HelloWorld, 0, 0, &tbx, &tby, &tbw, &tbh);
-  // center the bounding box by transposition of the origin:
-  uint16_t x = ((display.width() - tbw) / 2) - tbx;
-  uint16_t y = ((display.height() - tbh) / 2) - tby;
-  display.setFullWindow();
-  display.firstPage();
-  do
+  String text = message;
+  int index = text.indexOf('\n');
+  if(index != -1)
   {
-    display.fillScreen(GxEPD_WHITE);
-    display.setCursor(x, y);
-    display.print(HelloWorld);
+    String second_line = text.substring(index+1);
+    String first_line = text.substring(0, index-1);
+    int16_t tbx, tby; uint16_t tbw, tbh;
+    display.getTextBounds(first_line.c_str(), 0, 0, &tbx, &tby, &tbw, &tbh);
+    // center the bounding box by transposition of the origin:
+    uint16_t x = ((display.width() - tbw) / 2) - tbx;
+    uint16_t y = ((display.height() - tbh) / 2) - tby-20;
+
+    display.getTextBounds(second_line.c_str(), 0, 0, &tbx, &tby, &tbw, &tbh);
+    uint16_t x_ = ((display.width() - tbw) / 2) - tbx;
+    uint16_t y_ = ((display.height() - tbh) / 2) - tby+20;
+    display.setFullWindow();
+    display.firstPage();
+    do
+    {
+      display.drawInvertedBitmap(0, 0, bitmaps[0], 200, 200, GxEPD_BLACK);
+      //display.fillScreen(GxEPD_WHITE);
+      display.setCursor(x, y);
+      display.print(first_line);
+      display.setCursor(x_, y_);
+      display.print(second_line);
+    }
+    while (display.nextPage());
+  }else
+  {
+    int16_t tbx, tby; uint16_t tbw, tbh;
+    display.getTextBounds(message, 0, 0, &tbx, &tby, &tbw, &tbh);
+    // center the bounding box by transposition of the origin:
+    uint16_t x = ((display.width() - tbw) / 2) - tbx;
+    uint16_t y = ((display.height() - tbh) / 2) - tby;
+    display.setFullWindow();
+    display.firstPage();
+    do
+    {
+      //display.fillScreen(GxEPD_WHITE);
+      display.setCursor(x, y);
+      display.print(message);
+    }
+    while (display.nextPage());
   }
-  while (display.nextPage());
+  
 }
 
 
@@ -185,7 +242,20 @@ void constructMessage(message& new_message)
       state = "requesting update";
       break;
   }
-  Serial.println(state);
+  
+}
+
+const char* stateToString(manager_state state)
+{
+  switch (state)
+  {
+    case STANDBY:       return "STANDBY";
+    case MOVING:        return "MOVING";
+    case SCANNING:      return "SCANNING";
+    case UPLOADING:     return "UPLOADING";
+    case STATUS_UPDATE: return "STATUS UPDATE";
+    default:            return "UNKNOWN";
+  }
 }
 
 void send_message()
@@ -197,12 +267,19 @@ void send_message()
   }else{
     Serial.print("Error sending the data ");
   }
+  if(tx_message.state != MOVING)
+  {
+    String text = "Sent message:\n";
+    text += stateToString(tx_message.state);
+    displayMessage(text.c_str());
+  }
+  
 }
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status){
   digitalWrite(blue_led, HIGH);
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Failure");
-  delay(100);
+  delay(50);
   digitalWrite(blue_led, LOW);
 }
 
@@ -210,15 +287,17 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len){
   memcpy(&rx_message, incomingData,len);
   //last_man_state = STANDBY;
   Serial.println(rx_message.status_text);
+  String text = "Received state:\n";
+  text += rx_message.status_text;
+  displayMessage(text.c_str());
 }
 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  Wire.begin(8,10);
-  //output LED 
-  //now its just built in
+  Wire.begin(8,9); //SDA SCL
+
   pinMode(blue_led, OUTPUT);
   delay(50);
 
@@ -259,8 +338,10 @@ void setup() {
     return;
   }
 
+  //e-ink display
   display.init(115200, true, 2, false); // USE THIS for Waveshare boards with "clever" reset circuit, 2ms reset pulse
-  helloWorld();
+  //displayMessage("Starting program");
+  drawBitmaps(1);
   display.hibernate();
 }
 
