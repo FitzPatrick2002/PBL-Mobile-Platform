@@ -5,7 +5,7 @@ Adafruit_seesaw ss;
 #include <esp_now.h>
 #include <WiFi.h>
 
-#define built_in_led 5
+#define blue_led 5
 
 #define BUTTON_X         6
 #define BUTTON_Y         2
@@ -90,7 +90,7 @@ void constructMessage(message& new_message)
   if(!(buttons & (1UL << BUTTON_Y)))
   {
     new_message.y_b = true;
-    if(new_message.state == SCANNING || new_message.state == UPLOADING)
+    if(new_message.state == SCANNING || new_message.state == UPLOADING || new_message.state == STATUS_UPDATE)
     {
       new_message.state = STANDBY;
     }
@@ -162,10 +162,10 @@ void send_message()
 }
 
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status){
-  digitalWrite(built_in_led, HIGH);
+  digitalWrite(blue_led, HIGH);
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Failure");
   delay(100);
-  digitalWrite(built_in_led, LOW);
+  digitalWrite(blue_led, LOW);
 }
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len){
@@ -178,10 +178,10 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  Wire.begin(8,9);
+  Wire.begin(8,10);
   //output LED 
   //now its just built in
-  pinMode(built_in_led, OUTPUT);
+  pinMode(blue_led, OUTPUT);
   delay(50);
 
   if(!ss.begin(0x50)){
