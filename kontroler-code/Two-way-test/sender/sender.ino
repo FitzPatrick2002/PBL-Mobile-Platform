@@ -5,7 +5,18 @@ Adafruit_seesaw ss;
 #include <esp_now.h>
 #include <WiFi.h>
 
-#define blue_led 5
+#include <GxEPD2_BW.h>
+#include <Fonts/FreeMonoBold9pt7b.h>
+//#include "GxEPD2_display_selection_new_style.h"
+#define EPD_CS    7
+#define EPD_DC    1
+#define EPD_RST   2
+#define EPD_BUSY  3
+
+GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>
+display(GxEPD2_154_D67(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
+
+#define blue_led 21
 
 #define BUTTON_X         6
 #define BUTTON_Y         2
@@ -45,6 +56,33 @@ platforma_message rx_message;
 
 int last_x = 0, last_y =0;
 manager_state last_man_state = STANDBY;
+
+
+
+const char HelloWorld[] = "Hello World!";
+
+void helloWorld()
+{
+  display.setRotation(1);
+  display.setFont(&FreeMonoBold9pt7b);
+  display.setTextColor(GxEPD_BLACK);
+  int16_t tbx, tby; uint16_t tbw, tbh;
+  display.getTextBounds(HelloWorld, 0, 0, &tbx, &tby, &tbw, &tbh);
+  // center the bounding box by transposition of the origin:
+  uint16_t x = ((display.width() - tbw) / 2) - tbx;
+  uint16_t y = ((display.height() - tbh) / 2) - tby;
+  display.setFullWindow();
+  display.firstPage();
+  do
+  {
+    display.fillScreen(GxEPD_WHITE);
+    display.setCursor(x, y);
+    display.print(HelloWorld);
+  }
+  while (display.nextPage());
+}
+
+
 
 void constructMessage(message& new_message)
 {
@@ -220,6 +258,10 @@ void setup() {
     Serial.println("failed to add peer");
     return;
   }
+
+  display.init(115200, true, 2, false); // USE THIS for Waveshare boards with "clever" reset circuit, 2ms reset pulse
+  helloWorld();
+  display.hibernate();
 }
 
 void loop() {
