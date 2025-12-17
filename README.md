@@ -8,14 +8,15 @@ Gdzie platforma:
  - 18-19.11.2025 -> MR (testy kontrolera) (ok)
  - 19-25.11.2025 -> JG
  - 26-27.11.2025 -> ML
- - 28.11-?.12.2025 -> JG
+ - 28.11-17.12.2025 -> JG
+ - 17.12-18.12.2025 -> MR
 
 TO DO + podział zadań:
 
 * Platforma:
     0. Główna pętla
      - Software:
-        - Integracja z kodem z receivera
+        - Integracja z kodem z receivera (partially)
         - Integracja z kodem z odometrii
         - Integracja z kodem do sterowania silniczkami
         - Integracja z kodem do lidara
@@ -44,14 +45,16 @@ TO DO + podział zadań:
      - Hardware:
         - (ok)
      - Software:
-        - Test przesyłu danych na platformę (MR)
+        - Test przesyłu danych na platformę (MR) (OK)
+        - Wyświetlacz e-ink (MR) partially done
 
     5. System wykrywania przeszkód
      - Hardware:
-        - Zaprojektowanie systemu (MR)
+        - Zaprojektowanie systemu (MR) (OK)
      - Software:
-        - Klasa kontrolująca system wykrywania przeszkód (MR)
-        - Asembler sczytujący wartości z pinów (MR)
+        - Hardware interrupt do podłączenia na platformę (MR) (OK)
+        - Hardware interrupt platforma (ML)
+        - Asembler sczytujący wartości z pinów (MR) (OK)
 
 * PC / Laptop:
     1. Aplikacja Desktopowa (wyświetla zebrane pomiary, przechowuje je w folderach):
@@ -66,7 +69,7 @@ TO DO + podział zadań:
         - Zapotrzebowanie 2 (MR) (ok)
         - Zapotrzebowanie 3 (MR) (ok)
     2. Odbiór 
-        - (Kto będzie ten będzie)
+        - (Kto będzie ten będzie) (ok)
 
 * Odległa przyszłość (luźne pomysły jakby został kiedyś czas):
     1. Pełna wizualizacja 3D zebranych skanów
