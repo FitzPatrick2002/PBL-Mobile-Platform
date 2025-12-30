@@ -144,7 +144,7 @@ void displayMessage(const char message[])
 void constructMessage(message& new_message)
 {
   int x = 1023 - ss.analogRead(14);
-  int y = 1023 - ss.analogRead(14);
+  int y = 1023 - ss.analogRead(15); //fixed the pin reading
   new_message.a_b = false;
   new_message.b_b = false;
   new_message.x_b = false;
