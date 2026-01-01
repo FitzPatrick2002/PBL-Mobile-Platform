@@ -1,0 +1,28 @@
+JSONs which are exchanged between platform and pc
+
+# ---------------- Platform -> PC ---------------- #
+
+1. Sending odometry data
+ - Sends accumulated odometry readings.
+{
+"data-type" : "odometry"
+"payload"   : "[x0, y0, x1, y1, ...]"
+}
+
+2. Sending lidar scan
+ - Sends single stationary lidar scan
+ - position -> Position on which scan has been performed
+ - bearing  -> angle between the direction that platform is facing and magnetic north
+ - payload  -> raw data from lidar (
+                                    r - distance,
+                                    phi - angle in driving plane,
+                                    theta -angle in vertical plane // Probably we'll never use it
+                                    )
+{
+"data-type" : "lidar"
+"position"  : "[x0, y0]"
+"bearing"   : "angle"
+"payload"   : "[r0, phi0, theta0, r1, phi1, theta1, ...]"
+}
+
+# ---------------- PC -> Platform ---------------- #
