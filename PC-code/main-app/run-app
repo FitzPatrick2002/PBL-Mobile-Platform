@@ -1,0 +1,3 @@
+#!/bin/bash
+
+XDG_SESSION_TYPE=x11 GDK_BACKEND=x11 PYTHONPATH=. python main/main.py
