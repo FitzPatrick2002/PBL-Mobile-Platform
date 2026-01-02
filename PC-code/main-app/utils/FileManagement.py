@@ -144,6 +144,8 @@ class PCDSaver:
         else:
             path_data = np.concatenate((path_data, pos), axis=0)
 
+
+
         # Save the updated path file
         np.save(file=self._path_file, arr=path_data, allow_pickle=True)
 

@@ -150,13 +150,18 @@ class FlaskServer:
 
             # Propagate the odometry data further to the
             case "odometry":
-                print(f"FLask received odometry data from platform")
+                print(f"Flask handle_platform_messages(): Received odometry data from platform:")
+                print(data)
+                # Create the OdometryData object
+                odometry_data = OdometryData(data["payload"])
+
                 self.f_to_o3d.put({
-                    "type": "lidar",
-                    "payload": OdometryData([0.1, 1.1])
+                    "type": "odometry",
+                    "payload": odometry_data
                 })
+
             case _:
-                print(f"Unknown type of message received in flask server from mobile platform")
+                print(f"Flask handle_platform_messages(): Unknown type of message received in flask server from mobile platform")
 
     # ------------------ Communication With Qt App ------------------ #
 

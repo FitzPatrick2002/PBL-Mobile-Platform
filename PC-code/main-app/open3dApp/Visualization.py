@@ -5,8 +5,7 @@ import numpy as np
 import random
 import multiprocessing
 from pathlib import Path
-
-from certifi import contents
+import matplotlib.pyplot as plt
 
 from utils.DataTypes import LidarScan, OdometryData
 from utils.FileManagement import PCDSaver
@@ -61,7 +60,10 @@ class VisualizationApp:
     '''
     # Constants which index the menu states
     MENU_RANDOM = 1
-    MENU_QUIT = 2
+    MENU_COORD_FRAME = 2
+    MENU_REF_PLANE = 3
+    MENU_HEIGHT_MAP = 4
+    MENU_QUIT = 5
 
     def __init__(self, queue : multiprocessing.Queue, o3d_to_f : multiprocessing.Queue):
         '''
@@ -108,6 +110,9 @@ class VisualizationApp:
         if o3d.visualization.gui.Application.instance.menubar is None:
             debug_menu = o3d.visualization.gui.Menu()
             debug_menu.add_item("Add Radom PCD", VisualizationApp.MENU_RANDOM)
+            debug_menu.add_item("Coordinate frame", VisualizationApp.MENU_COORD_FRAME)
+            debug_menu.add_item("Ground plane & sky", VisualizationApp.MENU_REF_PLANE)
+            debug_menu.add_item("Height Map", VisualizationApp.MENU_HEIGHT_MAP)
             debug_menu.add_item("Quit", VisualizationApp.MENU_QUIT)
 
             # Add the instance of menu to the application
@@ -118,6 +123,12 @@ class VisualizationApp:
         # Callbacks for the menubar
         self.window.set_on_menu_item_activated(VisualizationApp.MENU_RANDOM,
                                                self._on_menu_random)
+        self.window.set_on_menu_item_activated(VisualizationApp.MENU_COORD_FRAME,
+                                               self._show_coordinate_frame)
+        self.window.set_on_menu_item_activated(VisualizationApp.MENU_REF_PLANE,
+                                               self._toggle_reference_plane)
+        self.window.set_on_menu_item_activated(VisualizationApp.MENU_HEIGHT_MAP,
+                                               self._toggle_height_map)
         self.window.set_on_menu_item_activated(VisualizationApp.MENU_QUIT,
                                                self._on_menu_quit)
 
@@ -136,6 +147,18 @@ class VisualizationApp:
             "type" : "sessions-config",
             "names" : existing_sessions
         })
+
+        # By default disable the ground plan
+        self._show_ground = False
+
+        # By default don't show the reference frame arrows
+        self._ref_frame_visible = False
+
+        # List of geometries stores all the names of added geometries
+        self._scene_pcds = dict()
+
+        # By default disable the height map
+        self._height_map_on = False
 
     # ------------ MENU CALLBACKS ------------ #
 
@@ -172,12 +195,139 @@ class VisualizationApp:
         '''
         o3d.visualization.gui.Application.instance.quit()
 
+    def _show_coordinate_frame(self):
+        '''
+        Adds the arrows for axes x, y, z.
+        '''
+
+        self._ref_frame_visible = not self._ref_frame_visible
+        self.scene.scene.show_axes(self._ref_frame_visible)
+
+        '''
+        # If there is no reference frame in the scene, add it
+        if not self.scene.scene.has_geometry("reference-frame-arrows"):
+            coordinate_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=3.0)
+            mat = o3d.visualization.rendering.MaterialRecord()
+            mat.base_color = [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ]
+            self.scene.scene.add_geometry("reference-frame-arrows", coordinate_frame, mat)
+        else:
+            if self.scene.scene.has_geometry("reference-frame-arrows"):
+                self.scene.scene.remove_geometry("reference-frame-arrows")
+        '''
+
+    def _toggle_reference_plane(self):
+        '''
+        Toggles the ground plane and the skybox.
+        '''
+
+        self._show_ground = not self._show_ground
+        self.scene.scene.show_ground_plane(enable=self._show_ground, plane=o3d.visualization.rendering.Scene.GroundPlane.XY)
+        self.scene.scene.show_skybox(enable=self._show_ground)
+
+        '''
+        # If plane does not exist, create it
+        if not self.scene.scene.has_geometry("ref-plane"):
+
+            # Specify the bounds of the bounding box
+            ref_plane = o3d.geometry.TriangleMesh().create_box(1000, 1000, 0.1)
+            translation = np.asarray([-500, -500, -1]).astype(np.float64)
+            ref_plane.translate(translation)
+
+            # Calculate the normals for the shader
+            #ref_plane.compute_vertex_normals()
+
+            # Create the material for the plane and set shader
+            mat = o3d.visualization.rendering.MaterialRecord()
+            #mat.shader = "defaultLitTransparency"
+            mat.base_color = [
+                0.2,
+                0.2,
+                0.2,
+                0.1
+            ]
+            mat.has_alpha=True
+            self.scene.scene.add_geometry("ref-plane", ref_plane, mat)
+        else:
+            # If it does exist, remove it
+            self.scene.scene.remove_geometry("ref-plane")
+        '''
+
+    def _toggle_height_map(self):
+        '''
+        Colors all points on the scene according to their z (height) value.
+        Does not preserve the original colouring :(.
+        '''
+
+        # If height map is not enabled, enable it
+        if not self._height_map_on:
+            # Enable the height map
+            self._height_map_on = True
+
+            # Find all z-values for all points
+            all_z_values = []
+            for pcd in self._scene_pcds.values():
+                points = np.asarray(pcd.points)
+                all_z_values.append(points[ : , 2])
+
+            # Find min and max z-values
+            all_z_values = np.concatenate(all_z_values)
+            max_z = max(all_z_values)
+            min_z = min(all_z_values)
+            span_z = max_z - min_z
+
+            # Get the color map and paint the points
+            colormap = plt.get_cmap("viridis")
+            for name, pcd in self._scene_pcds.items():
+                # Calculate the normalized value of z each point
+                points = np.asarray(pcd.points)
+                normalized_z = (points[ : , 2] - min_z) / span_z
+
+                # Map the colors and apply them to pcd points
+                color_values = colormap(normalized_z)[:, :3]
+                pcd.colors = o3d.utility.Vector3dVector(color_values)
+
+                # Define the material for the pcd
+                mat = o3d.visualization.rendering.MaterialRecord()
+                mat.point_size = 5.0
+
+                # Remove the geometry from the scene and add it back
+                self.scene.scene.remove_geometry(name)
+                self.scene.scene.add_geometry(name, pcd, mat)
+        else:
+            # If height map is already enabled, switch it off
+            self._height_map_on = False
+
+            # Recolor all points to random colors
+            for name, pcd in self._scene_pcds.items():
+                # Remove colors from the pcd
+                pcd.colors = o3d.utility.Vector3dVector([])
+
+                # Create the new material for the pcs
+                mat = o3d.visualization.rendering.MaterialRecord()
+                mat.point_size = 5.0
+                mat.base_color = [
+                    random.random(),
+                    random.random(),
+                    random.random(),
+                    1.0
+                ]
+
+                # Remove and add the pcd with a new color
+                self.scene.scene.remove_geometry(name)
+                self.scene.scene.add_geometry(name, pcd, mat)
+
     # ------------ PCD ADDING ------------ #
 
     def _interpret_message(self, message : dict):
         '''
         Interprets message received from the server.
         '''
+        print(f"o3d: Received a message: {message}")
 
         match message["type"]:
             case "lidar":
@@ -193,7 +343,12 @@ class VisualizationApp:
                 print("Visualization received lidar data")
 
             case "odometry":
-                print("Visualization received odometry data")
+                print(message["payload"].payload)
+                odometry_pcd = self._odometry_to_pcd(message["payload"])
+
+                # Add the new odometry data as a pcd to the scene and append to path.npy of the current session
+                self._add_pcd(odometry_pcd)
+                self._pcd_saver.update_position(np.asarray(odometry_pcd.points))
 
             case "session":
                 # Clear the scene and change currently selected session folder
@@ -219,8 +374,9 @@ class VisualizationApp:
         self._pcd_saver.start_session(name)
         print(f"o3d: Session started: {name}")
 
-        # Clear the scene
+        # Clear the scene & reset the dictionary of stored pcds
         self.scene.scene.clear_geometry()
+        self._scene_pcds.clear()
         print(f"o3d: Geometry cleared")
 
         # Clear the geometry _id
@@ -295,7 +451,10 @@ class VisualizationApp:
     def _add_pcd(self, pcd : o3d.geometry.PointCloud):
         '''
         Adds a new pcd to the scene.
+        Each added pcd has a unique name in the self._scene_pcds dictionary of type: 'pcd + self._id'.
+        If the pcd_name parameter is specified, then the pcd is appended to already existing one
         :param pcd: Processed pcd, correctly oriented and translated by the self._lidar_to_pcd()
+        :param pcd_name: If true, no new entry is
         :return:
         '''
         print(f"o3d: _add_pcd(): Starting function")
@@ -310,6 +469,10 @@ class VisualizationApp:
         mat.point_size = 5.0
         print(f"o3d: _add_pcd(): material created, adding pcd...")
         self.scene.scene.add_geometry("pcd" + str(self._id), pcd, mat)
+
+        # Append the name of the pcd to list of pcds in the scene
+        self._scene_pcds["pcd" + str(self._id)] = pcd
+        print(f"Pcds dict: {self._scene_pcds}")
         print(f"o3d: _add_pcd(): pcd successfully added")
 
     # ------------ PCD OPERATIONS ------------ #
@@ -350,6 +513,29 @@ class VisualizationApp:
         new_pcd.points = o3d.utility.Vector3dVector(points)
 
         return new_pcd
+
+    def _odometry_to_pcd(self, odometry_data : OdometryData) -> o3d.geometry.PointCloud:
+        '''
+        Converts the OdometryData object into a 3D pcd.
+        :param odometry_data: OdometryData object. Data should be only in 2D format. (List of [x0, y0, x1, y0, ...])
+        :return: Odometry readings converted t o3d format, represented as PointCloud object
+        '''
+
+        # List of floats [x0, y0, x1, y1]
+        points = odometry_data.payload
+        print(f"o3d: Converted odometry points: {points}")
+
+        # Convert the flat list into ndarray of shape (N, 2)
+        # and add z = 0 to each pair, making the shape (N, 3)
+        np_points = np.asarray(points).reshape(-1, 2)
+        zeros = np.zeros((np_points.shape[0], 1))
+        np_points = np.hstack((np_points, zeros))
+
+        # Create the pcd and return it
+        odometry_pcd = o3d.geometry.PointCloud()
+        odometry_pcd.points = o3d.utility.Vector3dVector(np_points)
+        print(f"o3d: Odometry conversion to pcd ok")
+        return odometry_pcd
 
 '''
 def main():
