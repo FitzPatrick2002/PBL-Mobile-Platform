@@ -249,7 +249,8 @@ public:
     // ---------- Distance calculation ---------- //
 
     /// @brief Calcualtes the new position of the rover
-    bool updatePosition(){
+    /// @param thetaOffset Driving direction accoridng to external sensor, for example imu (yaw euelr angle).
+    bool updatePosition(float thetaOffset){
         if(millis() - timer > 1000 / frequency){
             // Calculate distance covered by each wheel
             taskENTER_CRITICAL(&odometrySpinlock);
@@ -269,19 +270,22 @@ public:
             float rightDistance = Odometry::rotationToDistance(wheelRadius, Odometry::ticksToAngle(ticksPerRotation, coder[1]));
             taskEXIT_CRITICAL(&odometrySpinlock);
 
-            // Calculate parameters of the arc that the rover travelled between the measurements
-            float deltaTheta = (rightDistance - leftDistance) / wheelSpacing;
-
-            // If we are turning in place (wheels are rotating in opposite directions) jus take a sum)
+            // Legacy code below based on dead reconing.
             
+            // Calculate parameters of the arc that the rover travelled between the measurements
+            //float deltaTheta = (rightDistance - leftDistance) / wheelSpacing;
 
             //float radius = 2.0 * leftDistance * rightDistance / (rightDistance - leftDistance) + wheelSpacing;
             float averageDistance = (leftDistance + rightDistance) / 2.0;
+            
+
+            // Update theta value based on some external sensor value
+            theta = thetaOffset; 
 
             // Calcualte the new position
-            x = x + averageDistance * cos(theta + deltaTheta / 2.0);
-            y = y + averageDistance * sin(theta + deltaTheta / 2.0);
-            theta = theta + deltaTheta;
+            x = x + averageDistance * cos(theta); // + deltaTheta / 2.0);
+            y = y + averageDistance * sin(theta); // + deltaTheta / 2.0);
+            //theta = theta + deltaTheta;
 
             // Resets the coders
             taskENTER_CRITICAL(&odometrySpinlock);

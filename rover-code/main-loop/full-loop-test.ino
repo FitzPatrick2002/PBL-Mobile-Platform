@@ -41,12 +41,23 @@
 #define LIDAR_PWM 21
 
 // Wifi setup
-#define SSID "ssid - wifi name"
-#define WIFI_PASSWORD "password"
-#define SERVER_NAME "serverName"
+#define SSID "TELPOL-19886"
+#define WIFI_PASSWORD "38j8gze9sh"
+#define SERVER_NAME "http://192.168.21.17:9000"
 
+#define SERVER_POST_ENDPOINT "/receive_post"
+
+// I2C setup
 #define I2C_SDA 11
 #define I2C_SCL 12
+
+// Multiprocessing queue setup
+#define MAN_TO_HTTP_CAPACITY 50
+#define MAN_TO_HTTP_MESSAGE_SIZE 2*sizeof(float)
+
+struct PlatformPosition{
+  float x, y = 0.0;
+};
 
 //dc:06:75:f9:61:ac
 uint8_t kontrolerAddress[] = {0xDC, 0x06, 0x75, 0xF9, 0x61, 0xAC}; //kontroler address for two way communication
@@ -265,6 +276,81 @@ platforma_message tx_message;
 // Protext the data insode ISRs as well in that class.
 //portMUX_TYPE odometrySpinlock = portMUX_INITIALIZER_UNLOCKED; ///< Protects the coders in #Odometry::Odometer2Wheel.
 
+// -------------- Http Communication on Core 0 -------------- //
+
+TaskHandle_t task0Handle; ///< Handle to the http handling which runs on core 0.
+
+QueueHandle_t manToHttpQ = NULL; ///< Handle to the queue with which Manager can send stuff to the http operator.
+
+/// @brief Handles slow http requests on core 0 of the esp.
+///        Uses 2 queues to communicate with core 1.
+void handleHttpOnCore0(void *param){
+  // 0. Await indefinitely if there is any data in the queue
+  // 1. Read all data from the queue
+  // 2. Pack it into a message 
+  // 3. Create json
+  // 4. Make http request
+
+  // Struct which holds the platform position.
+  PlatformPosition position;
+
+  QueueHandle_t queue = (QueueHandle_t)(param);
+
+  // Message structure is as such:
+  /*
+  {
+    "data-type": "odometry",
+    "payload": [x0, y0, x1, y1, ...]
+  }
+  */
+  JsonDocument doc;
+  doc["data-type"] = "odometry";
+
+  // Main loop of the core 0 process.
+  // Handles extraction of data from the manToHttp queue and sending the data to server
+  while(true){
+    bool hasData = false;
+
+    JsonArray payload = doc["payload"].to<JsonArray>();
+
+    // Read the queue as long as there is content in it
+    while(xQueueReceive(queue, (&position), 0) == pdPASS){
+      hasData = true;
+
+      payload.add(position.x);
+      payload.add(position.y);
+    }
+
+    // If position update has been received, send it via http
+    if(hasData){
+      
+      // Stringify json and send to server
+      doc.shrinkToFit();
+      String jsonString;
+      serializeJson(doc, jsonString);
+
+      // Send the odometry data via POST
+      WiFiClient client;
+      HTTPClient http;
+      if (http.begin(client, String(SERVER_NAME) + String(SERVER_POST_ENDPOINT))){
+        http.addHeader("Content-type", "application/json");
+
+        int httpResponseCode = http.POST(jsonString);
+        http.end();
+
+        Serial.println("Odometry data POST: Server response: ");
+        Serial.println(httpResponseCode);
+
+        // Clear the emssage payload after sending
+        doc["payload"].clear();
+      }
+    }
+
+    // Wait 100 ms to let the system handle other tasks on this core (wifi, etc)
+    vTaskDelay(pdMS_TO_TICKS(100));
+  }
+}
+
 class Manager{
 private:
   Odometry::Odometer2Wheel odometer{LEFT_ENCODER, RIGHT_ENCODER, 4, 25, 10, 150};
@@ -279,11 +365,17 @@ private:
   // Obstacle detection class (HCSR)
   // Engines Controller class
 
+  // -------------- Controller Messages -------------- //
+
   volatile Message controllerMessage;    ///< Stores message received from the Controller. 
   volatile bool messageReceived = false; ///< Specifies if any new message has been received. It will be cleared after the new message has been processed.w
 
+  // -------------- State Handling -------------- //
+
   ManagerState state = ManagerState::STANDBY; ///< Current state of the rover. 
-  bool stateChanged = false;             ///< Set when data is received from the controller
+  bool stateChanged = false;                  ///< Set when data is received from the controller
+
+  // -------------- HCSR Info -------------- //
 
   volatile bool permanentStop = false;   ///< Informs about the status 
 
@@ -420,12 +512,24 @@ public:
   /// @brief Invokes routines necessary during every iteration through the main loop.
   ///        1. Odometry position update.
   void runEveryStep(){
-    if(odometer.updatePosition() == true){
+    
+    // Read the driving direction with regard to north
+    ICM_IMU::EulerAngles orientation;
+    imu.getEulerAngles(orientation, true);
+
+    if(odometer.updatePosition(orientation.yaw) == true){
+        // Save the current platform position into the message type handled by the queue
+        PlatformPosition pos;
+        pos.x = odometer.getXpos();
+        pos.y = odometer.getYpos();
+
+        // Send the odometry data to the queue
+        xQueueSend(manToHttpQ, (void*)(&pos), 0);
+
         #ifdef DEBUG_ODOMETRY_PUTTY
           odometer.writeToCSV(Serial, ';'); // Write data to Serial output -> putty
         #endif
     }
-    
   }
 
   // -------------- Rover Operations -------------- //
@@ -475,7 +579,7 @@ public:
     Serial.println(dataJson);
 
     // Send the http request
-    httpCommunicator.sendLidarData(dataJson, "/receive_post");
+    httpCommunicator.sendLidarData(dataJson, SERVER_POST_ENDPOINT);
 
     // Clear vector with lidar data
     lidarController.clearPoints();
@@ -666,6 +770,12 @@ void testCommunicationWithFlask(){
 
 void setup() {
   // put your setup code here, to run once:
+
+  // Initialize the core 0 routine
+
+  // Init queue from manager to core 0
+  manToHttpQ = xQueueCreate(MAN_TO_HTTP_CAPACITY, MAN_TO_HTTP_MESSAGE_SIZE);
+  xTaskCreatePinnedToCore(handleHttpOnCore0, "core-0", 3500, manToHttpQ, 0, &task0Handle, 0);
 
   // Setup serial communication
   Serial.begin(115200);
