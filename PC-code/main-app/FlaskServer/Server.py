@@ -1,6 +1,7 @@
 import multiprocessing
 import threading
 from pathlib import Path
+import requests
 
 from flask import Flask, request
 from utils.DataTypes import LidarScan, OdometryData
@@ -250,9 +251,23 @@ class FlaskServer:
                     "type": "session-switch",
                     "success": bool(message["name"])
                 })
+
             case "steering":
-                pass
+                # Make a POST request to the mobile platform for steering
+                print(f"Flask: Sending a steering request")
+                r = requests.post("http://192.168.21.30/command", data={
+                    "type" : "steering",
+                    "direction" : message["direction"]
+                })
+                print(f"Request: {r}")
+
             case "scan":
-                pass
+                # Send a scan request to the platform
+                r = requests.post("http://192.168.21.30/lidar", data={
+                    "type" : "lidar",
+                    "rotations" : message["rotations"],
+                    "every_nth" : message["every_nth"]
+                })
+
             case _:
                 print(f"Unknown type of message received in flask server from qt app: {message_type}")
