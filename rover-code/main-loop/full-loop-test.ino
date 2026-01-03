@@ -6,10 +6,13 @@
 #include <WiFi.h>
 
 #include "Odometer2Wheel.h"
-#include "silnik_mk1_1ax.h"
 #include "HTTPCommunicator.h"
 #include "LidarController.h"
 #include "icm_imu.h"
+#include "ArcadeDrive.h"
+#include "AsyncServerSpace.h"
+
+//#include "silnik_mk1_1ax.h"
 
 // Tutorials
 // 0. https://www.freertos.org/message_passing_performance
@@ -55,115 +58,23 @@
 #define MAN_TO_HTTP_CAPACITY 50
 #define MAN_TO_HTTP_MESSAGE_SIZE 2*sizeof(float)
 
+// ===================== KONFIGURACJA L298N ===================
+// PODSTAW SWOJE PINY ESP32:
+
+#define L_IN1 3 //5;   // kierunek silnik A
+#define L_IN2 4 //6;   // kierunek silnik A
+#define L_ENA 13 //18; // PWM silnik A
+
+#define R_IN1 14 //7;  // kierunek silnik B
+#define R_IN2 9 //8;   // kierunek silnik B
+#define R_ENB 8 //21;  // PWM silnik B
+
 struct PlatformPosition{
   float x, y = 0.0;
 };
 
 //dc:06:75:f9:61:ac
 uint8_t kontrolerAddress[] = {0xDC, 0x06, 0x75, 0xF9, 0x61, 0xAC}; //kontroler address for two way communication
-
-// ===================== KONFIGURACJA L298N ===================
-// PODSTAW SWOJE PINY ESP32:
-
-const int IN1 = 3;//5;   // kierunek silnik A
-const int IN2 = 4;//6;   // kierunek silnik A
-const int ENA = 13;//18;   // PWM silnik A
-
-const int IN3 = 14;//7;   // kierunek silnik B
-const int IN4 = 9;//8;   // kierunek silnik B
-const int ENB = 8;//21;   // PWM silnik B
-
-// ===================== KLASA ROBOTDRIVE =====================
-
-class RobotDrive {
-public:
-  RobotDrive(int in1, int in2, int ena,
-             int in3, int in4, int enb)
-    : _in1(in1), _in2(in2), _ena(ena),
-      _in3(in3), _in4(in4), _enb(enb) {}
-
-  void begin() {
-    pinMode(_in1, OUTPUT);
-    pinMode(_in2, OUTPUT);
-    pinMode(_ena, OUTPUT);
-
-    pinMode(_in3, OUTPUT);
-    pinMode(_in4, OUTPUT);
-    pinMode(_enb, OUTPUT);
-
-    stop();
-  }
-
-  // Sterowanie jazdą na podstawie osi X (0–1023)
-  void setSpeedFromJoystick(int xVal) {
-    const int JOY_MIN    = 0;
-    const int JOY_MAX    = 1023;
-    const int JOY_CENTER = 512;
-    const int DEADZONE   = 80;   // martwa strefa wokół środka
-
-    int delta = xVal - JOY_CENTER;
-
-    if (abs(delta) < DEADZONE) {
-      stop();
-      return;
-    }
-
-    int speed;
-
-    if (delta > 0) {
-      // Do przodu
-      speed = map(delta, DEADZONE, JOY_MAX - JOY_CENTER, 0, 255);
-      forward(speed);
-    } else {
-      // Do tyłu
-      delta = -delta;
-      speed = map(delta, DEADZONE, JOY_CENTER - JOY_MIN, 0, 255);
-      backward(speed);
-    }
-  }
-
-  void stop() {
-    digitalWrite(_in1, LOW);
-    digitalWrite(_in2, LOW);
-    digitalWrite(_in3, LOW);
-    digitalWrite(_in4, LOW);
-    analogWrite(_ena, 0);
-    analogWrite(_enb, 0);
-  }
-
-private:
-  int _in1, _in2, _ena;
-  int _in3, _in4, _enb;
-
-  void forward(int speed) {
-    digitalWrite(_in1, HIGH);
-    digitalWrite(_in2, LOW);
-    digitalWrite(_in3, HIGH);
-    digitalWrite(_in4, LOW);
-
-    speed = constrain(speed, 0, 255);
-    //Serial.print("GOING FORWARD: ");
-    //Serial.println(speed);
-    analogWrite(_ena, speed);
-    analogWrite(_enb, speed);
-  }
-
-  void backward(int speed) {
-    digitalWrite(_in1, LOW);
-    digitalWrite(_in2, HIGH);
-    digitalWrite(_in3, LOW);
-    digitalWrite(_in4, HIGH);
-
-    speed = constrain(speed, 0, 255);
-    //Serial.print("GOING BACKWARD: ");
-    //Serial.println(speed);
-    analogWrite(_ena, speed);
-    analogWrite(_enb, speed);
-  }
-};
-
-// Tworzymy obiekt sterujący robotem (globalnie, żeby był widoczny w callbacku)
-RobotDrive robot(IN1, IN2, ENA, IN3, IN4, ENB);
 
 esp_now_peer_info_t peerInfo; //kontroler board info
 /// @brief Defines possible states of operation for the rover
@@ -353,22 +264,26 @@ void handleHttpOnCore0(void *param){
 
 class Manager{
 private:
-  Odometry::Odometer2Wheel odometer{LEFT_ENCODER, RIGHT_ENCODER, 4, 25, 10, 150};
 
-  HTTP::HTTPCommunicator httpCommunicator{SSID, WIFI_PASSWORD, SERVER_NAME}; ///< Communicator that is used to make http requests.
+  // -------------- WiFi Communication -------------- //
   
-  Lidar::LidarController& lidarController = Lidar::LidarController::getInstance();
+  HTTP::HTTPCommunicator httpCommunicator{SSID, WIFI_PASSWORD, SERVER_NAME};       ///< Communicator that is used to make http requests (mainly for lidar scans).
+  AsyncServerSpace::ServerHandler asyncServer;
 
-  ICM_IMU::IMU imu{Serial};
-  // Silnik motorsControl{5, 6, 18, 21};
-  // Lidar class
-  // Obstacle detection class (HCSR)
-  // Engines Controller class
+  // -------------- Main Measurement Unit (LiDAR) -------------- //
+
+  Lidar::LidarController& lidarController = Lidar::LidarController::getInstance(); ///< Controles the lidar. Manages the way scans are done, how many rotations or how many points are skipped. Stores the scan results.
+
+  // -------------- Position and Orientation in Space -------------- //
+
+  Odometry::Odometer2Wheel odometer{LEFT_ENCODER, RIGHT_ENCODER, 4, 25, 10, 150}; ///< Calculates the current position based on wheel turns and driving direction given by imu.
+  ICM_IMU::IMU imu{Serial}; ///< Controls imu and provides to orientation quaternion. Retireval of orientation might be lengthy if last retrievel happened long ago.
+  DoubleEngine engineController{L_IN1, L_IN2, L_ENA, R_IN1, R_IN2, R_ENB}; ///< Controls the speed and direction of rotation of engines.
 
   // -------------- Controller Messages -------------- //
 
-  volatile Message controllerMessage;    ///< Stores message received from the Controller. 
-  volatile bool messageReceived = false; ///< Specifies if any new message has been received. It will be cleared after the new message has been processed.w
+  volatile Message controllerMessage;         ///< Stores message received from the Controller. 
+  volatile bool messageReceived = false;      ///< Specifies if any new message has been received. It will be cleared after the new message has been processed.w
 
   // -------------- State Handling -------------- //
 
@@ -377,7 +292,7 @@ private:
 
   // -------------- HCSR Info -------------- //
 
-  volatile bool permanentStop = false;   ///< Informs about the status 
+  volatile bool permanentStop = false;        ///< Informs about the status 
 
 public:
 
@@ -396,6 +311,23 @@ public:
 
   // -------------- Components Initialization -------------- //
 
+  /// @brief Initilizes and start the asynchronous server #asyncServer. 
+  ///        Use at the end or after lidar has been initialized.
+  void initAsyncServer(){
+    // Init the endpoints where requests will be send 
+    asyncServer.initCommandEndpoint();
+    asyncServer.initLidarEndpoint();
+
+    // Start the server
+    asyncServer.begin();
+  }
+
+  /// @brief Wrapper for engines initilization.
+  /// @see #engineController
+  void initEngines(){
+    engineController.initEngines();
+  }
+
   /// @brief Initilizes lidar.
   void initLidar(){
     lidarController.setPinout(LIDAR_EN, LIDAR_RX, LIDAR_TX, LIDAR_PWM);
@@ -408,6 +340,8 @@ public:
     // Init imu to use dmp, set the last bit of i2c address to 1 and show debug messages
     imu.init(true, 1, true);
   }
+
+  // -------------- Main Loop Actions -------------- //
 
   /// @brief Main operation loop.
   void mainLoop(){
@@ -486,7 +420,7 @@ public:
 
       // If rover is moving and the new state does not allow it to move, stop it
       if(state == ManagerState::MOVING && localCopyMessage.state != ManagerState::MOVING){
-        robot.stop();
+        engineController.stop();
       }
 
       // Set the state based on message data (buttons status, joystick status, etc)
@@ -511,12 +445,15 @@ public:
 
   /// @brief Invokes routines necessary during every iteration through the main loop.
   ///        1. Odometry position update.
+  ///        2. Send odometry update to core 0.
+  ///        3. Check if there is update from flask server on pc.
   void runEveryStep(){
     
     // Read the driving direction with regard to north
     ICM_IMU::EulerAngles orientation;
     imu.getEulerAngles(orientation, true);
 
+    // If the position has been updated, then send the new position to the core 0 which handles odometry updates to flask server
     if(odometer.updatePosition(orientation.yaw) == true){
         // Save the current platform position into the message type handled by the queue
         PlatformPosition pos;
@@ -529,6 +466,75 @@ public:
         #ifdef DEBUG_ODOMETRY_PUTTY
           odometer.writeToCSV(Serial, ';'); // Write data to Serial output -> putty
         #endif
+    }
+
+    this->checkPCmessages();
+  }
+
+  // -------------- Functions Invoked Every Main Loop Step -------------- //
+
+  /// @brief Checks if the #asyncServer has any new messages stored.
+  ///        Handled messages are: 
+  ///        - Lidar scan requests.
+  ///        - Steering commands (simplified).
+  ///        Based on server commands modifies #controllerMessage and #messageReceived in order
+  ///        to cause similiar behaviours as when steering with a remote contrller. 
+  void checkPCmessages(){
+    // Handle the commands received from the server.
+    if(asyncServer.isNewSteeringCommand()){
+      // Retireve the new command, commnd goes stale after the read
+      AsyncServerSpace::SteeringCommand newCommand;
+      newCommand = asyncServer.getSteeringCommand();
+
+      // Set the message
+      portENTER_CRITICAL_ISR(&this->messageSpinlock);
+
+      // Set the flag as message has been received
+      this->setMessageReceived(true);
+
+      // Set the joystick values according to the direction of driving
+      // If direction is none, stop the platform
+      if(newCommand.direction == "none"){
+        this->controllerMessage.x = 0;
+        this->controllerMessage.y = 0;
+        this->controllerMessage.state = ManagerState::STANDBY;
+      }
+      if(newCommand.direction == "forward"){
+        this->controllerMessage.y = 900;
+        this->controllerMessage.x = 0;
+        this->controllerMessage.state = ManagerState::MOVING;
+      }
+      else if(newCommand.direction == "backward"){
+        this->controllerMessage.y = 100;
+        this->controllerMessage.x = 0;
+        this->controllerMessage.state = ManagerState::MOVING;
+      }
+      else if(newCommand.direction == "left"){
+        this->controllerMessage.x = 900;
+        this->controllerMessage.y = 0;
+        this->controllerMessage.state = ManagerState::MOVING;
+      }
+      else if(newCommand.direction == "right"){
+        this->controllerMessage.x = 100;
+        this->controllerMessage.y = 0;
+        this->controllerMessage.state = ManagerState::MOVING;
+      }
+
+      // Clear all other message options
+      this->controllerMessage.start = false;
+      this->controllerMessage.select = false;
+      this->controllerMessage.x_b = false;
+      this->controllerMessage.y_b = false;
+      this->controllerMessage.b_b = false;
+      this->controllerMessage.a_b = false;
+
+      portEXIT_CRITICAL_ISR(&this->messageSpinlock);
+      
+    }
+    else if(asyncServer.isNewScanRequest()){
+      // Preapre the lidar (set num of rotations and every_nth)
+      // Set the approrpiate controllerMessage values
+      
     }
   }
 
@@ -543,10 +549,10 @@ public:
     // Allow movement only if the flag which indicates presence of an obstacle is not raised.
     // Disable movement otherwise.
     if (permanentStop == false){
-      robot.setSpeedFromJoystick(controllerMessage.y);
+      engineController.applySteering(controllerMessage.x, controllerMessage.y);
     }
     else{
-       robot.stop(); // TEST CODE
+      engineController.update();
     }
   }
 
@@ -873,8 +879,12 @@ void setup() {
   Serial.println("ESP NOW - OK");
 
   // Init the rover motors
-  robot.begin();
+  manager.initEngines();
   Serial.println("Motors - OK");
+
+  // Init asynchronous server
+  manager.initAsyncServer();
+  Serial.println("Async Server - OK");
 
   // Reset the odometry in case some interrupts missfired during setup
   delay(1000);
