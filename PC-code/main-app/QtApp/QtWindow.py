@@ -31,6 +31,7 @@ from QtApp.UI.UiMainWindow import Ui_MainWindow
     {
         type: 'scan-status',
         
+        success: bool
     }
     
     // Packet sent by the server as a response to request to session creation
@@ -163,8 +164,6 @@ class MainQtWindow(QMainWindow):
             "name" : new_name
         })
 
-
-
     @Slot(str)
     def onSessionSelected(self, new_text):
         '''
@@ -178,8 +177,8 @@ class MainQtWindow(QMainWindow):
             "name": new_text
         })
 
-
     # ------------ Measurements Slots ------------ #
+
     @Slot()
     def onMeasurementClicked(self):
         '''
@@ -310,7 +309,7 @@ class MainQtWindow(QMainWindow):
                     # Unblock the button for scanning or smth
 
                     self.ui.scan_btn.setEnabled(True)
-                    print(f"Scanning done, unblocking the button")
+                    print(f"Qt: Scanning done, unblocking the button")
 
                 case "session-switch":
                     # Server response to the session switch request.
@@ -345,7 +344,7 @@ class MainQtWindow(QMainWindow):
 
                 case _:
 
-                    print(f"Unknown packet received from server by Qt app: {packet}")
+                    print(f"Qt: Unknown packet received from server by Qt app: {packet}")
 
     # ------------ Running The QT Window ------------ #
 

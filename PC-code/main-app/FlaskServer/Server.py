@@ -128,8 +128,10 @@ class FlaskServer:
         message_type = data["data-type"]
 
         match message_type:
-            # Propagate the lidar data to visualization app
             case "lidar":
+                # 1. Propagate the lidar data to visualization app
+                # 2. Notify the qt app so that it can unblock its 'scan' button
+
                 bearing = float(data["bearing"])
                 position = data["position"]
                 payload = data["payload"]
@@ -149,6 +151,12 @@ class FlaskServer:
                     "payload" : lidar_scan
                 })
 
+                # Send the notification to qt app, so that it can unfreeze its 'send' buttton
+                self.f_to_qt.put({
+                    "type" : "scan-status",
+                    "success" : True
+                })
+
             # Propagate the odometry data further to the
             case "odometry":
                 print(f"Flask handle_platform_messages(): Received odometry data from platform:")
@@ -156,6 +164,7 @@ class FlaskServer:
                 # Create the OdometryData object
                 odometry_data = OdometryData(data["payload"])
 
+                # Send the odometry data to o3d app
                 self.f_to_o3d.put({
                     "type": "odometry",
                     "payload": odometry_data
@@ -254,20 +263,22 @@ class FlaskServer:
 
             case "steering":
                 # Make a POST request to the mobile platform for steering
-                print(f"Flask: Sending a steering request")
+                print(f"Flask: Sending a steering request to rover")
                 r = requests.post("http://192.168.21.30/command", data={
                     "type" : "steering",
                     "direction" : message["direction"]
                 })
-                print(f"Request: {r}")
+                print(f"Flask: Steering request status: {r}")
 
             case "scan":
                 # Send a scan request to the platform
-                r = requests.post("http://192.168.21.30/lidar", data={
-                    "type" : "lidar",
+                print("Flask: Sending a scan request to rover")
+                r = requests.post("http://192.168.21.30/scan", data={
+                    "type" : "scan",
                     "rotations" : message["rotations"],
                     "every_nth" : message["every_nth"]
                 })
+                print(f"Flask: Scan request status: {r}")
 
             case _:
-                print(f"Unknown type of message received in flask server from qt app: {message_type}")
+                print(f"Flask: Unknown type of message received in flask server from qt app: {message_type}")
