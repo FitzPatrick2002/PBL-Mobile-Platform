@@ -12,6 +12,8 @@
 #include "ArcadeDrive.h"
 #include "AsyncServerSpace.h"
 
+#include "Core0Manager.h"
+
 //#include "silnik_mk1_1ax.h"
 
 // Tutorials
@@ -33,6 +35,7 @@
 //#define DEBUG_RECEIVE_MSG ///< When message is received via ESP NOW it is logged through UART. Comment this out to disable
 //#define DEBUG_SAVE_MSG ///< When received message is processed (Manager state is updated) in Manager::listenToMessage()
 
+/*
 #define LEFT_ENCODER 17  ///< Odometry encoder on left wheel.
 #define RIGHT_ENCODER 10 ///< Odmetry encoder on right wheel.
 #define HCSR_STOP 1     ///< ISR pin for stopping the platform when obstacle was detected by ultrasonic sensors. 
@@ -44,11 +47,16 @@
 #define LIDAR_PWM 21
 
 // Wifi setup
-#define SSID "ssid"
-#define WIFI_PASSWORD "password"
-#define SERVER_NAME "https://111.111.111.111"
+#define SSID "TELPOL-19886"
+#define WIFI_PASSWORD "38j8gze9sh"
+#define SERVER_NAME "http://192.168.21.17:9000"
 
+// Server running on PC endpoints
 #define SERVER_POST_ENDPOINT "/receive_post"
+
+// Platform server endpoints
+#define PLATFORM_COMMAND_ENDPOINT "/steering"
+#define PLATFORM_SCAN_REQ_ENDPOINT "/lidar"
 
 // I2C setup
 #define I2C_SDA 11
@@ -58,9 +66,7 @@
 #define MAN_TO_HTTP_CAPACITY 50
 #define MAN_TO_HTTP_MESSAGE_SIZE 2*sizeof(float)
 
-// ===================== KONFIGURACJA L298N ===================
-// PODSTAW SWOJE PINY ESP32:
-
+// Configuration of L298N 
 #define L_IN1 3 //5;   // kierunek silnik A
 #define L_IN2 4 //6;   // kierunek silnik A
 #define L_ENA 13 //18; // PWM silnik A
@@ -68,10 +74,10 @@
 #define R_IN1 14 //7;  // kierunek silnik B
 #define R_IN2 9 //8;   // kierunek silnik B
 #define R_ENB 8 //21;  // PWM silnik B
+*/
 
-struct PlatformPosition{
-  float x, y = 0.0;
-};
+// Temporarily define this here 
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len);
 
 //dc:06:75:f9:61:ac
 uint8_t kontrolerAddress[] = {0xDC, 0x06, 0x75, 0xF9, 0x61, 0xAC}; //kontroler address for two way communication
@@ -79,11 +85,12 @@ uint8_t kontrolerAddress[] = {0xDC, 0x06, 0x75, 0xF9, 0x61, 0xAC}; //kontroler a
 esp_now_peer_info_t peerInfo; //kontroler board info
 /// @brief Defines possible states of operation for the rover
 enum ManagerState{
-  STANDBY = 0,      ///< Rover is not performing any actions that could break communication.
-  MOVING = 1,       ///< Rover is changing position using engines.
-  SCANNING = 2,     ///< Rover is gathering environmental data, can't move now.
-  UPLOADING = 3,    ///< Rover is uploading data to PC.
-  STATUS_UPDATE = 4//,  ///< Another state for uploading to controller.
+  STANDBY = 0,        ///< Rover is not performing any actions that could break communication.
+  MOVING = 1,         ///< Rover is changing position using engines.
+  SCANNING = 2,       ///< Rover is gathering environmental data, can't move now.
+  UPLOADING = 3,      ///< Rover is uploading data to PC.
+  STATUS_UPDATE = 4,  ///< Another state for uploading to controller.
+  IMU_CALIBRATION = 5 ///< Rover is basically in idle state but imu is calibration mode.
   //UPLOADING_TO_PC = 5 ///< Platform is sending data to PC.
 };
 
@@ -183,14 +190,11 @@ struct platforma_message{
 };
 
 platforma_message tx_message;
-// Make the spinlock local in the Odometer2Wheels
-// Protext the data insode ISRs as well in that class.
-//portMUX_TYPE odometrySpinlock = portMUX_INITIALIZER_UNLOCKED; ///< Protects the coders in #Odometry::Odometer2Wheel.
 
 // -------------- Http Communication on Core 0 -------------- //
 
+/*
 TaskHandle_t task0Handle; ///< Handle to the http handling which runs on core 0.
-
 QueueHandle_t manToHttpQ = NULL; ///< Handle to the queue with which Manager can send stuff to the http operator.
 
 /// @brief Handles slow http requests on core 0 of the esp.
@@ -202,29 +206,30 @@ void handleHttpOnCore0(void *param){
   // 3. Create json
   // 4. Make http request
 
-  // Struct which holds the platform position.
+  // Store the platform position and handle to the queue.
   PlatformPosition position;
-
   QueueHandle_t queue = (QueueHandle_t)(param);
 
   // Message structure is as such:
-  /*
-  {
-    "data-type": "odometry",
-    "payload": [x0, y0, x1, y1, ...]
-  }
-  */
-  JsonDocument doc;
-  doc["data-type"] = "odometry";
+  
+  //{
+  //  "data-type": "odometry",
+  //  "payload": [x0, y0, x1, y1, ...]
+  //}
+  
 
   // Main loop of the core 0 process.
   // Handles extraction of data from the manToHttp queue and sending the data to server
   while(true){
-    bool hasData = false;
+    // Await for notification that there is new content in the queue that can be read
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
+    JsonDocument doc;
+    doc["data-type"] = "odometry";
     JsonArray payload = doc["payload"].to<JsonArray>();
 
     // Read the queue as long as there is content in it
+    bool hasData = false;
     while(xQueueReceive(queue, (&position), 0) == pdPASS){
       hasData = true;
 
@@ -251,9 +256,6 @@ void handleHttpOnCore0(void *param){
 
         Serial.println("Odometry data POST: Server response: ");
         Serial.println(httpResponseCode);
-
-        // Clear the emssage payload after sending
-        doc["payload"].clear();
       }
     }
 
@@ -261,6 +263,7 @@ void handleHttpOnCore0(void *param){
     vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
+*/
 
 class Manager{
 private:
@@ -278,7 +281,7 @@ private:
 
   Odometry::Odometer2Wheel odometer{LEFT_ENCODER, RIGHT_ENCODER, 4, 25, 10, 150}; ///< Calculates the current position based on wheel turns and driving direction given by imu.
   ICM_IMU::IMU imu{Serial}; ///< Controls imu and provides to orientation quaternion. Retireval of orientation might be lengthy if last retrievel happened long ago.
-  DoubleEngine engineController{L_IN1, L_IN2, L_ENA, R_IN1, R_IN2, R_ENB}; ///< Controls the speed and direction of rotation of engines.
+  DoubleEngine engineController{L_IN1, L_IN2, L_ENA, R_IN1, R_IN2, R_ENB};        ///< Controls the speed and direction of rotation of engines.
 
   // -------------- Controller Messages -------------- //
 
@@ -316,7 +319,7 @@ public:
   void initAsyncServer(){
     // Init the endpoints where requests will be send 
     asyncServer.initCommandEndpoint();
-    asyncServer.initLidarEndpoint();
+    asyncServer.initScanEndpoint();
 
     // Start the server
     asyncServer.begin();
@@ -364,22 +367,33 @@ public:
         Serial.println("Standby");
         tx_message.is_scanning=false;
         tx_message.status_text="Standby";
+        delay(200);
       break;
 
       case ManagerState::MOVING:
         moveRover();
+        updateOdometryDirection();
         Serial.println("Moving");
         tx_message.is_scanning=false;
         tx_message.status_text="Moving";
+        delay(200);
       break;
 
       case ManagerState::SCANNING:
         Serial.println("Scanning");
+
+        // Disable the ESP NOW for the duration of the scan and re-enable it after the scan
+        esp_now_unregister_recv_cb();
         lidarScan();
+        esp_now_register_recv_cb(esp_now_recv_cb_t(OnDataRecv));
 
         // Scan is performed once
         // After its done, platform is back to STANDBY state
-        setState(ManagerState::STANDBY);
+        //setState(ManagerState::STANDBY);
+        // vTaskDelay(pdMS_TO_TICKS(50)); // Let the core 0 finish http transmission
+
+        setState(ManagerState::UPLOADING); // For now just upload data right after the scan
+        delay(200);
         
         tx_message.is_scanning=true;
         tx_message.status_text="Scanning";
@@ -391,6 +405,7 @@ public:
         
         // After transmitting data to pc, platform switches to STANDBY state
         setState(ManagerState::STANDBY);
+        delay(200);
 
         tx_message.is_scanning=false;
         tx_message.status_text="Uploading";
@@ -399,6 +414,12 @@ public:
       case ManagerState::STATUS_UPDATE:
         Serial.println("Status update");
         kontrolerSendData();
+       delay(200);
+      break;
+
+      case ManagerState::IMU_CALIBRATION:
+        Serial.println("IMU is in calibration mode, do the dance!");
+        imu.resetIMU();
       break;
 
       default:
@@ -406,6 +427,7 @@ public:
 
         tx_message.is_scanning=false;
         tx_message.status_text="Unknown state";
+        delay(200);
       break;
     }
   }
@@ -421,6 +443,13 @@ public:
       // If rover is moving and the new state does not allow it to move, stop it
       if(state == ManagerState::MOVING && localCopyMessage.state != ManagerState::MOVING){
         engineController.stop();
+      }
+
+      // If imu was in calibration mode and it was switched off, newly learned biases are saved to EEPROM
+      if(state == ManagerState::IMU_CALIBRATION && localCopyMessage.state != ManagerStateIMU_CALIBRATION){
+        // If biases were succesfully saved on EEPROM, then print message
+        if(imu.storeBiases())
+          Serial.println("Imu exits calibration mode. Biases stored");
       }
 
       // Set the state based on message data (buttons status, joystick status, etc)
@@ -449,6 +478,17 @@ public:
   ///        3. Check if there is update from flask server on pc.
   void runEveryStep(){
     
+    this->updateOdometry();
+
+    // If any message arrived from the PC, check it
+    this->checkPCmessages();
+  }
+
+  // -------------- Functions Invoked Every Main Loop Step -------------- //
+
+  /// @brief Checks if odometry update happened.
+  ///        If it did, the data is sent to the core 0 queue and transmitted to the server.
+  void updateOdometry(){
     // Read the driving direction with regard to north
     ICM_IMU::EulerAngles orientation;
     imu.getEulerAngles(orientation, true);
@@ -461,17 +501,14 @@ public:
         pos.y = odometer.getYpos();
 
         // Send the odometry data to the queue
-        xQueueSend(manToHttpQ, (void*)(&pos), 0);
+        xQueueSend(Cores::manToHttpQ, (void*)(&pos), 0);
+        xTaskNotifyGive(Cores::task0Handle);
 
         #ifdef DEBUG_ODOMETRY_PUTTY
           odometer.writeToCSV(Serial, ';'); // Write data to Serial output -> putty
         #endif
     }
-
-    this->checkPCmessages();
   }
-
-  // -------------- Functions Invoked Every Main Loop Step -------------- //
 
   /// @brief Checks if the #asyncServer has any new messages stored.
   ///        Handled messages are: 
@@ -487,7 +524,7 @@ public:
       newCommand = asyncServer.getSteeringCommand();
 
       // Set the message
-      portENTER_CRITICAL_ISR(&this->messageSpinlock);
+      portENTER_CRITICAL(&this->messageSpinlock);
 
       // Set the flag as message has been received
       this->setMessageReceived(true);
@@ -528,32 +565,79 @@ public:
       this->controllerMessage.b_b = false;
       this->controllerMessage.a_b = false;
 
-      portEXIT_CRITICAL_ISR(&this->messageSpinlock);
+      portEXIT_CRITICAL(&this->messageSpinlock);
       
     }
     else if(asyncServer.isNewScanRequest()){
       // Preapre the lidar (set num of rotations and every_nth)
+
+      // Get the request contents
+      AsyncServerSpace::ScanRequest scanRequest;
+      scanRequest = asyncServer.getScanRequest();
+
+      // Setup LiDAR for the scan
+      this->lidarController.setDesiredScansNumber(scanRequest.rotations);
+      this->lidarController.setEveryNthPoint(scanRequest.every_nth);
+
       // Set the approrpiate controllerMessage values
-      
+      portENTER_CRITICAL(&this->messageSpinlock);
+      this->setMessageReceived(true);
+
+      this->controllerMessage.state = ManagerState::SCANNING;
+
+      this->controllerMessage.x = 0;
+      this->controllerMessage.y = 0;
+
+      this->controllerMessage.start = true;
+      this->controllerMessage.select = false;
+      this->controllerMessage.x_b = false;
+      this->controllerMessage.y_b = false;
+      this->controllerMessage.b_b = false;
+      this->controllerMessage.a_b = false;
+
+      portEXIT_CRITICAL(&this->messageSpinlock);
+
+
     }
   }
 
   // -------------- Rover Operations -------------- //
 
   void moveRover(){
-    // Call to the engines controller class
-    //motorsControl.ustawCel(controllerMessage.y);
-    //Serial.print("VALUE: ");
-    //Serial.println(controllerMessage.y);
+
+    // Should this really be happening during each iteration or rather only when permanentStop == false ?
+    engineController.applySteering(controllerMessage.x, controllerMessage.y);
 
     // Allow movement only if the flag which indicates presence of an obstacle is not raised.
     // Disable movement otherwise.
     if (permanentStop == false){
-      engineController.applySteering(controllerMessage.x, controllerMessage.y);
-    }
-    else{
+      //engineController.applySteering(controllerMessage.x, controllerMessage.y);
       engineController.update();
     }
+    else{
+      engineController.stop();
+    }
+  }
+
+  /// @brief Updates the information in #odometer about the direction of spinning of the wheels.
+  void updateOdometryDirection(){
+
+    // Set the direction of left wheel
+    if(engineController.getLeftSpeed() >= 0){
+      odometer.setLeftWheelMotionDirection(Odometry::MotionDirection::FORWARD);
+    }
+    else{
+      odometer.setLeftWheelMotionDirection(Odometry::MotionDirection::BACKWARD);
+    }
+
+    // Set the direction of right wheel
+    if(engineController.getRightSpeed() >= 0){
+      odometer.setRightWheelMotionDirection(Odometry::MotionDirection::FORWARD);
+    }
+    else{
+      odometer.setRightWheelMotionDirection(Odometry::MotionDirection::BACKWARD);
+    }
+
   }
 
   /// @brief Performs a lidar scan at fixed inclination 90 degrees.
@@ -577,8 +661,15 @@ public:
     ICM_IMU::EulerAngles eulerAngles;
     imu.getEulerAngles(eulerAngles);
 
+    std::vector<float>& lidarPoints = lidarController.accessData();
+
+    if(lidarPoints.empty()){
+      Serial.println("Lidar scan is empty, no transmission done.");
+      return;
+    }
+
     // Format the message into an http request
-    String dataJson = httpCommunicator.packLidarDataToJSON(eulerAngles.yaw, odometer.getXpos(), odometer.getYpos(), lidarController.accessData());
+    String dataJson = httpCommunicator.packLidarDataToJSON(eulerAngles.yaw, odometer.getXpos(), odometer.getYpos(), lidarPoints);
 
     // DEBUG messages
     Serial.print("Stringified json: ");
@@ -687,6 +778,44 @@ void IRAM_ATTR collisionDetection(){
   manager.setPermanentStop(status);
 }
 
+// -------------- Testing Stuff -------------- //
+
+/// @brief Empties the serial buffer by sequentially reading bytes untill Serial.available() returns false.
+void emptySerialBuffer(){
+  while(Serial.available()){
+    char c = Serial.read();
+  }
+}
+
+/// @brief Tests if 
+/// - Lidar is operational
+/// - Imu reads data
+/// - esp connects itself with the flask server
+/// - http request succeeds
+void testCommunicationWithFlask(){
+
+  Serial.println("Changing state to standby");
+  manager.setState(ManagerState::STANDBY);
+  manager.mainLoop();
+  manager.mainLoop();
+  manager.mainLoop();
+  delay(2000);
+  Serial.println("Changing state to scanning");
+
+  manager.setState(ManagerState::SCANNING);
+  manager.mainLoop();
+  manager.mainLoop(); // State should be back to standby
+  manager.mainLoop();
+  delay(2000);
+
+  Serial.println("Changing state to uploading");
+  manager.setState(ManagerState::UPLOADING);
+  manager.mainLoop();
+  manager.mainLoop(); // State should be back to STANDBY
+  manager.mainLoop();
+  delay(10000);
+}
+
 // -------------- ESP-NOW Setup -------------- //
 
 /// @brief Callback used when esp receives message via ESP NOW protocol.
@@ -733,55 +862,10 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t _status){
   //Serial.println(_status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Failure");
 }
 
-// -------------- Testing Stuff -------------- //
-
-/// @brief Empties the serial buffer by sequentially reading bytes untill Serial.available() returns false.
-void emptySerialBuffer(){
-  while(Serial.available()){
-    char c = Serial.read();
-  }
-}
-
-
-/// @brief Tests if 
-/// - Lidar is operational
-/// - Imu reads data
-/// - esp connects itself with the flask server
-/// - http request succeeds
-void testCommunicationWithFlask(){
-
-  Serial.println("Changing state to standby");
-  manager.setState(ManagerState::STANDBY);
-  manager.mainLoop();
-  manager.mainLoop();
-  manager.mainLoop();
-  delay(2000);
-  Serial.println("Changing state to scanning");
-
-  manager.setState(ManagerState::SCANNING);
-  manager.mainLoop();
-  manager.mainLoop(); // State should be back to standby
-  manager.mainLoop();
-  delay(2000);
-
-  Serial.println("Changing state to uploading");
-  manager.setState(ManagerState::UPLOADING);
-  manager.mainLoop();
-  manager.mainLoop(); // State should be back to STANDBY
-  manager.mainLoop();
-  delay(10000);
-}
-
 // --------------Setup && Main Loop -------------- //
 
 void setup() {
   // put your setup code here, to run once:
-
-  // Initialize the core 0 routine
-
-  // Init queue from manager to core 0
-  manToHttpQ = xQueueCreate(MAN_TO_HTTP_CAPACITY, MAN_TO_HTTP_MESSAGE_SIZE);
-  xTaskCreatePinnedToCore(handleHttpOnCore0, "core-0", 3500, manToHttpQ, 0, &task0Handle, 0);
 
   // Setup serial communication
   Serial.begin(115200);
@@ -886,6 +970,16 @@ void setup() {
   manager.initAsyncServer();
   Serial.println("Async Server - OK");
 
+  // Initialize the core 0 routine
+
+  // Init queue from manager to core 0
+  Cores::initCore0Task(MAN_TO_HTTP_MESSAGE_SIZE, MAN_TO_HTTP_CAPACITY, 4000);
+  /*
+  manToHttpQ = xQueueCreate(MAN_TO_HTTP_CAPACITY, MAN_TO_HTTP_MESSAGE_SIZE);
+  xTaskCreatePinnedToCore(handleHttpOnCore0, "core-0", 3500, manToHttpQ, 0, &task0Handle, 0);
+  */
+  Serial.println("Core 0 - OK");
+
   // Reset the odometry in case some interrupts missfired during setup
   delay(1000);
   manager.accessOdometry().reset();
@@ -897,7 +991,7 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  testCommunicationWithFlask();
+  //testCommunicationWithFlask();
 
-  //manager.mainLoop();
+  manager.mainLoop();
 }

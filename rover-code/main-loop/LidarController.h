@@ -56,20 +56,21 @@ namespace Lidar{
         HardwareSerial LidarSerial = HardwareSerial(1); ///< Serial communication with lidar via UART 1 (Serial 1)
 
         // ----------- Lidar Pinout ----------- //
-        uint8_t gpio_en = 2;  ///< Enable pin
-        uint8_t gpio_rx = 0;  ///< UART receive pin
-        uint8_t gpio_tx = 1;  ///< UART transmit pin
-        uint8_t gpio_pwm = 3; ///< PWM pin controlling LiDARs motor
+        uint8_t gpio_en = 2;  ///< Enable pin.
+        uint8_t gpio_rx = 0;  ///< UART receive pin.
+        uint8_t gpio_tx = 1;  ///< UART transmit pin.
+        uint8_t gpio_pwm = 3; ///< PWM pin controlling LiDARs motor.
 
         // Lidar internal setup & scanning setup
-        uint8_t every_nth_point = 20; ///< When scan is performed, only every n-th point is included, other are discarded
+        int desired_scans_num = 5;            ///< Specifies how many rotations will lidar make during a single scanning session.
+        uint8_t every_nth_point = 20; ///< When scan is performed, only every n-th point is included, other are discarded.
 
         // Storage of measurement points
         std::vector<float> points;
-        uint8_t point_counter = 0; ///< Counts how many points have been scanned since last point that has been saved. See @every_nth_point
+        uint8_t point_counter = 0; ///< Counts how many points have been scanned since last point that has been saved. See #every_nth_point.
         uint8_t scan_counter = 0;  ///< Counts how many scans have been performed.
 
-        // LiDARs orientation in space.
+        // LiDARs orientation in space
         float inclination = 0.0f;  ///< Inclination in degrees of the LiDARs scanning plane to the absolute xy plane (plane on which platform is driving).
 
         // ----------- Constants ----------- //
@@ -177,7 +178,7 @@ namespace Lidar{
         /// @brief Performs N rotations of the lidar and saves the data.
         /// @param[in] n How many times lidar should rotate.
         /// @param[in] inclination LiDARs inclination to the xy plane.
-        void scanNtimes(uint8_t n){
+        void scanNtimes(uint8_t n = -1){
             // Prepare the lidar
             this->stop();
             delay(5000);
@@ -188,7 +189,9 @@ namespace Lidar{
             Serial.print("scanNtimes() result: ");
             Serial.println(lidar->resultCodeToString(start_result));
 
-            // Perform the scan n times
+            // If the number of scans has been set globally, perform #desired_scans_num number of scans.
+            // If not, perform the number specified locally.
+            int loopBound = (n != -1 ? n : this->desired_scans_num);
             while(this->scan_counter < n){
                 this->lidar->loop();
             }
@@ -281,6 +284,15 @@ namespace Lidar{
         /// @param n Number of points to skip.
         void setEveryNthPoint(uint8_t n){
             every_nth_point = n;
+        }
+
+        /// @brief Specifies the number of rotations, that LiDAR will perform during a scanning session.
+        ///        Setter for #desired_scans_num.
+        /// @param n New number of rotations, must be positive and within some reasonable bounds (like < 200)
+        void setDesiredScansNumber(int n){
+            if(n > 0){
+                this->desired_scans_num = n;
+            }
         }
 
         /// @brief Changes the used HardwareSerial object.

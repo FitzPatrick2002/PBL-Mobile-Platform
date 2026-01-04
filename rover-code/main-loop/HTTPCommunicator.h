@@ -66,7 +66,7 @@ namespace HTTP{
         /// @param dest Destination on the server, the uh final site? serverName + dest -> final destination.
         ///             Remember to make it like this: dest = "/some-destination"
         /// @return If transmission was successfull, return true. If not, returns false.
-        bool sendLidarData(String jsonLidar, String dest){
+        bool sendLidarData(String& jsonLidar, String dest){
 
             // If there is connection with the WiFi, try to send data to the server
             if(WiFi.status() == WL_CONNECTED){

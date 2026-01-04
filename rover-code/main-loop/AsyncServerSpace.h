@@ -81,9 +81,9 @@ namespace AsyncServerSpace{
 
     /// @brief Initializes the server endpoint where lidar scan requests are received.
     ///        Accepts POST requests in form {type: "scan", rotations: int, every_nth: int}.
-    void initLidarEndpoint(){
+    void initScanEndpoint(){
       // Start the server endpoint
-      server.on("/lidar", HTTP_POST, [this](AsyncWebServerRequest *request){
+      server.on("/scan", HTTP_POST, [this](AsyncWebServerRequest *request){
 
         // If request has appropriate fields, service it
         if(request->hasParam("type", true) && request->hasParam("rotations", true) && request->hasParam("every_nth", true)){

@@ -4,6 +4,7 @@
 ///        It also provides the main class: IMU which simplifies interaction with the icm_20948 imu.
 
 #include "ICM_20948.h"
+#include <EEPROM.h>
 
 /// @brief Contains the necessary classes and datastructures to operate on icm_20948 imu with a bit of ease.
 /**
@@ -93,6 +94,85 @@ namespace ICM_IMU{
         }
     };
 
+    /// @brief Stores biases of gyro, acc and mag.
+    struct BiasStore{
+        int32_t header = 0x42;
+
+        int32_t biasGyroX = 0;
+        int32_t biasGyroY = 0;
+        int32_t biasGyroZ = 0;
+
+        int32_t biasAccelX = 0;
+        int32_t biasAccelY = 0;
+        int32_t biasAccelZ = 0;
+
+        int32_t biasCPassX = 0;
+        int32_t biasCPassY = 0;
+        int32_t biasCPassZ = 0;
+
+        int32_t sum = 0;
+
+        /// @brief Updates the checksum of the bias store.
+        void update(){
+            int32_t localSum = header;
+
+            localSum += biasGyroX;
+            localSum += biasGyroY;
+            localSum += biasGyroZ;
+            localSum += biasAccelX;
+            localSum += biasAccelY;
+            localSum += biasAccelZ;
+            localSum += biasCPassX;
+            localSum += biasCPassY;
+            localSum += biasCPassZ;
+
+            sum = localSum;
+        }
+
+        /// @brief Checks if the bias values are not stale.
+        /// @returns true if the checksum is okay and false otherwise.
+        bool isValid(){
+            int32_t newSum = header;
+
+            if(newSum != 0x42)
+                return false;
+
+            newSum += biasGyroX;
+            newSum += biasGyroY;
+            newSum += biasGyroZ;
+            newSum += biasAccelX;
+            newSum += biasAccelY;
+            newSum += biasAccelZ;
+            newSum += biasCPassX;
+            newSum += biasCPassY;
+            newSum += biasCPassZ;
+
+            return (newSum == sum);
+        }
+
+        /// @brief Prints values of biases to designated stream.
+        void printBiases(Stream &s){
+            s.print(F("Gyro X: "));
+            s.print(biasGyroX);
+            s.print(F(" Gyro Y: "));
+            s.print(biasGyroY);
+            s.print(F(" Gyro Z: "));
+            s.println(biasGyroZ);
+            s.print(F("Accel X: "));
+            s.print(biasAccelX);
+            s.print(F(" Accel Y: "));
+            s.print(biasAccelY);
+            s.print(F(" Accel Z: "));
+            s.println(biasAccelZ);
+            s.print(F("CPass X: "));
+            s.print(biasCPassX);
+            s.print(F(" CPass Y: "));
+            s.print(biasCPassY);
+            s.print(F(" CPass Z: "));
+            s.println(biasCPassZ);
+        }
+    };
+
     /// @brief Wrapper class which enables easier control over the ICM_20948_I2C object.
     ///        Allows to display raw AGMT readings and calculation of Euler angles.
     /// @note  Wire.h is needed and needs to be initilized on the I2C pins of the controller
@@ -108,8 +188,8 @@ namespace ICM_IMU{
     class IMU {
     private:
         
-        ICM_20948_I2C imu; ///< IMU object instance.
-        Stream& commStream; ///< Communication object wihch inherits from Stream class. Will be most likely Serial in your case.
+        ICM_20948_I2C imu;             ///< IMU object instance.
+        Stream& commStream;            ///< Communication object wihch inherits from Stream class. Will be most likely Serial in your case.
         Quat orientationQuat{0, 0, 0}; ///< Last saved orientation quaternion.
 
     public:
@@ -187,11 +267,130 @@ namespace ICM_IMU{
             commStream.println("DMP - OK");
             }
             else{
-            while (true){
-                commStream.println("Setup of DMP failed, doing nothing forever ...");
-                delay(500);
+                while (true){
+                    commStream.println("Setup of DMP failed, doing nothing forever ...");
+                    delay(500);
+                }
             }
+
+            delay(1000);
+
+            // Read biases from the EEPROM
+            this->readBiases();
+        }
+
+        // ----------------- CALIBRATION ----------------- //
+
+        /// @brief Reads biases from EEPROM memory and loads it into IMU.
+        ///        If biases are valid then they are saved on IMU.
+        /// @returns True if biases were read and saved succesfully and false otherwise.
+        bool readBiases(){
+            // Allocate 128 bytes for EEPROM storage
+            if (!EEPROM.begin(128)){
+                commStream.println("EEPROM failed, biases for IMU cannot be saved");
+                return false;
             }
+
+            BiasStore store;
+
+            // Read the biases 
+            EEPROM.get(0, store);
+
+            // If biases are okay, store them on IMU
+            if(store.isValid()){
+                commStream.println("Bias data in EEPROM is valid. Restoring it...");
+                bool success = true;
+
+                success &= (imu.setBiasGyroX(store.biasGyroX) == ICM_20948_Stat_Ok);
+                success &= (imu.setBiasGyroY(store.biasGyroY) == ICM_20948_Stat_Ok);
+                success &= (imu.setBiasGyroZ(store.biasGyroZ) == ICM_20948_Stat_Ok);
+                success &= (imu.setBiasAccelX(store.biasAccelX) == ICM_20948_Stat_Ok);
+                success &= (imu.setBiasAccelY(store.biasAccelY) == ICM_20948_Stat_Ok);
+                success &= (imu.setBiasAccelZ(store.biasAccelZ) == ICM_20948_Stat_Ok);
+                success &= (imu.setBiasCPassX(store.biasCPassX) == ICM_20948_Stat_Ok);
+                success &= (imu.setBiasCPassY(store.biasCPassY) == ICM_20948_Stat_Ok);
+                success &= (imu.setBiasCPassZ(store.biasCPassZ) == ICM_20948_Stat_Ok);
+
+                // Update of biases on imu succeeded, print them
+                if(success){
+                    commStream.println("Biases restored");
+                    store.printBiases(commStream);
+                    return true;
+                }
+                else{
+                    commStream.println("Restoration of imu biases failed!");
+                }
+            }
+
+            return false;
+        }
+
+        /// @brief Reads biases from IMU and saves them in EEPROM under address == 0.
+        ///        Use this to update the biases stored in EEPROM.
+        /// @returns True uf biases were read from EEPROM and loaded into IMU succesfully, false otherwise.
+        bool storeBiases(){
+            commStream.println("Saving bias data");
+
+            BiasStore store;
+
+            // Read the biases from IMU
+            bool success = (imu.getBiasGyroX(&store.biasGyroX) == ICM_20948_Stat_Ok);
+            success &= (imu.getBiasGyroY(&store.biasGyroY) == ICM_20948_Stat_Ok);
+            success &= (imu.getBiasGyroZ(&store.biasGyroZ) == ICM_20948_Stat_Ok);
+            success &= (imu.getBiasAccelX(&store.biasAccelX) == ICM_20948_Stat_Ok);
+            success &= (imu.getBiasAccelY(&store.biasAccelY) == ICM_20948_Stat_Ok);
+            success &= (imu.getBiasAccelZ(&store.biasAccelZ) == ICM_20948_Stat_Ok);
+            success &= (imu.getBiasCPassX(&store.biasCPassX) == ICM_20948_Stat_Ok);
+            success &= (imu.getBiasCPassY(&store.biasCPassY) == ICM_20948_Stat_Ok);
+            success &= (imu.getBiasCPassZ(&store.biasCPassZ) == ICM_20948_Stat_Ok);
+
+            store.update();
+            
+            // If reading from IMU was a success, then put them in EEPROM
+            if (success){
+                EEPROM.put(0, store);
+                EEPROM.commit();
+
+                // Test if the saved biases are okay, if so print a message
+                EEPROM.get(0, store);
+                if(store.isValid()){
+                    commStream.println("Biases stored succesfully");
+                    store.printBiases(commStream);
+
+                    return true;
+                }
+                else{
+                    commStream.println("Bias store failed!");
+                }
+            }
+            else{
+                commStream.println("Bias read failed!");
+            }
+
+            return false;
+        }
+
+        /// @brief Rests DMP and cleares FIFO, zeroes all biases.
+        ///        Use it to re-enable fast learning mode of the IMU.
+        void resetIMU(){
+            commStream.println("Resetting the IMU biases. Learning from zero");
+            
+            // Reset the DMP and the FIFO
+            imu.resetDMP();
+            imu.resetFIFO();
+
+            // Reset the bias values
+            imu.setBiasGyroX(0);
+            imu.setBiasGyroY(0);
+            imu.setBiasGyroZ(0);
+
+            imu.setBiasAccelX(0);
+            imu.setBiasAccelY(0);
+            imu.setBiasAccelZ(0);
+
+            imu.setBiasCPassX(0);
+            imu.setBiasCPassY(0);
+            imu.setBiasCPassZ(0);
         }
 
         // ----------------- MEASUREMENTS ----------------- //
@@ -225,7 +424,7 @@ namespace ICM_IMU{
         void getEulerAngles(EulerAngles& dest, bool refresh = true){
             // Refresh the data
             if (refresh){
-                this->refresh();
+            this->refresh();
             }
 
             // Convert the quaternion to Euler angle
@@ -324,7 +523,7 @@ namespace ICM_IMU{
             dest.pitch = asin(sinp);
 
             // Compute roll
-            dest.roll = atan2(2.0*(q0*q1 + q2*q3), 1.0f - q1*q1 + q2*q2);
+            dest.roll = atan2(2.0*(q0*q1 + q2*q3), 1.0f - (q1*q1 + q2*q2));
         }
 
     };

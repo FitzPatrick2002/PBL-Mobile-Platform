@@ -166,7 +166,6 @@ public:
     rightSpeed = throttle - steering;
     leftSpeed  = constrain(leftSpeed, -255, 255);
     rightSpeed = constrain(rightSpeed, -255, 255);
-
   }
 
   /// @brief Causes the engines to apply roation.
@@ -177,6 +176,22 @@ public:
     // Update the engines
     motorLeft.update();
     motorRight.update();
+  }
+
+  // ------------------ Getters ------------------ //
+
+  /// @brief Returns the #leftSpeed value.
+  ///        If its negative then the motor is going backwards.
+  /// @return #leftSpeed.
+  int getLeftSpeed(){
+    return this->leftSpeed;
+  }
+
+  /// @brief Returns the #rightSpeed value.
+  ///        If its negative then the motor is going backwards.
+  /// @return #rightSpeed.
+  int getRightSpeed(){  
+    return this->rightSpeed;
   }
 
 };
