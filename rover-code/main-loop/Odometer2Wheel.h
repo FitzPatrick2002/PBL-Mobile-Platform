@@ -1,4 +1,8 @@
+#ifndef Odometer_2_WHEEL_H
+#define Odometer_2_WHEEL_H
+
 #include <math.h>
+#include <Arduino.h>
 //#include <mutex>
 
 /// @brief Contains odometry related functions and implements class for naviagtion of 2 wheeled robot.
@@ -51,7 +55,7 @@
  */
 namespace Odometry{
     /// @brief Converts number of ticks of the encoders to angle byc which the wheel rotated.
-    float ticksToAngle(int16_t ticksPerRotation, int16_t ticks){
+    inline float ticksToAngle(int16_t ticksPerRotation, int16_t ticks){
         return ((float)ticks / (float)ticksPerRotation) * 2.0 * M_PI;
     }
 
@@ -59,7 +63,7 @@ namespace Odometry{
     /// @param radius Radius of the circle in mm.
     /// @param theta Angle by which the circle rotated.
     /// @return Length of the angle specified by the angle and radius.
-    float rotationToDistance(float radius, float theta){
+    inline float rotationToDistance(float radius, float theta){
         return radius * theta;
     }
   
@@ -312,4 +316,4 @@ public:
     };
 };
 
-
+#endif

@@ -1,3 +1,6 @@
+#ifndef HTTP_COMMUNICATOR_H
+#define HTTP_COMMUNICATOR_H
+
 /// @file HTTPCommunicator.h
 /// @brief HTTPCommunicator can be used to pack lidar scans data into a json file 
 ///        and to send it via a POST request to specified server.
@@ -6,6 +9,7 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <vector>
+#include <Arduino.h>
 
 // TO DO:
 // 1. Make the HTTPCommunicator a singleton, there should be no more than a single instance of it.
@@ -143,3 +147,5 @@ namespace HTTP{
         }
     };
 }
+
+#endif

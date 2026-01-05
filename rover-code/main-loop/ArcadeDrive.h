@@ -107,8 +107,8 @@ class DoubleEngine{
 private:
   const int deadZone; ///< Specifies the range around joystick 'zero' which is ingored, so minor fluctuations of pwm value ar not consdiered.
 
-  Silnik motorLeft;  ///< The left motor controller.
-  Silnik motorRight; ///< The right motor controller.
+  Silnik motorLeft;   ///< The left motor controller.
+  Silnik motorRight;  ///< The right motor controller.
 
   int leftSpeed, rightSpeed; ///< Speed of left and right motor. 
 

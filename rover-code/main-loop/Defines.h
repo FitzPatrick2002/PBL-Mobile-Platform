@@ -17,9 +17,9 @@
 #define LIDAR_PWM 21
 
 // Wifi setup
-#define SSID "TELPOL-19886"
+#define MY_WIFI_SSID          "TELPOL-19886"
 #define WIFI_PASSWORD "38j8gze9sh"
-#define SERVER_NAME "http://192.168.21.17:9000"
+#define SERVER_NAME   "http://192.168.21.17:9000"
 
 // Server running on PC endpoints
 #define SERVER_POST_ENDPOINT "/receive_post"
@@ -32,9 +32,16 @@
 #define I2C_SDA 11
 #define I2C_SCL 12
 
+/// @brief Stores a single element put into the queue.
+struct QueueMessage{
+  float x, y = 0.0;       ///< Platform position.
+  bool collision = false; ///< HCSR data (collision status).
+  float angle = 0.0f;     ///< Direction of driving.
+};
+
 // Multiprocessing queue setup
 #define MAN_TO_HTTP_CAPACITY 50
-#define MAN_TO_HTTP_MESSAGE_SIZE 2*sizeof(float)
+#define MAN_TO_HTTP_MESSAGE_SIZE sizeof(QueueMessage) // (x, y) position, bool -> HCSR data
 
 // Configuration of L298N 
 #define L_IN1 3 //5;   // kierunek silnik A

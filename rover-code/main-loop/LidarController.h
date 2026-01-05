@@ -1,6 +1,10 @@
+#ifndef LIDAR_CONTROLLER_H
+#define LIDAR_CONTROLLER_H
+
 #include "lds_all_models.h"
 #include <cmath>
 #include <vector>
+#include <Arduino.h>
 
 // TO SEE:
 // https://manuals.plus/pl/slamtec/a1m8-rplidar-a1-low-cost-360-degree-laser-range-scanner-manual
@@ -503,3 +507,5 @@ namespace Lidar{
         }
     };
 }
+
+#endif

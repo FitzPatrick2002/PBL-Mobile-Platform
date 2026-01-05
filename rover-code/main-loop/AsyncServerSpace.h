@@ -1,5 +1,9 @@
+#ifndef ASYNC_SERVER_SPACE_H
+#define ASYNC_SERVER_SPACE_H
+
 #include <ESPAsyncWebServer.h>
 #include <WiFi.h>
+#include <Arduino.h>
 
 /// @brief Stores server related tasks / classes / structs.
 namespace AsyncServerSpace{
@@ -173,3 +177,5 @@ namespace AsyncServerSpace{
 
   };
 };
+
+#endif
