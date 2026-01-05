@@ -40,7 +40,9 @@ enum manager_state{
   MOVING = 1,
   SCANNING = 2,
   UPLOADING = 3,
-  STATUS_UPDATE = 4
+  STATUS_UPDATE = 4,
+  IMU_CALIBRATION = 5,
+  ROVER_INIT = 6
 };
 
 struct message{
@@ -83,8 +85,6 @@ void cleanDisplay()
     display.fillScreen(GxEPD_WHITE);
   } while (display.nextPage());
 }
-
-const char HelloWorld[] = "Hello World!";
 
 void displayMessage(const char message[])
 {
@@ -170,40 +170,37 @@ void constructMessage(message& new_message)
 
   if(!(buttons & (1UL << BUTTON_A))){
     new_message.a_b = true;
-    if(new_message.state != UPLOADING)
+    if(new_message.state != UPLOADING || new_message.state != ROVER_INIT || new_message.state != IMU_CALIBRATION)
     {
       new_message.state = SCANNING;
     }
   }
   if(!(buttons & (1UL << BUTTON_B))){
     new_message.b_b = true;
-    if(new_message.state != SCANNING)
+    if(new_message.state != SCANNING || new_message.state != ROVER_INIT || new_message.state != IMU_CALIBRATION)
     {
       new_message.state = UPLOADING;
     }
   }
-  if(!(buttons & (1UL << BUTTON_Y)))
-  {
-    new_message.y_b = true;
-    if(new_message.state == SCANNING || new_message.state == UPLOADING || new_message.state == STATUS_UPDATE)
-    {
-      new_message.state = STANDBY;
-    }
-  }
-
   if(!(buttons & (1UL << BUTTON_X)))
   {
-    if(new_message.state == MOVING)
+    new_message.y_b = true;
+    new_message.state = STANDBY; // CANCEL FOR ALL, NO MATTER WHAT WAS PREVIOUSLY
+  }
+
+  if(!(buttons & (1UL << BUTTON_Y)))
+  {
+    if(new_message.state!= SCANNING || new_message.state!= UPLOADING || last_man_state != STATUS_UPDATE || new_message.state != ROVER_INIT || new_message.state != IMU_CALIBRATION)
     {
-      new_message.state = STANDBY;
+      new_message.state = STATUS_UPDATE;
     }
     new_message.x_b = true;
   }
-  if(!(buttons & (1UL << BUTTON_SELECT)))
+  if(!(buttons & (1UL << BUTTON_SELECT))) //for IMU_CALIBRATION
   { 
-    if(new_message.state!= SCANNING || new_message.state!= UPLOADING || last_man_state != STATUS_UPDATE)
+    if(new_message.state!= SCANNING || new_message.state!= UPLOADING || new_message.state != ROVER_INIT)
     {
-      new_message.state = STATUS_UPDATE;
+      new_message.state = IMU_CALIBRATION;
     }
     new_message.select = true;
   }
@@ -212,6 +209,10 @@ void constructMessage(message& new_message)
     new_message.start = true;
     send_message();
     Serial.println("Sending a message");
+  }
+  if(!(buttons & (1UL << BUTTON_X)) && !(buttons & (1UL << BUTTON_Y))) //combo for init
+  {
+    new_message.state = ROVER_INIT;
   }
 
   last_man_state = new_message.state;
@@ -241,6 +242,11 @@ void constructMessage(message& new_message)
     case STATUS_UPDATE:
       state = "requesting update";
       break;
+    case IMU_CALIBRATION:
+      state = "IMU CALIBRATION";
+      break;
+    case ROVER_INIT:
+      state = "platforma initialization";
   }
   
 }
@@ -254,6 +260,8 @@ const char* stateToString(manager_state state)
     case SCANNING:      return "SCANNING";
     case UPLOADING:     return "UPLOADING";
     case STATUS_UPDATE: return "STATUS UPDATE";
+    case IMU_CALIBRATION: return "IMU CALIBRATION";
+    case ROVER_INIT:          return "PLATFORMA INIT";
     default:            return "UNKNOWN";
   }
 }
@@ -293,7 +301,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len){
 }
 
 void setup() {
-  // put your setup code here, to run once:
+
   Serial.begin(115200);
 
   Wire.begin(8,9); //SDA SCL
@@ -339,8 +347,8 @@ void setup() {
   }
 
   //e-ink display
-  display.init(115200, true, 2, false); // USE THIS for Waveshare boards with "clever" reset circuit, 2ms reset pulse
-  //displayMessage("Starting program");
+  display.init(115200, true, 2, false); //2ms reset pulse
+
   drawBitmaps(1);
   display.hibernate();
 }
