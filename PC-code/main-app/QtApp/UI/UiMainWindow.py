@@ -100,6 +100,12 @@ class Ui_MainWindow(object):
 
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
+
+        self.calibration_btn = QPushButton(self.layoutWidget)
+        self.calibration_btn.setObjectName(u"calibration_btn")
+
+        self.gridLayout.addWidget(self.calibration_btn, 1, 0, 1, 1)
+
         self.forward_ctrl_btn = QPushButton(self.layoutWidget)
         self.forward_ctrl_btn.setObjectName(u"forward_ctrl_btn")
 
@@ -211,6 +217,7 @@ class Ui_MainWindow(object):
         self.x_pos_label.setText(QCoreApplication.translate("MainWindow", u"X:", None))
         self.y_pos_label.setText(QCoreApplication.translate("MainWindow", u"Y:", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"A:", None))
+        self.calibration_btn.setText(QCoreApplication.translate("MainWindow", u"Calibrate", None))
         self.forward_ctrl_btn.setText(QCoreApplication.translate("MainWindow", u"Forward", None))
         self.backward_ctrl_btn.setText(QCoreApplication.translate("MainWindow", u"Back", None))
         self.left_ctrl_button.setText(QCoreApplication.translate("MainWindow", u"Left", None))

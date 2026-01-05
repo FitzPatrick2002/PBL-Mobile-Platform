@@ -1,7 +1,10 @@
 # This Python file uses the following encoding: utf-8
+import math
 import sys
 import multiprocessing
 
+from PySide6 import QtGui
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtCore import Slot, QTimer
 from QtApp.UI.UiMainWindow import Ui_MainWindow
@@ -22,8 +25,7 @@ from QtApp.UI.UiMainWindow import Ui_MainWindow
         angle: float,
         
         // Distance sensors status
-        front: bool,
-        back: bool
+        collision: bool
     }
     
     // Packet sent on demand.
@@ -91,7 +93,16 @@ from QtApp.UI.UiMainWindow import Ui_MainWindow
         rotations: int
         every_nth: int
     }
+    
+    // Calibration request
+    {
+        type: 'calibration'
+    }
 
+    // Standby request
+    {
+        type: 'standby'
+    }
 '''
 
 class MainQtWindow(QMainWindow):
@@ -147,6 +158,12 @@ class MainQtWindow(QMainWindow):
         # ------------ Measurements Slots ------------ #
 
         self.ui.scan_btn.clicked.connect(self.onMeasurementClicked)
+
+        # ------------ LCD Number Display ------------ #
+        
+        # Make it display 3-digit numbers with accuracy 10^-2
+        self.ui.angle_display.setDigitCount(7)
+        self.ui.angle_display.setSmallDecimalPoint(True)
 
     # ------------ Session Management Slots ------------ #
 
@@ -279,21 +296,38 @@ class MainQtWindow(QMainWindow):
         while not self.f_to_qt.empty():
             packet = self.f_to_qt.get_nowait()
             tt = packet["type"]
-            print(f"Reading server queue: {tt}")
+            print(f"Qt: Reading server queue: {tt}")
 
             match packet["type"]:
                 case "telemetry":
                     # Display the telemetry data in Qt app
+                    print(f"Qt: Qt received telemetry update: {packet}")
+                    print(f"Qt: Telemetry angle: {str(packet['angle'])}")
 
                     # Display position in LCDs
-                    self.ui.x_pos_display.display(packet["x"])
-                    self.ui.y_pos_display.display(packet["y"])
-                    self.ui.angle_display.display(packet["angle"])
+                    self.ui.x_pos_display.display(str(packet["x"]))
+                    self.ui.y_pos_display.display(str(packet["y"]))
+
+                    # Transform angle to degrees [0 ; 360]
+                    angle = float(packet["angle"]) * 180.0 / math.pi
+                    angle = (angle + 360) % 360
+
+                    angle = round(angle, 2)
+
+                    self.ui.angle_display.display(str(angle))
 
                     # Update status of collision bars
 
                     # If collision status is true, set element to red as there is possibility of collision
                     # If not, reset to green (yes THAT green)
+
+                    if packet["collision"]:
+                        self.ui.front_collision_frame.setStyleSheet("background-color:rgb(255, 0, 0)")
+                    else:
+                        self.ui.front_collision_frame.setStyleSheet("background-color:rgb(0, 255, 0)")
+
+                    '''
+                    
                     if packet["front"]:
                         self.ui.front_collision_frame.setStyleSheet("background-color:rgb(255, 0, 0)")
                     else:
@@ -303,6 +337,8 @@ class MainQtWindow(QMainWindow):
                         self.ui.back_collision_frame.setStyleSheet("background-color:rgb(255, 0, 0)")
                     else:
                         self.ui.back_collision_frame.setStyleSheet("background-color:rgb(0, 255, -)")
+                    
+                    '''
 
                 case "scan-status":
                     # Do some stuff which shows that scan is going on or smth

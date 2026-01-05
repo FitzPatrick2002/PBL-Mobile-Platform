@@ -157,7 +157,7 @@ class FlaskServer:
                     "success" : True
                 })
 
-            # Propagate the odometry data further to the
+            # Propagate the odometry data further to the o3d app
             case "odometry":
                 print(f"Flask handle_platform_messages(): Received odometry data from platform:")
                 print(data)
@@ -169,6 +169,23 @@ class FlaskServer:
                     "type": "odometry",
                     "payload": odometry_data
                 })
+
+                # Get the most recent platform position
+                recent_x = odometry_data.payload[-2]
+                recent_y = odometry_data.payload[-1]
+
+                print(f"Flask: Preparing to send telemetry update to qt")
+                # Send the telemetry update to Qt app
+                self.f_to_qt.put({
+                    "type" : "telemetry",
+
+                    "x" : recent_x,
+                    "y" : recent_y,
+                    "angle" : data["angle"],
+
+                    "collision" : data["collision"],
+                })
+                print(f"Flask: Sending telemetry update to Qt: {recent_x, recent_y, data['angle'], data['collision']}")
 
             case _:
                 print(f"Flask handle_platform_messages(): Unknown type of message received in flask server from mobile platform")
