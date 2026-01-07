@@ -88,19 +88,36 @@ if __name__ == "__main__":
 
     # Start the flask server, open3d app and qt app as separate processes
     flask_process = multiprocessing.Process(target=start_flask, name="flask-server", args=(f_to_o3d, o3d_to_f, f_to_qt, qt_to_f))
-    flask_process.start()
+    #flask_process.start()
 
     open3d_process = multiprocessing.Process(target=start_open3d, name="open3d-app", args=(f_to_o3d, o3d_to_f))
-    open3d_process.start()
+    #open3d_process.start()
 
     qt_process = multiprocessing.Process(target=start_qt, name="qt-app", args=(f_to_qt, qt_to_f))
-    qt_process.start()
+    #qt_process.start()
 
-    # Join the processes after termination
-    # I guess the order does matter
-    qt_process.join()
-    open3d_process.join()
-    flask_process.join()
+    processes = [flask_process, open3d_process, qt_process]
+
+    try:
+        # Start all the processes
+        for p in processes:
+            p.start()
+
+        # Keep the main process alive as long as the other processes are alive
+        while any([p.is_alive() for p in processes]):
+            time.sleep(0.5)
+
+    except KeyboardInterrupt:
+        # When user interrupted, kill processes and join them
+        print(f"Main process terminated, shutting down other processes:")
+
+    finally:
+        for p in processes:
+            if p.is_alive():
+                print(f"Killing: {p.name}")
+                p.terminate()
+                p.join()
+
 
     # Close the queues after processes terminated
     f_to_o3d.close()
