@@ -10,6 +10,7 @@ Gdzie platforma:
  - 26-27.11.2025 -> ML
  - 28.11-17.12.2025 -> JG
  - 17.12-18.12.2025 -> MR
+ - 19.12-08.01.2026 -> JG
 
 TO DO + podział zadań:
 
@@ -46,14 +47,14 @@ TO DO + podział zadań:
         - (ok)
      - Software:
         - Test przesyłu danych na platformę (MR) (OK)
-        - Wyświetlacz e-ink (MR) partially done
+        - Wyświetlacz e-ink (MR) (OK)
 
     5. System wykrywania przeszkód
      - Hardware:
         - Zaprojektowanie systemu (MR) (OK)
      - Software:
         - Hardware interrupt do podłączenia na platformę (MR) (OK)
-        - Hardware interrupt platforma (ML)
+        - Hardware interrupt platforma (ML) (test needed)
         - Asembler sczytujący wartości z pinów (MR) (OK)
 
 * PC / Laptop:
@@ -63,6 +64,7 @@ TO DO + podział zadań:
         - Przechowywanie skanów z pojedynczego skanu w pliku .pcd (https://pointclouds.org/documentation/tutorials/pcd_file_format.html)
         - Pliki .pcd w jednym folderze. Jeden folder na jedną sesję jeżdżenia roverem. 
         - (JG & MŚ)
+        - Moduł LINUX (test)
 
 * Zakupy:
     1. Zamówienie
