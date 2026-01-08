@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtCore import Slot, QTimer
 from QtApp.UI.UiMainWindow import Ui_MainWindow
 
+
 # Communication protocol with flask server
 # 1. Packetes are in json format
 
@@ -115,6 +116,7 @@ class MainQtWindow(QMainWindow):
         super(MainQtWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
 
         # Timer is used to periodically read the data sent from the server to qt app
         self.timer = QTimer()

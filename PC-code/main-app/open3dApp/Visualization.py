@@ -89,6 +89,7 @@ class VisualizationApp:
         # Window title based on the Operating system
         window_title = "Scan Visualization on " + utils.OperatingSystemCheck.OS_SYSTEM
         self.window = o3d.visualization.gui.Application.instance.create_window(window_title, 1024, 768)
+
         self.scene = o3d.visualization.gui.SceneWidget()
 
         # Set the scene properties,
