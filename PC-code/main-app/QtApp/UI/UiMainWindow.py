@@ -203,7 +203,8 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        #changing the title
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Platforma PC controller", None))
         self.x_pos_label.setText(QCoreApplication.translate("MainWindow", u"X:", None))
         self.y_pos_label.setText(QCoreApplication.translate("MainWindow", u"Y:", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"A:", None))
