@@ -70,24 +70,14 @@ class Ui_MainWindow(object):
 
         self.gridLayout_5.addLayout(self.gridLayout_2, 0, 0, 1, 1)
 
-        self.front_collision_frame = QFrame(self.layoutWidget)
-        self.front_collision_frame.setObjectName(u"front_collision_frame")
-        self.front_collision_frame.setAutoFillBackground(False)
-        self.front_collision_frame.setStyleSheet(u"background-color: rgb(0, 200, 0);")
-        self.front_collision_frame.setFrameShape(QFrame.StyledPanel)
-        self.front_collision_frame.setFrameShadow(QFrame.Raised)
+        self.collision_frame = QFrame(self.layoutWidget)
+        self.collision_frame.setObjectName(u"collision_frame")
+        self.collision_frame.setAutoFillBackground(False)
+        self.collision_frame.setStyleSheet(u"background-color: rgb(0, 200, 0);")
+        self.collision_frame.setFrameShape(QFrame.StyledPanel)
+        self.collision_frame.setFrameShadow(QFrame.Raised)
 
-        self.gridLayout_5.addWidget(self.front_collision_frame, 1, 0, 1, 1)
-
-        self.back_collision_frame = QFrame(self.layoutWidget)
-        self.back_collision_frame.setObjectName(u"back_collision_frame")
-        self.back_collision_frame.setAutoFillBackground(False)
-        self.back_collision_frame.setStyleSheet(u"background-color: rgb(0, 200, 0);")
-        self.back_collision_frame.setFrameShape(QFrame.StyledPanel)
-        self.back_collision_frame.setFrameShadow(QFrame.Raised)
-
-        self.gridLayout_5.addWidget(self.back_collision_frame, 2, 0, 1, 1)
-
+        self.gridLayout_5.addWidget(self.collision_frame, 1, 0, 1, 1)
 
         self.horizontalLayout.addLayout(self.gridLayout_5)
 

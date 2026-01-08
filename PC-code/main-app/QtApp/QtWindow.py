@@ -322,23 +322,9 @@ class MainQtWindow(QMainWindow):
                     # If not, reset to green (yes THAT green)
 
                     if packet["collision"]:
-                        self.ui.front_collision_frame.setStyleSheet("background-color:rgb(255, 0, 0)")
+                        self.ui.collision_frame.setStyleSheet("background-color:rgb(255, 0, 0)")
                     else:
-                        self.ui.front_collision_frame.setStyleSheet("background-color:rgb(0, 255, 0)")
-
-                    '''
-                    
-                    if packet["front"]:
-                        self.ui.front_collision_frame.setStyleSheet("background-color:rgb(255, 0, 0)")
-                    else:
-                        self.ui.front_collision_frame.setStyleSheet("background-color:rgb(0, 255, 0)")
-
-                    if packet["back"]:
-                        self.ui.back_collision_frame.setStyleSheet("background-color:rgb(255, 0, 0)")
-                    else:
-                        self.ui.back_collision_frame.setStyleSheet("background-color:rgb(0, 255, -)")
-                    
-                    '''
+                        self.ui.collision_frame.setStyleSheet("background-color:rgb(0, 255, 0)")
 
                 case "scan-status":
                     # Do some stuff which shows that scan is going on or smth
@@ -372,7 +358,7 @@ class MainQtWindow(QMainWindow):
                     # Configure the combobox so that user can choose from among existing sessions
 
                     # Clear the combobox
-                    self.ui.session_select.clear()
+                    #self.ui.session_select.clear()
 
                     # Fill it with possible names for sessions
                     for name in packet["names"]:
