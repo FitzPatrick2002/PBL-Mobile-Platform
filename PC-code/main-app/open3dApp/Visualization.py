@@ -11,6 +11,10 @@ from utils.DataTypes import LidarScan, OdometryData
 from utils.FileManagement import PCDSaver
 import utils.OperatingSystemCheck
 
+from open3dApp.downsampling.linux.Downsample_module import DownsampleModule
+from open3dApp.downsampling.windows.Downsample import DownsampleWindows
+from open3dApp.downsampling.MenuDialog import MenuDialog
+
 # Messages format
 # From flask server to o3d app:
 '''
@@ -81,6 +85,8 @@ class VisualizationApp:
         # Setup the queue, which communicates with the server
         self._queue = queue
 
+        self._downsample_dialog = None
+
         # Setup the queue which sends data from o3d app to flask server
         self._o3d_to_f = o3d_to_f
 
@@ -131,7 +137,7 @@ class VisualizationApp:
 
         # Callbacks for the menubar
         self.window.set_on_menu_item_activated(VisualizationApp.DOWNSAMPLE,
-                                               self._downsample)
+                                               self._downsample_window)
         self.window.set_on_menu_item_activated(VisualizationApp.MENU_RANDOM,
                                                self._on_menu_random)
         self.window.set_on_menu_item_activated(VisualizationApp.MENU_COORD_FRAME,
@@ -173,9 +179,29 @@ class VisualizationApp:
 
     # ------------ MENU CALLBACKS ------------ #
 
-    def _downsample(self):
-        #prepare a
-        print("Downsampling hehehe")
+    def _downsample(self, percent, mode, dialog_instance):
+        # prepare a
+        print(f"Downsampling hehehe {mode}  {percent}%")
+
+        o3d.visualization.gui.Application.instance.post_to_main_thread(
+            self.window,
+            lambda: self.window.close_dialog() )
+
+
+        if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
+            Linux_downsample = DownsampleModule()
+            Linux_downsample.downsample()
+        else:
+            Windows_downsample = DownsampleWindows()
+            Windows_downsample.downsample()
+
+    def _downsample_window(self):
+        # run a seperate window collecting all necessary args
+        o3d.visualization.gui.Application.instance.post_to_main_thread(
+            self.window,
+            lambda: MenuDialog(self.window, self._downsample)
+        )
+
 
     def _on_menu_random(self):
         '''
