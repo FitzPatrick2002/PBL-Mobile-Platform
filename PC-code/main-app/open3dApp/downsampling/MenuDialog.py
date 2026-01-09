@@ -5,10 +5,12 @@ class MenuDialog:
         self.callback = callback
         self.window = parent_window
         self.dialog = o3d.visualization.gui.Dialog("Downsampling Settings")
-        self.panel = o3d.visualization.gui.Vert(10,o3d.visualization.gui.Margins(10,10,10,10))
+        self.panel = o3d.visualization.gui.Vert(20,o3d.visualization.gui.Margins(15,15,15,15))
 
-        self.mode_row = o3d.visualization.gui.Horiz(6)
+        # Output file
+
         # Combobox
+        self.mode_row = o3d.visualization.gui.Horiz(8)
         self.mode_combo = o3d.visualization.gui.Combobox()
         for i in range(3):
             self.mode_combo.add_item(f"Mode {i}")
@@ -17,9 +19,8 @@ class MenuDialog:
 
         self.panel.add_child(self.mode_row)
 
-
-        self.panel_percent = o3d.visualization.gui.Horiz(6)
-        self.panel_lines = o3d.visualization.gui.Horiz(6)
+        self.panel_percent = o3d.visualization.gui.Horiz(8)
+        self.panel_lines = o3d.visualization.gui.Horiz(8)
 
         # Percent slider
         self.percent_slider = o3d.visualization.gui.Slider(o3d.visualization.gui.Slider.INT)
@@ -50,26 +51,6 @@ class MenuDialog:
         self.panel.add_child(self.button_row)
 
         self.dialog.add_child(self.panel)
-        #self.dialog.add_child(self.panel_percent)
-        #self.dialog.add_child(self.panel_lines)
-
-        self.panel_percent.visible = True
-        self.panel_lines.visible = False
-
-        # def on_combo_change(index, text):
-        #     self.panel.remove_child(self.panel_percent)
-        #     self.panel.remove_child(self.panel_lines)
-        #
-        #     if index == 0:
-        #         self.panel.add_child(self.panel_percent)
-        #     else:
-        #         self.panel.add_child(self.panel_lines)
-        #     # self.panel_percent.visible = (index == 0)
-        #     # self.panel_lines.visible = (index in (1,2))
-        #     # self.dialog.resize(self.dialog.width, self.dialog.height)
-        #
-        # self.mode_combo.set_on_selection_changed(on_combo_change)
-
 
         # Show dialog attached to the main window
         parent_window.show_dialog(self.dialog)

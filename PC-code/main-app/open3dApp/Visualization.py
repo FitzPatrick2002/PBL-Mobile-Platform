@@ -120,7 +120,7 @@ class VisualizationApp:
         # Menubar seems to be bound to the application instance rather to a widget
         if o3d.visualization.gui.Application.instance.menubar is None:
             options_menu = o3d.visualization.gui.Menu()
-            options_menu.add_item("Downsample", VisualizationApp.DOWNSAMPLE) #dodam tutaj okienko z dodatkowymi opcjami do downsamplingu
+            options_menu.add_item("Downsample", VisualizationApp.DOWNSAMPLE)
             options_menu.add_item("Coordinate frame", VisualizationApp.MENU_COORD_FRAME)
             options_menu.add_item("Ground plane & sky", VisualizationApp.MENU_REF_PLANE)
             options_menu.add_item("Height Map", VisualizationApp.MENU_HEIGHT_MAP)
@@ -179,21 +179,21 @@ class VisualizationApp:
 
     # ------------ MENU CALLBACKS ------------ #
 
-    def _downsample(self, percent, mode):
+    def _downsample(self, mode, percent, lines):
         # prepare a
-        print(f"Downsampling hehehe {mode}  {percent}%")
+        print(f"Downsampling {mode}  {percent}%")
 
         o3d.visualization.gui.Application.instance.post_to_main_thread(
             self.window,
-            lambda: self.window.close_dialog() )
+            lambda: self.window.close_dialog() ) # Closing in the main thread
 
-
-        if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
-            Linux_downsample = DownsampleModule()
-            Linux_downsample.downsample()
-        else:
-            Windows_downsample = DownsampleWindows()
-            Windows_downsample.downsample()
+        if((mode in (1,2) & lines >= 1) | mode == 0):
+            if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
+                Linux_downsample = DownsampleModule()
+                Linux_downsample.downsample(mode, percent, lines, )
+            else:
+                Windows_downsample = DownsampleWindows()
+                Windows_downsample.downsample()
 
     def _downsample_window(self):
         # run a seperate window collecting all necessary args

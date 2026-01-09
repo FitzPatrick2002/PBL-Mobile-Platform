@@ -80,7 +80,6 @@ class DownsampleModule(mi.LinuxModule):
     def _set_lines(self, lines: int):
         if(lines < 0):
             print("The number of lines should be positive and no longer than the number of lines in the input file")
-        self.__line = lines
         try:
             self.__line = lines
             with open(self._device_path, 'w') as f:
@@ -126,7 +125,13 @@ class DownsampleModule(mi.LinuxModule):
             print(f"Could not get the info\n{e}")
         return self._kernel_log_tail(2)
 
-    def downsample(self):
+    def downsample(self, mode, percent, lines, current_scan, temp_folder):
+        self._set_mode(mode)
+        self._set_lines(lines)
+        self._set_percent(percent)
+        self._set_input_path(current_scan)
+        self._set_output_path(temp_folder)
+        self._run()
         print("In Linux downsample")
 #
 # def main():
