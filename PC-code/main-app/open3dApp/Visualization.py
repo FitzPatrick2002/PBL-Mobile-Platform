@@ -180,8 +180,6 @@ class VisualizationApp:
     # ------------ MENU CALLBACKS ------------ #
 
     def _downsample(self, mode, percent, lines):
-        # prepare a
-        print(f"Downsampling {mode}  {percent}%")
 
         o3d.visualization.gui.Application.instance.post_to_main_thread(
             self.window,
@@ -195,7 +193,7 @@ class VisualizationApp:
                 Windows_downsample = DownsampleWindows()
                 Windows_downsample.downsample(mode, percent, lines, "", "")
 
-        #then take that output from the temp path and transform it into a new session
+            #then take that output from the temp path and transform it into a new session
 
     def _downsample_window(self):
         # run a seperate window collecting all necessary args

@@ -1,4 +1,5 @@
 import os
+import csv
 
 class DownsampleWindows:
     def __init__(self):
@@ -7,169 +8,50 @@ class DownsampleWindows:
         self.__mode = 1
 
     def _downsampling_per(self):
-        pass
+        csv_result = []
+        with open(self.__input_abs_path, 'r') as file:
+            csv_reader = csv.reader(file)
+
+            # count rows
+            count = 0
+            for row in csv_reader:
+                count += 1
+
+        with open(self.__input_abs_path, 'r') as file:
+            csv_reader = csv.reader(file)
+
+            # Iterate through each row in the CSV
+            index = 0
+            for row in csv_reader:
+                if ((index * 100) >= (self.__percent * count)):
+                    csv_result.append(row)
+                index += 1
+
+        with open(self.__output_abs_path, 'w', newline = '') as file:
+            csv_writer = csv.writer(file)
+            csv_writer.writerows(csv_result)
 
     def _downsampling_line(self):
-        pass
+        csv_result = []
+        with open(self.__input_abs_path, 'r') as file:
+            csv_reader = csv.reader(file)
 
-#     static
-#     char * downsampling_per(char * output, const
-#     char * input, size_t
-#     input_len, size_t * output_len, size_t
-#     tot_lines){
-#         size_t
-#     curr_line = 0;
-#     size_t
-#     bytes_so_far = 0;
-#     size_t
-#     out_pos = 0;
-#     size_t
-#     i;
-#     for (i = 0; i < input_len; i++) {
-#     if (input[i] == '\n') {
-#     size_t line_len = i - bytes_so_far + 1;
-#
-#     if ((curr_line * 100) >= (dsmp_line_per * tot_lines)) {
-#     if (out_pos + line_len > * output_len) {
-#     pr_err("Scan: Buffer overflow detected!\n");
-#     vfree(output);
-#     return NULL;
-#     }
-#
-#     memcpy(output + out_pos, input + bytes_so_far, line_len);
-#     out_pos += line_len;
-#     }
-#
-#
-#     curr_line + +;
-#     bytes_so_far = i + 1;
-#     }
-#     }
-#
-#     if (bytes_so_far < input_len){// some line left
-#
-#     if ((curr_line * 100) >= (dsmp_line_per * tot_lines)) {
-#
-#     size_t line_len = input_len - bytes_so_far;
-#
-#     if (out_pos + line_len > * output_len) {
-#     pr_err("Scan: Buffer overflow detected!\n");
-#     vfree(output);
-#     return NULL;
-#     }
-#
-#     memcpy(output + out_pos, input + bytes_so_far, line_len);
-#     out_pos += line_len;
-#     }
-#     }
-#     return output;
-#     }
-#
-#     static
-#     char * downsampling_line(char * output, const
-#     char * input, size_t
-#     input_len, size_t * output_len, size_t
-#     tot_lines){
-#     size_t
-#     curr_line = 0;
-#     size_t
-#     bytes_so_far = 0;
-#     size_t
-#     out_pos = 0;
-#     size_t
-#     i;
-#
-#     if (dsmp_line_num > tot_lines | | dsmp_line_num <= 0){
-#     pr_err("Scan: The desampling line number is incorrect. (RANGE 0 - %zu)\n", tot_lines);
-#     return NULL;
-#     }
-#
-#     if (dsmp_mode == 1){
-#     for (i = 0; i < input_len; i++) {
-#     if (input[i] == '\n') {
-#     size_t line_len = i - bytes_so_far + 1;
-#
-#     if (curr_line %dsmp_line_num != 0) {
-#     if (out_pos + line_len > * output_len) {
-#     pr_err("Scan: Buffer overflow detected!\n");
-#     vfree(output);
-#     return NULL;
-#     }
-#
-#     memcpy(output + out_pos, input + bytes_so_far, line_len);
-#     out_pos += line_len;
-#     }
-#
-#
-#     curr_line + +;
-#     bytes_so_far = i + 1;
-#     }
-#     }
-#     } else if (dsmp_mode == 2){
-#     for (i = 0; i < input_len; i++) {
-#     if (input[i] == '\n') {
-#     size_t line_len = i - bytes_so_far + 1;
-#
-#     if (curr_line %dsmp_line_num == 0) {
-#     if (out_pos + line_len > * output_len) {
-#     pr_err("Scan: Buffer overflow detected!\n");
-#     vfree(output);
-#     return NULL;
-#
-# }
-#
-# memcpy(output + out_pos, input + bytes_so_far, line_len);
-# out_pos += line_len;
-# }
-#
-#
-# curr_line + +;
-# bytes_so_far = i + 1;
-# }
-# }
-# } else {
-#     pr_err("Scan: Incorrect desampling mode in desampling line method: %u mode\n", dsmp_mode);
-# return NULL;
-# }
-#
-# if (bytes_so_far < input_len){// some line left
-# if (dsmp_mode == 1){
-#
-# if (curr_line %dsmp_line_num != 0) {
-#
-# size_t line_len = input_len - bytes_so_far;
-#
-# if (out_pos + line_len > * output_len) {
-# pr_err("Scan: Buffer overflow detected!\n");
-# vfree(output);
-# return NULL;
-# }
-#
-# memcpy(output + out_pos, input + bytes_so_far, line_len);
-# out_pos += line_len;
-# }
-# } else if (dsmp_mode == 2){
-# if (curr_line %dsmp_line_num == 0) {
-#
-# size_t line_len = input_len - bytes_so_far;
-#
-# if (out_pos + line_len > * output_len) {
-# pr_err("Scan: Buffer overflow detected!\n");
-# vfree(output);
-# return NULL;
-# }
-#
-# memcpy(output + out_pos, input + bytes_so_far, line_len);
-# out_pos += line_len;
-# }
-# } else {
-#     pr_err("Scan: Incorrect desampling mode in desampling line method: %u mode\n", dsmp_mode);
-# return NULL;
-# }
-#
-# }
-# return output;
-# }
+            # Iterate through each row in the CSV
+            index = 0
+            if self.__mode == 1:  # 1 - x line is ignored
+                for row in csv_reader:
+                    if(index % self.__line != 0):
+                        csv_result.append(row)
+                    index += 1
+            else: # 2 - x line is kept
+                for row in csv_reader:
+                    if(index % self.__line == 0):
+                        csv_result.append(row)
+                    index += 1
+
+        with open(self.__output_abs_path, 'w', newline = '') as file:
+            csv_writer = csv.writer(file)
+            csv_writer.writerows(csv_result)
 
     def _set_input_path(self, input_path: str):
         if (len(input_path) == 0):
@@ -211,7 +93,7 @@ class DownsampleWindows:
         return self.__output_path
 
     def _set_percent(self, percent: int):
-        if (percent > 100 | percent < 0):
+        if (percent > 100 or percent < 0):
             print(f"The percent cannot have this value: {percent}.\nUse range [0-100]")
             return
 
@@ -230,7 +112,7 @@ class DownsampleWindows:
         return self.__line
 
     def _set_mode(self, mode: int):
-        if (mode < 0 | mode > 2):
+        if (mode < 0 or mode > 2):
             print("The mode has to be in range [0-2]")
             return
         self.__mode = mode
@@ -239,7 +121,7 @@ class DownsampleWindows:
         return self.__mode
 
     def _run(self):
-        if (len(self.__input_path) == 0 | len(self.__output_path) == 0):
+        if (len(self.__input_path) == 0 or len(self.__output_path) == 0):
             raise Exception(
                 f"The paths cannot be empty"
             )
@@ -264,3 +146,10 @@ class DownsampleWindows:
         self._set_output_path(temp_folder)
         self._run()
         print("In windows downsample")
+
+# def main():
+#     module = DownsampleWindows()
+#     module.downsample(0, 20, 3, os.path.abspath("input.csv"), os.path.abspath("output2.csv"))
+#
+# if __name__ == "__main__":
+#     main()
