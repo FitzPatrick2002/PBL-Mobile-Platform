@@ -22,6 +22,7 @@ class PCDSaver:
 
         self._working_dir = Path("") # Current working directory (path to folder session-N)
         self._history_folder = Path("")
+        self._temp_folder = Path("")
         self._combined_file = Path("")
         self._path_file = Path("")
 
@@ -38,8 +39,15 @@ class PCDSaver:
                     - scan-0.npy
                     - scan-1.npy
                     ...
+                * temp // <- Creation in progress TODO
                 - path.npy
                 - combined.npy
+
+        history dir - Stores historical scans (each separately).
+        temp - stores temporary files (like .csv files generated for the downsampling algorithm).
+        path.npy - stores combined odometry data.
+        combined.npy - stores combined point cloud scans.
+
         :param name: Name of the session directory. If such folder does not exist it will be created
                      with necessary subfolders.
         '''
@@ -51,9 +59,13 @@ class PCDSaver:
         if not self._working_dir.is_dir():
             self._working_dir.mkdir(parents=True, exist_ok=True)
 
-            # Add history
+            # Add history folder
             history = self._working_dir / "history"
             history.mkdir(parents=True, exist_ok=True)
+
+            # Add temp folder
+            temp_folder = self._working_dir / "temp"
+            temp_folder.mkdir(parents=True, exist_ok=True)
 
             # Add the path file and the combined file
             combined = self._working_dir / "combined.npy"
@@ -68,11 +80,11 @@ class PCDSaver:
         self._history_folder = self._working_dir / "history"
         self._combined_file = self._working_dir / "combined.npy"
         self._path_file = self._working_dir / "path.npy"
+        self._temp_folder = self._working_dir / "temp"
 
         # Parse the history folder and count the number of files in it
         history_files = [f for f in os.listdir(self._history_folder) if f.startswith("scan-") and f.endswith(".npy")]
         self._history_records_no = len(history_files)
-
 
         print(f"History files count: {self._history_records_no}")
 
@@ -149,6 +161,68 @@ class PCDSaver:
         # Save the updated path file
         np.save(file=self._path_file, arr=path_data, allow_pickle=True)
 
+    # -------------------- Temporary Files  -------------------- #
+
+    def convert_combined_to_csv(self):
+        '''
+        Copies the combined.npy data and stores it in temp folder as [session-name]-combined.csv
+        :return: None
+        '''
+
+        print(f"PCDSaver: convert_combined_to_csv(): Entered")
+
+        # Load the numpy table from file
+        combined_arr = np.load(self._combined_file, allow_pickle=True)
+
+        print(f"PCDSaver: convert_combined_to_csv(): FIle read")
+
+        # Store the copied data in the source csv in temp folder
+        csv_src = self._temp_folder
+        csv_src = csv_src / Path(self._working_dir.name + "-downsaple-source.csv")
+
+        print(f"PCDSaver: convert_combined_to_csv(): Paths created")
+
+        np.savetxt(fname=csv_src, X=combined_arr, delimiter=";")
+
+        print(f"PCDSaver: convert_combined_to_csv(): CSV saved")
+
+        # Create the target csv where downsampling will dump the
+        csv_target = self._temp_folder / Path(self._working_dir.name + "-downsaple-target.csv")
+        with open(csv_target, "w") as f:
+            pass
+
+        print(f"PCDSaver: convert_combined_to_csv(): CSV created")
+
+    def clear_temp_dir(self):
+        '''
+        Clears the contents of the temporary directory (temp).
+        :return: None
+        '''
+
+        temp_contents = os.listdir(self._temp_folder)
+        for f in temp_contents:
+            elem_dir = self._temp_folder / f
+            if elem_dir.is_file():
+                try:
+                    os.remove(elem_dir)
+                    print(f"FileManager: Successfully deleted temporary file: {f}")
+                except FileNotFoundError:
+                    print(f"FIleManager: Could not find {f} in temp dir to delete it")
+
+    def get_session_temp_files(self) -> List[Path]:
+        '''
+        Returns the list of temporary files associated with currently running session
+        :return: list[Path]
+        '''
+
+        # Get the names of files which contain the name of the currently used directory
+        names = [self._temp_folder / f for f in os.listdir(self._temp_folder) if self._working_dir.name in f]
+
+        # Filter out things that are not files
+        names = [n for n in names if n.is_file()]
+
+        return names
+
     # -------------------- Getters -------------------- #
 
     def get_combined(self) -> np.ndarray:
@@ -206,8 +280,8 @@ class PCDSaver:
     def get_dirs(self) -> List[Path]:
         '''
         Returns a list of all directories in such order:
-        root, working dir, working history dir, working combined file, working path file
-        :return: list[str]
+        root, working dir, working history dir, temp dir, working combined file, working path file
+        :return: list[Path]
         '''
-        dirs = [s for s in [self._root_dir, self._working_dir, self._history_folder, self._combined_file, self._path_file]]
+        dirs = [s for s in [self._root_dir, self._working_dir, self._history_folder, self._temp_folder, self._combined_file, self._path_file]]
         return dirs

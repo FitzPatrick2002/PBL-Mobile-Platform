@@ -181,6 +181,21 @@ class VisualizationApp:
 
     def _downsample(self, mode, percent, lines):
 
+        # Create the temporary csv files
+        self._pcd_saver.convert_combined_to_csv()
+
+        # Get the temporary csv files paths of this session
+        csv_paths = self._pcd_saver.get_session_temp_files()
+        print(f"o3d: _downsample(): Csv files paths: {csv_paths}")
+
+        source_path = Path("")
+        target_path = Path("")
+        #for p in csv_paths:
+        #    if "target" in p:
+
+
+        print(f"o3d: _downsample(): Csv files global paths: {csv_paths}")
+
         o3d.visualization.gui.Application.instance.post_to_main_thread(
             self.window,
             lambda: self.window.close_dialog() ) # Closing in the main thread
