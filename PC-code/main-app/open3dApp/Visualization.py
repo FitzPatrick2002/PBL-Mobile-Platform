@@ -9,6 +9,11 @@ import matplotlib.pyplot as plt
 
 from utils.DataTypes import LidarScan, OdometryData
 from utils.FileManagement import PCDSaver
+import utils.OperatingSystemCheck
+
+from open3dApp.downsampling.linux.Downsample_module import DownsampleModule
+from open3dApp.downsampling.windows.Downsample import DownsampleWindows
+from open3dApp.downsampling.MenuDialog import MenuDialog
 
 # Messages format
 # From flask server to o3d app:
@@ -59,11 +64,12 @@ class VisualizationApp:
                    It is used to accept data from other processes.
     '''
     # Constants which index the menu states
-    MENU_RANDOM = 1
-    MENU_COORD_FRAME = 2
-    MENU_REF_PLANE = 3
-    MENU_HEIGHT_MAP = 4
-    MENU_QUIT = 5
+    DOWNSAMPLE = 1
+    MENU_RANDOM = 2
+    MENU_COORD_FRAME = 3
+    MENU_REF_PLANE = 4
+    MENU_HEIGHT_MAP = 5
+    MENU_QUIT = 6
 
     def __init__(self, queue : multiprocessing.Queue, o3d_to_f : multiprocessing.Queue):
         '''
@@ -79,12 +85,17 @@ class VisualizationApp:
         # Setup the queue, which communicates with the server
         self._queue = queue
 
+        self._downsample_dialog = None
+
         # Setup the queue which sends data from o3d app to flask server
         self._o3d_to_f = o3d_to_f
 
         # Creates the window and adds the scene widget (basically are where we can draw stuff)
         # Widget stores the real 3D scene
-        self.window = o3d.visualization.gui.Application.instance.create_window("Add spheres example", 1024, 768)
+        # Window title based on the Operating system
+        window_title = "Scan Visualization on " + utils.OperatingSystemCheck.OS_SYSTEM
+        self.window = o3d.visualization.gui.Application.instance.create_window(window_title, 1024, 768)
+
         self.scene = o3d.visualization.gui.SceneWidget()
 
         # Set the scene properties,
@@ -108,19 +119,25 @@ class VisualizationApp:
         # If there is no menubar, add it
         # Menubar seems to be bound to the application instance rather to a widget
         if o3d.visualization.gui.Application.instance.menubar is None:
+            options_menu = o3d.visualization.gui.Menu()
+            options_menu.add_item("Downsample", VisualizationApp.DOWNSAMPLE) #dodam tutaj okienko z dodatkowymi opcjami do downsamplingu
+            options_menu.add_item("Coordinate frame", VisualizationApp.MENU_COORD_FRAME)
+            options_menu.add_item("Ground plane & sky", VisualizationApp.MENU_REF_PLANE)
+            options_menu.add_item("Height Map", VisualizationApp.MENU_HEIGHT_MAP)
+            options_menu.add_item("Quit", VisualizationApp.MENU_QUIT)
+
             debug_menu = o3d.visualization.gui.Menu()
-            debug_menu.add_item("Add Radom PCD", VisualizationApp.MENU_RANDOM)
-            debug_menu.add_item("Coordinate frame", VisualizationApp.MENU_COORD_FRAME)
-            debug_menu.add_item("Ground plane & sky", VisualizationApp.MENU_REF_PLANE)
-            debug_menu.add_item("Height Map", VisualizationApp.MENU_HEIGHT_MAP)
-            debug_menu.add_item("Quit", VisualizationApp.MENU_QUIT)
+            debug_menu.add_item("Add Random PCD", VisualizationApp.MENU_RANDOM)
 
             # Add the instance of menu to the application
             menu = o3d.visualization.gui.Menu()
+            menu.add_menu("Options", options_menu)
             menu.add_menu("Debug", debug_menu)
             o3d.visualization.gui.Application.instance.menubar = menu
 
         # Callbacks for the menubar
+        self.window.set_on_menu_item_activated(VisualizationApp.DOWNSAMPLE,
+                                               self._downsample_window)
         self.window.set_on_menu_item_activated(VisualizationApp.MENU_RANDOM,
                                                self._on_menu_random)
         self.window.set_on_menu_item_activated(VisualizationApp.MENU_COORD_FRAME,
@@ -161,6 +178,30 @@ class VisualizationApp:
         self._height_map_on = False
 
     # ------------ MENU CALLBACKS ------------ #
+
+    def _downsample(self, percent, mode, dialog_instance):
+        # prepare a
+        print(f"Downsampling hehehe {mode}  {percent}%")
+
+        o3d.visualization.gui.Application.instance.post_to_main_thread(
+            self.window,
+            lambda: self.window.close_dialog() )
+
+
+        if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
+            Linux_downsample = DownsampleModule()
+            Linux_downsample.downsample()
+        else:
+            Windows_downsample = DownsampleWindows()
+            Windows_downsample.downsample()
+
+    def _downsample_window(self):
+        # run a seperate window collecting all necessary args
+        o3d.visualization.gui.Application.instance.post_to_main_thread(
+            self.window,
+            lambda: MenuDialog(self.window, self._downsample)
+        )
+
 
     def _on_menu_random(self):
         '''
