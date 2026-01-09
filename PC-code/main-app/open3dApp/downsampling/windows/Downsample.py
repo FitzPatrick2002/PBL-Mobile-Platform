@@ -6,6 +6,171 @@ class DownsampleWindows:
         self.__line = 1
         self.__mode = 1
 
+    def _downsampling_per(self):
+        pass
+
+    def _downsampling_line(self):
+        pass
+
+#     static
+#     char * downsampling_per(char * output, const
+#     char * input, size_t
+#     input_len, size_t * output_len, size_t
+#     tot_lines){
+#         size_t
+#     curr_line = 0;
+#     size_t
+#     bytes_so_far = 0;
+#     size_t
+#     out_pos = 0;
+#     size_t
+#     i;
+#     for (i = 0; i < input_len; i++) {
+#     if (input[i] == '\n') {
+#     size_t line_len = i - bytes_so_far + 1;
+#
+#     if ((curr_line * 100) >= (dsmp_line_per * tot_lines)) {
+#     if (out_pos + line_len > * output_len) {
+#     pr_err("Scan: Buffer overflow detected!\n");
+#     vfree(output);
+#     return NULL;
+#     }
+#
+#     memcpy(output + out_pos, input + bytes_so_far, line_len);
+#     out_pos += line_len;
+#     }
+#
+#
+#     curr_line + +;
+#     bytes_so_far = i + 1;
+#     }
+#     }
+#
+#     if (bytes_so_far < input_len){// some line left
+#
+#     if ((curr_line * 100) >= (dsmp_line_per * tot_lines)) {
+#
+#     size_t line_len = input_len - bytes_so_far;
+#
+#     if (out_pos + line_len > * output_len) {
+#     pr_err("Scan: Buffer overflow detected!\n");
+#     vfree(output);
+#     return NULL;
+#     }
+#
+#     memcpy(output + out_pos, input + bytes_so_far, line_len);
+#     out_pos += line_len;
+#     }
+#     }
+#     return output;
+#     }
+#
+#     static
+#     char * downsampling_line(char * output, const
+#     char * input, size_t
+#     input_len, size_t * output_len, size_t
+#     tot_lines){
+#     size_t
+#     curr_line = 0;
+#     size_t
+#     bytes_so_far = 0;
+#     size_t
+#     out_pos = 0;
+#     size_t
+#     i;
+#
+#     if (dsmp_line_num > tot_lines | | dsmp_line_num <= 0){
+#     pr_err("Scan: The desampling line number is incorrect. (RANGE 0 - %zu)\n", tot_lines);
+#     return NULL;
+#     }
+#
+#     if (dsmp_mode == 1){
+#     for (i = 0; i < input_len; i++) {
+#     if (input[i] == '\n') {
+#     size_t line_len = i - bytes_so_far + 1;
+#
+#     if (curr_line %dsmp_line_num != 0) {
+#     if (out_pos + line_len > * output_len) {
+#     pr_err("Scan: Buffer overflow detected!\n");
+#     vfree(output);
+#     return NULL;
+#     }
+#
+#     memcpy(output + out_pos, input + bytes_so_far, line_len);
+#     out_pos += line_len;
+#     }
+#
+#
+#     curr_line + +;
+#     bytes_so_far = i + 1;
+#     }
+#     }
+#     } else if (dsmp_mode == 2){
+#     for (i = 0; i < input_len; i++) {
+#     if (input[i] == '\n') {
+#     size_t line_len = i - bytes_so_far + 1;
+#
+#     if (curr_line %dsmp_line_num == 0) {
+#     if (out_pos + line_len > * output_len) {
+#     pr_err("Scan: Buffer overflow detected!\n");
+#     vfree(output);
+#     return NULL;
+#
+# }
+#
+# memcpy(output + out_pos, input + bytes_so_far, line_len);
+# out_pos += line_len;
+# }
+#
+#
+# curr_line + +;
+# bytes_so_far = i + 1;
+# }
+# }
+# } else {
+#     pr_err("Scan: Incorrect desampling mode in desampling line method: %u mode\n", dsmp_mode);
+# return NULL;
+# }
+#
+# if (bytes_so_far < input_len){// some line left
+# if (dsmp_mode == 1){
+#
+# if (curr_line %dsmp_line_num != 0) {
+#
+# size_t line_len = input_len - bytes_so_far;
+#
+# if (out_pos + line_len > * output_len) {
+# pr_err("Scan: Buffer overflow detected!\n");
+# vfree(output);
+# return NULL;
+# }
+#
+# memcpy(output + out_pos, input + bytes_so_far, line_len);
+# out_pos += line_len;
+# }
+# } else if (dsmp_mode == 2){
+# if (curr_line %dsmp_line_num == 0) {
+#
+# size_t line_len = input_len - bytes_so_far;
+#
+# if (out_pos + line_len > * output_len) {
+# pr_err("Scan: Buffer overflow detected!\n");
+# vfree(output);
+# return NULL;
+# }
+#
+# memcpy(output + out_pos, input + bytes_so_far, line_len);
+# out_pos += line_len;
+# }
+# } else {
+#     pr_err("Scan: Incorrect desampling mode in desampling line method: %u mode\n", dsmp_mode);
+# return NULL;
+# }
+#
+# }
+# return output;
+# }
+
     def _set_input_path(self, input_path: str):
         if (len(input_path) == 0):
             raise Exception(
@@ -78,7 +243,11 @@ class DownsampleWindows:
             raise Exception(
                 f"The paths cannot be empty"
             )
-        #implement algorithms
+
+        if(self.__mode == 0):
+            self._downsampling_per()
+        else:
+            self._downsampling_line()
 
     def _get_info(self):
         print(f"Mode: {self.__mode}\n")

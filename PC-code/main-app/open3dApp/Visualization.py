@@ -195,6 +195,8 @@ class VisualizationApp:
                 Windows_downsample = DownsampleWindows()
                 Windows_downsample.downsample(mode, percent, lines, "", "")
 
+        #then take that output from the temp path and transform it into a new session
+
     def _downsample_window(self):
         # run a seperate window collecting all necessary args
         o3d.visualization.gui.Application.instance.post_to_main_thread(
