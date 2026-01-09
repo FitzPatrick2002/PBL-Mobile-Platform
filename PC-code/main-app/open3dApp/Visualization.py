@@ -210,9 +210,8 @@ class VisualizationApp:
                 Linux_downsample = DownsampleModule()
                 Linux_downsample.downsample(mode, percent, lines, "","")
             else:
-                pass
-                # Windows_downsample = DownsampleWindows()
-                # Windows_downsample.downsample(mode, percent, lines, "", "")
+                Windows_downsample = DownsampleWindows()
+                Windows_downsample.downsample(mode, percent, lines, source_path, target_path)
             #then take that output from the temp path and transform it into a new session
 
     def _downsample_window(self):
@@ -228,12 +227,21 @@ class VisualizationApp:
             lambda: self.window.close_dialog())  # Closing in the main thread
 
     def _barycentre_window(self):
+        # Create the temporary csv files
+        self._pcd_saver.convert_combined_to_csv()
+
+        # Get the temporary csv files paths of this session
+        csv_paths = self._pcd_saver.get_session_temp_files()
+        print(f"o3d: _downsample(): Csv files paths: {csv_paths}")
+
+        source_path = Path("")
+
         barycentre_dialog = Barycentre()
         # ADD INPUT
-        # o3d.visualization.gui.Application.instance.post_to_main_thread(
-        #     self.window,
-        #     lambda: barycentre_dialog._calculate_barycentre(os.path.abspath("../main/input.csv"), parent_window=self.window, callback=self._barycentre_callback)
-        # )
+        o3d.visualization.gui.Application.instance.post_to_main_thread(
+            self.window,
+            lambda: barycentre_dialog._calculate_barycentre(source_path, parent_window=self.window, callback=self._barycentre_callback)
+        )
 
 
     def _on_menu_random(self):

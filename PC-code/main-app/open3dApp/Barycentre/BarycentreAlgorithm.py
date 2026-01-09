@@ -7,23 +7,23 @@ class Barycentre:
         pass
 
     def _calculate_barycentre(self, input_path: str, parent_window, callback):
-        if (len(input_path) == 0):
-            raise Exception(
-                f"The input path cannot be empty"
-            )
-
-        if (os.path.exists(path=input_path) == False):
-            raise Exception(
-                f"The input path {input_path} does not exist"
-            )
-
-        if (os.path.getsize(input_path) == 0):
-            raise Exception(
-                f"The input path {input_path} cannot be empty"
-            )
+        # if (len(input_path) == 0):
+        #     raise Exception(
+        #         f"The input path cannot be empty"
+        #     )
+        #
+        # if (os.path.exists(path=input_path) == False):
+        #     raise Exception(
+        #         f"The input path {input_path} does not exist"
+        #     )
+        #
+        # if (os.path.getsize(input_path) == 0):
+        #     raise Exception(
+        #         f"The input path {input_path} cannot be empty"
+        #     )
 
         self.__input_path = input_path
-        self.__input_abs_path = os.path.abspath(input_path)
+        self.__input_abs_path = input_path#os.path.abspath(input_path)
 
         self._result_x, self._result_y, self._result_z = 0, 0, 0
         index = 0
