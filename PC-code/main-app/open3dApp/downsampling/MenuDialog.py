@@ -7,8 +7,6 @@ class MenuDialog:
         self.dialog = o3d.visualization.gui.Dialog("Downsampling Settings")
         self.panel = o3d.visualization.gui.Vert(20,o3d.visualization.gui.Margins(15,15,15,15))
 
-        # Output file
-
         # Combobox
         self.mode_row = o3d.visualization.gui.Horiz(8)
         self.mode_combo = o3d.visualization.gui.Combobox()
