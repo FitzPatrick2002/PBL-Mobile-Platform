@@ -17,7 +17,7 @@
 #define LIDAR_PWM 21
 
 // Wifi setup
-#define MY_WIFI_SSID          "TELPOL-19886"
+#define MY_WIFI_SSID  "TELPOL-19886"
 #define WIFI_PASSWORD "38j8gze9sh"
 #define SERVER_NAME   "http://192.168.21.17:9000"
 

@@ -137,6 +137,8 @@ namespace ManagerSpace{
 
     void kontrolerSendData();
 
+    //void 
+
     // -------------- Getters & Setters -------------- //
 
     /// @brief Sets the value of #permanentStop.
