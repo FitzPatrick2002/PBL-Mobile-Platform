@@ -190,10 +190,10 @@ class VisualizationApp:
         if((mode in (1,2) & lines >= 1) | mode == 0):
             if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
                 Linux_downsample = DownsampleModule()
-                Linux_downsample.downsample(mode, percent, lines, )
+                Linux_downsample.downsample(mode, percent, lines, "","")
             else:
                 Windows_downsample = DownsampleWindows()
-                Windows_downsample.downsample()
+                Windows_downsample.downsample(mode, percent, lines, "", "")
 
     def _downsample_window(self):
         # run a seperate window collecting all necessary args
