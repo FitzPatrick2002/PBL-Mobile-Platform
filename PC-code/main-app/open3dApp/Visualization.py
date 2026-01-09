@@ -14,6 +14,7 @@ import utils.OperatingSystemCheck
 from open3dApp.downsampling.linux.Downsample_module import DownsampleModule
 from open3dApp.downsampling.windows.Downsample import DownsampleWindows
 from open3dApp.downsampling.MenuDialog import MenuDialog
+from open3dApp.Barycentre.BarycentreAlgorithm import Barycentre as Barycentre
 
 # Messages format
 # From flask server to o3d app:
@@ -65,11 +66,12 @@ class VisualizationApp:
     '''
     # Constants which index the menu states
     DOWNSAMPLE = 1
-    MENU_RANDOM = 2
-    MENU_COORD_FRAME = 3
-    MENU_REF_PLANE = 4
-    MENU_HEIGHT_MAP = 5
-    MENU_QUIT = 6
+    BARYCENTRE = 2
+    MENU_RANDOM = 3
+    MENU_COORD_FRAME = 4
+    MENU_REF_PLANE = 5
+    MENU_HEIGHT_MAP = 6
+    MENU_QUIT = 7
 
     def __init__(self, queue : multiprocessing.Queue, o3d_to_f : multiprocessing.Queue):
         '''
@@ -121,6 +123,7 @@ class VisualizationApp:
         if o3d.visualization.gui.Application.instance.menubar is None:
             options_menu = o3d.visualization.gui.Menu()
             options_menu.add_item("Downsample", VisualizationApp.DOWNSAMPLE)
+            options_menu.add_item("Barycentre", VisualizationApp.BARYCENTRE)
             options_menu.add_item("Coordinate frame", VisualizationApp.MENU_COORD_FRAME)
             options_menu.add_item("Ground plane & sky", VisualizationApp.MENU_REF_PLANE)
             options_menu.add_item("Height Map", VisualizationApp.MENU_HEIGHT_MAP)
@@ -138,6 +141,8 @@ class VisualizationApp:
         # Callbacks for the menubar
         self.window.set_on_menu_item_activated(VisualizationApp.DOWNSAMPLE,
                                                self._downsample_window)
+        self.window.set_on_menu_item_activated(VisualizationApp.BARYCENTRE,
+                                               self._barycentre_window)
         self.window.set_on_menu_item_activated(VisualizationApp.MENU_RANDOM,
                                                self._on_menu_random)
         self.window.set_on_menu_item_activated(VisualizationApp.MENU_COORD_FRAME,
@@ -216,6 +221,19 @@ class VisualizationApp:
             self.window,
             lambda: MenuDialog(parent_window=self.window, callback=self._downsample)
         )
+
+    def _barycentre_callback(self):
+        o3d.visualization.gui.Application.instance.post_to_main_thread(
+            self.window,
+            lambda: self.window.close_dialog())  # Closing in the main thread
+
+    def _barycentre_window(self):
+        barycentre_dialog = Barycentre()
+        # ADD INPUT
+        # o3d.visualization.gui.Application.instance.post_to_main_thread(
+        #     self.window,
+        #     lambda: barycentre_dialog._calculate_barycentre(os.path.abspath("../main/input.csv"), parent_window=self.window, callback=self._barycentre_callback)
+        # )
 
 
     def _on_menu_random(self):

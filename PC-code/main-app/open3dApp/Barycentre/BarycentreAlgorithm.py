@@ -6,7 +6,7 @@ class Barycentre:
     def __init__(self):
         pass
 
-    def _calculate_barycentre(self, input_path: str):
+    def _calculate_barycentre(self, input_path: str, parent_window, callback):
         if (len(input_path) == 0):
             raise Exception(
                 f"The input path cannot be empty"
@@ -47,13 +47,13 @@ class Barycentre:
         self._result_y /= index
         self._result_z /= index
         self._result = "( " + str(self._result_x) + " , " + str(self._result_y) + " , " + str(self._result_z) + " )"
+        self._result_window(parent_window, callback)
 
     def _result_window(self, parent_window, callback):
         self.callback = callback
         self.window = parent_window
         self.dialog = o3d.visualization.gui.Dialog("Barycentre result")
         self.panel = o3d.visualization.gui.Vert(20, o3d.visualization.gui.Margins(15, 15, 15, 15))
-
         # Title
         self.title_row = o3d.visualization.gui.Horiz(8)
         self.title_row.add_child(o3d.visualization.gui.Label("Barycentre:"))
