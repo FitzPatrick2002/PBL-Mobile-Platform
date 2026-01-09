@@ -15,6 +15,8 @@
 #include "Core0Manager.h"
 #include "esp-now-callbacks.h"
 
+#include "TheSetuper.h"
+
 #include "ManagerSpace.h"
 
 //#include "silnik_mk1_1ax.h"
@@ -158,6 +160,44 @@ void setup() {
   }
   Serial.println("Serial Communication - OK");
 
+  delay(250);
+
+  // Init wifi communication
+  // ESP NOW requires that esp controller is a wifi station
+  // http requests need to be done within a specified network
+
+  // Setup device as wifi station
+  WiFi.mode(WIFI_STA);
+
+  WiFi.begin(MY_WIFI_SSID, WIFI_PASSWORD);
+  Serial.println("Connecting to wifi");
+
+  // Await to connect to wifi
+  while(WiFi.status() != WL_CONNECTED){
+    delay(500);
+    Serial.println(".");
+  }
+
+  // Print the address of the esp in local wifi
+  Serial.println("");
+  Serial.print("Connected to WiFi network with IP addr: ");
+  Serial.println(WiFi.localIP());
+
+  Serial.println("WiFi - OK");
+
+  delay(250);
+
+  // Once the Serial & WiFi are initalized, setup the needed variables
+
+  // Init the communication stream of TheSetuper as Serial (this can be done only once)
+  Setup::TheSetuper::getSetuper(&Serial);
+
+  // Setup the automatic variables (MAC & IP)
+  Setup::TheSetuper::getSetuper()->init();
+
+  // Run the setup loop
+  Setup::TheSetuper::getSetuper()->theSetup();
+
   // Setup the Wire.h library for I2C communication
   Wire.begin(I2C_SDA, I2C_SCL);
   Wire.setClock(400000);
@@ -184,31 +224,6 @@ void setup() {
   // Attach collision system detection interrupt
   attachInterrupt(HCSR_STOP, collisionDetection, CHANGE); 
   Serial.println("HCSR ISR - OK");
-
-  delay(250);
-
-  // Init wifi communication
-  // ESP NOW requires that esp controller is a wifi station
-  // http requests need to be done within a specified network
-
-  // Setup device as wifi station
-  WiFi.mode(WIFI_STA);
-
-  WiFi.begin(MY_WIFI_SSID, WIFI_PASSWORD);
-  Serial.println("Connecting to wifi");
-
-  // Await to connect to wifi
-  while(WiFi.status() != WL_CONNECTED){
-    delay(500);
-    Serial.println(".");
-  }
-
-  // Print the address of the esp in local wifi
-  Serial.println("");
-  Serial.print("Connected to WiFi network with IP addr: ");
-  Serial.println(WiFi.localIP());
-
-  Serial.println("WiFi - OK");
 
   delay(250);
 
