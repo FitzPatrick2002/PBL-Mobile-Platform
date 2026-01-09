@@ -56,4 +56,5 @@ class MenuDialog:
     def on_submit(self):
         percent = self.percent_slider.int_value
         mode = self.mode_combo.selected_index
-        self.callback(percent, mode)
+        line = self.line_number.int_value
+        self.callback(mode, percent,line)

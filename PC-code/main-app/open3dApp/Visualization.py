@@ -185,14 +185,14 @@ class VisualizationApp:
             self.window,
             lambda: self.window.close_dialog() ) # Closing in the main thread
 
-        if((mode in (1,2) & lines >= 1) | mode == 0):
+        if((mode in (1,2) and lines >= 1) or mode == 0):
             if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
                 Linux_downsample = DownsampleModule()
                 Linux_downsample.downsample(mode, percent, lines, "","")
             else:
-                Windows_downsample = DownsampleWindows()
-                Windows_downsample.downsample(mode, percent, lines, "", "")
-
+                pass
+                # Windows_downsample = DownsampleWindows()
+                # Windows_downsample.downsample(mode, percent, lines, "", "")
             #then take that output from the temp path and transform it into a new session
 
     def _downsample_window(self):
