@@ -195,8 +195,12 @@ class VisualizationApp:
 
         source_path = Path("")
         target_path = Path("")
-        #for p in csv_paths:
-        #    if "target" in p:
+        for p in csv_paths:
+            print(f"o3d: _downsample(): path is: {p}")
+            if "target" in p.name:
+                target_path = p
+            if "source" in p.name:
+                source_path = p
 
 
         print(f"o3d: _downsample(): Csv files global paths: {csv_paths}")
@@ -205,14 +209,20 @@ class VisualizationApp:
             self.window,
             lambda: self.window.close_dialog() ) # Closing in the main thread
 
+        print(f"o3d: _downsample(): post_to_main_htrad done")
+
         if((mode in (1,2) and lines >= 1) or mode == 0):
             if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
                 Linux_downsample = DownsampleModule()
                 Linux_downsample.downsample(mode, percent, lines, "","")
             else:
                 Windows_downsample = DownsampleWindows()
-                Windows_downsample.downsample(mode, percent, lines, source_path, target_path)
+                print(f"o3d: _downsample(): Window started")
+                Windows_downsample.downsample(mode, percent, lines, str(source_path), str(target_path))
+                print(f"o3d: _downsample(): Downsampling done")
             #then take that output from the temp path and transform it into a new session
+
+        print(f"o3d: _downsample(): if performed")
 
     def _downsample_window(self):
         # run a seperate window collecting all necessary args
@@ -232,15 +242,18 @@ class VisualizationApp:
 
         # Get the temporary csv files paths of this session
         csv_paths = self._pcd_saver.get_session_temp_files()
-        print(f"o3d: _downsample(): Csv files paths: {csv_paths}")
+        source_path = Path()
+        for p in csv_paths:
+            if "source" in p.name:
+                source_path = p
 
-        source_path = Path("")
+        print(f"o3d: _barycenter_window(): Csv files paths: {csv_paths}")
 
         barycentre_dialog = Barycentre()
         # ADD INPUT
         o3d.visualization.gui.Application.instance.post_to_main_thread(
             self.window,
-            lambda: barycentre_dialog._calculate_barycentre(source_path, parent_window=self.window, callback=self._barycentre_callback)
+            lambda: barycentre_dialog._calculate_barycentre(str(source_path), parent_window=self.window, callback=self._barycentre_callback)
         )
 
 

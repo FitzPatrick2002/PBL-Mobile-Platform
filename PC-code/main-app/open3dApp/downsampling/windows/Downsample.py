@@ -54,6 +54,7 @@ class DownsampleWindows:
             csv_writer.writerows(csv_result)
 
     def _set_input_path(self, input_path: str):
+
         if (len(input_path) == 0):
             raise Exception(
                 f"The input path cannot be empty"

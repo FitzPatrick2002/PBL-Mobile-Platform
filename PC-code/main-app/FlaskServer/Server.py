@@ -24,7 +24,7 @@ class FlaskServer:
                  o3d_to_f: multiprocessing.Queue,
                  from_qt_app_queue : multiprocessing.Queue,
                  to_qt_app_queue: multiprocessing.Queue,
-                 host : str = "192.168.56.1", port : int = 9000):
+                 host : str = "192.168.21.17", port : int = 9000):
         self.HOST = host
         self.PORT = port
 
