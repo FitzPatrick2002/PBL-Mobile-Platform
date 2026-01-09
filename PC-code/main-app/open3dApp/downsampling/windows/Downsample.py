@@ -149,7 +149,7 @@ class DownsampleWindows:
 
 # def main():
 #     module = DownsampleWindows()
-#     module.downsample(0, 20, 3, os.path.abspath("input.csv"), os.path.abspath("output2.csv"))
+#     module.downsample(0, 20, 3, "input.csv", "output2.csv")
 #
 # if __name__ == "__main__":
 #     main()
