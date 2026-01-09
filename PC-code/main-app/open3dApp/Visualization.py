@@ -179,7 +179,7 @@ class VisualizationApp:
 
     # ------------ MENU CALLBACKS ------------ #
 
-    def _downsample(self, percent, mode, dialog_instance):
+    def _downsample(self, percent, mode):
         # prepare a
         print(f"Downsampling hehehe {mode}  {percent}%")
 
@@ -199,7 +199,7 @@ class VisualizationApp:
         # run a seperate window collecting all necessary args
         o3d.visualization.gui.Application.instance.post_to_main_thread(
             self.window,
-            lambda: MenuDialog(self.window, self._downsample)
+            lambda: MenuDialog(parent_window=self.window, callback=self._downsample)
         )
 
 
