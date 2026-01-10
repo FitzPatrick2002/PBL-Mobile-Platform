@@ -1,7 +1,7 @@
 from pathlib import Path
 import numpy as np
 import os
-from typing import List
+from typing import List, Tuple, Dict
 
 class PCDSaver:
     def __init__(self, root : Path):
@@ -117,15 +117,21 @@ class PCDSaver:
         if isinstance(pts, list):
             pts = np.ndarray(pts).reshape(3, -1) # Or was it (-1, 3)?
 
+        print(f"PCDSaver: add_record(): Shape of the accepted array is: {pts.shape}")
+
         # Create new .npy file in history
         new_file = self._history_folder / (f"scan-{self._history_records_no}")
         np.save(file=new_file, arr=pts, allow_pickle=True)
+
+        print(f"PCDSaver: add_record(): New history file created")
 
         # Increment the counter of history records
         self._history_records_no += 1
 
         # Append points to the combined.pcd
-        combined_arr :np.ndarray = np.load(file=self._combined_file, allow_pickle=True)
+        combined_arr : np.ndarray = np.load(file=self._combined_file, allow_pickle=True)
+
+        print(f"PCDSaver: add_record(): Combined file read")
 
         if combined_arr.shape[0] == 0:
             combined_arr = pts
@@ -163,9 +169,10 @@ class PCDSaver:
 
     # -------------------- Temporary Files  -------------------- #
 
-    def convert_combined_to_csv(self):
+    def prepare_for_downsampling(self):
         '''
-        Copies the combined.npy data and stores it in temp folder as [session-name]-combined.csv
+        Copies the combined.npy data and stores it in temp folder as [session-name]-downsample-source.csv.
+        Creates an empty file [session-name]-downsample-target.csv where the downsampling content should be stored.
         :return: None
         '''
 
@@ -174,20 +181,20 @@ class PCDSaver:
         # Load the numpy table from file
         combined_arr = np.load(self._combined_file, allow_pickle=True)
 
-        print(f"PCDSaver: convert_combined_to_csv(): FIle read")
+        print(f"PCDSaver: convert_combined_to_csv(): File read")
 
         # Store the copied data in the source csv in temp folder
         csv_src = self._temp_folder
-        csv_src = csv_src / Path(self._working_dir.name + "-downsaple-source.csv")
+        csv_src = csv_src / Path(self._working_dir.name + "-downsample-source.csv")
 
-        print(f"PCDSaver: convert_combined_to_csv(): Paths created")
+        print(f"PCDSaver: convert_combined_to_csv(): Csv paths created")
 
         np.savetxt(fname=csv_src, X=combined_arr, delimiter=";")
 
         print(f"PCDSaver: convert_combined_to_csv(): CSV saved")
 
-        # Create the target csv where downsampling will dump the
-        csv_target = self._temp_folder / Path(self._working_dir.name + "-downsaple-target.csv")
+        # Create the target csv where downsampling will dump the results
+        csv_target = self._temp_folder / Path(self._working_dir.name + "-downsample-target.csv")
         with open(csv_target, "w") as f:
             pass
 
@@ -195,10 +202,9 @@ class PCDSaver:
 
     def clear_temp_dir(self):
         '''
-        Clears the contents of the temporary directory (temp).
+        Clears the contents of the temporary directory (temp) which belong to the current session.
         :return: None
         '''
-
         temp_contents = os.listdir(self._temp_folder)
         for f in temp_contents:
             elem_dir = self._temp_folder / f
@@ -208,6 +214,56 @@ class PCDSaver:
                     print(f"FileManager: Successfully deleted temporary file: {f}")
                 except FileNotFoundError:
                     print(f"FIleManager: Could not find {f} in temp dir to delete it")
+
+    def get_downsampling_files(self) -> Tuple[Path, Path]:
+        '''
+        Returns the csv files which are needed for downsampling.
+        Paths are returned in such order: (source, target)
+        If they do not exist, they are created first.
+        :return: Tuple[Path, Path] = (source, target).
+        '''
+
+        # Prepare the directory names
+        src_dir = self._temp_folder / Path(self._working_dir.name + "-downsample-source.csv")
+        target_dir = self._temp_folder /  Path(self._working_dir.name + "-downsample-target.csv")
+
+        print(f"PCDSaver: get_downsampling_files(): Names of dirs prepared")
+
+        # Check if they exist & create them if they don't
+        if (not src_dir.is_file()) or (not target_dir.is_file()):
+            self.prepare_for_downsampling()
+            print(f"PCDSaver: get_downsampling_files(): Source dir or target does not exist, creating...")
+
+        # Return the paths
+        return (src_dir, target_dir)
+
+    def apply_downsampling_changes(self):
+        '''
+        Updates the current session after the downsampling procedure.
+        Clears the contents of the combined file and writes the downsampled version into it.
+        Stores the downsampled version of combined as a normal history file.
+        :return: None
+        '''
+
+        # Create pcd from the csv file which holds outcomes
+        _, target_csv = self.get_downsampling_files()
+
+        print(f"target_csv: {target_csv}")
+        try:
+            downsampled_arr = np.genfromtxt(fname=str(target_csv.absolute()), delimiter=";", dtype=np.float64, invalid_raise=True)
+        except Exception as e:
+            print(f"ERROR: {e}")
+
+        print(f"target_csv has been read, adding donwsampled version to history and overwriting...")
+
+        # Clear the combined.npy
+        np.save(self._combined_file, arr=np.empty((0, 3)), allow_pickle=True)
+        #open(self._combined_file, "w").close()
+        print(f"Clearing done")
+
+        # Store the downsampled data in history and in the combined file
+        self.add_record(downsampled_arr)
+        print(f"Record added - OK")
 
     def get_session_temp_files(self) -> List[Path]:
         '''
@@ -277,11 +333,19 @@ class PCDSaver:
         sessions = [d.name for d in Path(self._root_dir).iterdir() if d.is_dir()]
         return sessions
 
-    def get_dirs(self) -> List[Path]:
+    def get_dirs(self) -> Dict[str, Path]:
         '''
         Returns a list of all directories in such order:
         root, working dir, working history dir, temp dir, working combined file, working path file
         :return: list[Path]
         '''
-        dirs = [s for s in [self._root_dir, self._working_dir, self._history_folder, self._temp_folder, self._combined_file, self._path_file]]
+        dirs = {
+            "root"     : self._root_dir,
+            "working"  : self._working_dir,
+            "history"  : self._history_folder,
+            "temp"     : self._temp_folder,
+            "combined" : self._combined_file,
+            "path"     : self._path_file
+        }
+        # dirs = [s for s in [self._root_dir, self._working_dir, self._history_folder, self._temp_folder, self._combined_file, self._path_file]]
         return dirs

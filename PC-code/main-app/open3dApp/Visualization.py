@@ -1,5 +1,5 @@
 import os.path
-
+import time
 import open3d as o3d
 import numpy as np
 import random
@@ -73,6 +73,10 @@ class VisualizationApp:
     MENU_HEIGHT_MAP = 6
     MENU_QUIT = 7
 
+    # Constants which specify pcds which are always present on the scene (or at least always exist)
+    SCENE_LIDAR_PCD = "lidar"
+    SCENE_ODOMETRY_PCD = "odometry"
+
     def __init__(self, queue : multiprocessing.Queue, o3d_to_f : multiprocessing.Queue):
         '''
         Adds necessary features to the gui.Application instance.
@@ -82,7 +86,7 @@ class VisualizationApp:
                       Accepts LidarScan & OdometryData objects, other are discarded.
         '''
         # _id stores the id of added geometry
-        self._id = 0
+        # self._id = 0
 
         # Setup the queue, which communicates with the server
         self._queue = queue
@@ -164,7 +168,7 @@ class VisualizationApp:
         # Send info about existing sessions to flask
         # Flask will propagate this info to the qt app which needs it
         existing_sessions = self._pcd_saver.get_sessions()
-        print(f"Sending exisitng sessions: {existing_sessions}")
+        print(f"Sending existing sessions: {existing_sessions}")
         self._o3d_to_f.put({
             "type" : "sessions-config",
             "names" : existing_sessions
@@ -179,6 +183,10 @@ class VisualizationApp:
         # List of geometries stores all the names of added geometries
         self._scene_pcds = dict()
 
+        # Init the 2 basic point clouds in the scene
+        self._scene_pcds[self.SCENE_LIDAR_PCD] = o3d.geometry.PointCloud()
+        self._scene_pcds[self.SCENE_ODOMETRY_PCD] = o3d.geometry.PointCloud()
+
         # By default disable the height map
         self._height_map_on = False
 
@@ -186,24 +194,11 @@ class VisualizationApp:
 
     def _downsample(self, mode, percent, lines):
 
-        # Create the temporary csv files
-        self._pcd_saver.convert_combined_to_csv()
-
         # Get the temporary csv files paths of this session
-        csv_paths = self._pcd_saver.get_session_temp_files()
-        print(f"o3d: _downsample(): Csv files paths: {csv_paths}")
+        # If they don't exist, they will be created
+        source_csv, target_csv = self._pcd_saver.get_downsampling_files()
 
-        source_path = Path("")
-        target_path = Path("")
-        for p in csv_paths:
-            print(f"o3d: _downsample(): path is: {p}")
-            if "target" in p.name:
-                target_path = p
-            if "source" in p.name:
-                source_path = p
-
-
-        print(f"o3d: _downsample(): Csv files global paths: {csv_paths}")
+        print(f"o3d: _downsample(): Csv files paths: {source_csv}, {target_csv}")
 
         o3d.visualization.gui.Application.instance.post_to_main_thread(
             self.window,
@@ -214,15 +209,26 @@ class VisualizationApp:
         if((mode in (1,2) and lines >= 1) or mode == 0):
             if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
                 Linux_downsample = DownsampleModule()
-                Linux_downsample.downsample(mode, percent, lines, str(source_path),str(target_path))
+                Linux_downsample.downsample(mode, percent, lines, str(source_csv.absolute()),str(target_csv.absolute()))
             else:
                 Windows_downsample = DownsampleWindows()
                 print(f"o3d: _downsample(): Window started")
-                Windows_downsample.downsample(mode, percent, lines, str(source_path), str(target_path))
+                Windows_downsample.downsample(mode, percent, lines, str(source_csv.absolute()), str(target_csv.absolute()))
                 print(f"o3d: _downsample(): Downsampling done")
             #then take that output from the temp path and transform it into a new session
 
-        print(f"o3d: _downsample(): if performed")
+        time.sleep(3)
+
+        # Overwrite the current combined.npy, add as history file as well
+        self._pcd_saver.apply_downsampling_changes()
+
+        # Force redraw of the whole scene by reloading the session
+        self._reload_session(self._pcd_saver.get_dirs()["working"].name)
+
+        # Remove the unnecessary temporary files
+        self._pcd_saver.clear_temp_dir()
+
+        print(f"o3d: _downsample(): Downsampling done")
 
     def _downsample_window(self):
         # run a seperate window collecting all necessary args
@@ -255,7 +261,6 @@ class VisualizationApp:
             self.window,
             lambda: barycentre_dialog._calculate_barycentre(str(source_path), parent_window=self.window, callback=self._barycentre_callback)
         )
-
 
     def _on_menu_random(self):
         '''
@@ -432,7 +437,7 @@ class VisualizationApp:
                 new_pcd = self._lidar_to_pcd(message["payload"])
 
                 # Add the pcd to the scene and save it in sessions files
-                self._add_pcd(new_pcd)
+                self._add_pcd(pcd=new_pcd, name=self.SCENE_LIDAR_PCD)
                 self._pcd_saver.add_record(np.asarray(new_pcd.points))
 
                 print("Visualization received lidar data")
@@ -442,7 +447,7 @@ class VisualizationApp:
                 odometry_pcd = self._odometry_to_pcd(message["payload"])
 
                 # Add the new odometry data as a pcd to the scene and append to path.npy of the current session
-                self._add_pcd(odometry_pcd)
+                self._add_pcd(pcd=odometry_pcd, name=self.SCENE_ODOMETRY_PCD)
                 self._pcd_saver.update_position(np.asarray(odometry_pcd.points))
 
             case "session":
@@ -460,38 +465,41 @@ class VisualizationApp:
 
     def _reload_session(self, name : str):
         '''
-        Clears the scene and resets the self._id.
-        Creates new session or selects an exisitng one.
-        Loads the 'combined' file of the selected session into the scene with _id = 0.
+        Clears the scene and resets the self._scene_pcds dictionary.
+        Creates new session or selects an existing one.
+        Loads the 'combined' file of the selected session into the scene with name self.SCENE_LIDAR_PCD.
         :param name: Name of the session
         '''
         # Switch to different session
         self._pcd_saver.start_session(name)
-        print(f"o3d: Session started: {name}")
+        print(f"o3d: _reload_session(): Session started: {name}")
 
         # Clear the scene & reset the dictionary of stored pcds
         self.scene.scene.clear_geometry()
         self._scene_pcds.clear()
-        print(f"o3d: Geometry cleared")
+        self._scene_pcds[self.SCENE_LIDAR_PCD] = o3d.geometry.PointCloud()
+        self._scene_pcds[self.SCENE_ODOMETRY_PCD] = o3d.geometry.PointCloud()
+        print(f"o3d: _reload_session(): Geometry cleared & dict resetted")
 
-        # Clear the geometry _id
-        self._id = 0
-        print(f"o3d: _id reset to: {self._id}")
-
-        # Download data from the current session 'combined' file and convert it to PointCloud
+        # Prepare empty pcd for the combined data
         combined_pcd = o3d.geometry.PointCloud()
         print("o3d: _reload_session(): placeholder for combined pcd created")
+
+        # Download data from the current session 'combined' file
         combined_arr = self._pcd_saver.get_combined()
         print(f"o3d: _reload_session(): Combined read from the file: {combined_arr}")
+
+        # Convert the combined to point cloud
         if combined_arr.size > 0:
             print(f"o3d: _reload_session(): Adding points to pcd ")
             combined_pcd.points = o3d.utility.Vector3dVector(self._pcd_saver.get_combined())
         else:
             print(f"o3d: _reload_session(): combined file is empty, scene is loaded as empty after session switch")
 
-        print("o3d: Reloading done, resetting the pcd.")
+        print("o3d: _reload_session(): Reloading done, resetting the pcd.")
+
         # Add the pcd to the scene
-        self._add_pcd(combined_pcd)
+        self._add_pcd(pcd=combined_pcd, name=self.SCENE_LIDAR_PCD)
 
     def _monitor_server(self) -> bool:
         '''
@@ -499,7 +507,7 @@ class VisualizationApp:
         If new data is received, process it.
         If its is an instance of LidarData or OdometryData, accept it and display on the scene.
         Other data is discarded.
-        :return: True - when data from the queue has been accepted.
+        :return: True  - when data from the queue has been accepted.
                         Scene is then redrawn with new content.
                  False - otherwise.
         '''
@@ -513,47 +521,21 @@ class VisualizationApp:
 
                 self._interpret_message(new_message)
 
-                # Check the type of received data
-               # if isinstance(new_data, LidarScan):
-                    # Append the new array to the current scene
-                #    self._add_pcd(self._lidar_to_pcd(new_data))
-
-                    # Save data into the current session
-                #    self._pcd_saver.add_record(new_data.payload)
-                #elif isinstance(new_data, OdometryData):
-                #    pass
-                #else:
-                #    print("Application received from server object which was neither LidarScan nor OdometryData.")
-
-            '''
-            # new_data is of type LidarScan
-            lidar_data = new_data.payload
-            np_data = np.asarray(lidar_data, dtype="float32").reshape((-1, 3))
-
-            # Create pcd out of these points
-            new_pcd = o3d.geometry.PointCloud()
-            new_pcd.points = o3d.utility.Vector3dVector(np_data)
-
-            # Add the pcd to the scene
-            self._add_pcd(new_pcd)
-            '''
         except Exception as e:
             print(f"Something went wrong in _monitor_server(): {e}")
             return False
 
         return True
 
-    def _add_pcd(self, pcd : o3d.geometry.PointCloud):
+    def _add_pcd(self, pcd : o3d.geometry.PointCloud, name : str):
         '''
-        Adds a new pcd to the scene.
-        Each added pcd has a unique name in the self._scene_pcds dictionary of type: 'pcd + self._id'.
-        If the pcd_name parameter is specified, then the pcd is appended to already existing one
-        :param pcd: Processed pcd, correctly oriented and translated by the self._lidar_to_pcd()
-        :param pcd_name: If true, no new entry is
-        :return:
+        Adds / appends a new pcd to the scene.
+        If name does not exist in the #_scene_pcds dict then a new entry will be created.
+        Otherwise, the new pcd will be appended to the specified point cloud and displayed in the scene.
+        :param pcd: Correctly processed pcd, oriented in the right coordinate frame.
+        :param name: Specifies to which pcd in the #_scene_pcds will the new pcd be appended.
         '''
         print(f"o3d: _add_pcd(): Starting function")
-        self._id += 1
         mat = o3d.visualization.rendering.MaterialRecord()
         mat.base_color = [
             random.random(),
@@ -562,13 +544,24 @@ class VisualizationApp:
             1.0
         ]
         mat.point_size = 5.0
-        print(f"o3d: _add_pcd(): material created, adding pcd...")
-        self.scene.scene.add_geometry("pcd" + str(self._id), pcd, mat)
+        print(f"o3d: _add_pcd(): Material created")
 
-        # Append the name of the pcd to list of pcds in the scene
-        self._scene_pcds["pcd" + str(self._id)] = pcd
-        print(f"Pcds dict: {self._scene_pcds}")
-        print(f"o3d: _add_pcd(): pcd successfully added")
+        # Append new data to existing pcd
+        # Or create a new entry
+        if name in self._scene_pcds:
+            self._scene_pcds[name] = self._scene_pcds[name] + pcd
+            print(f"o3d: _add_pcd(): pcd appended to {name}")
+        else:
+            self._scene_pcds[name] = pcd
+            print(f"o3d: _add_pcd(): new pcd {name} created in the _scene_pcds dict")
+
+        # Remove pcd from the scene
+        self.scene.scene.remove_geometry(name)
+        print(f"o3d: _add_pcd(): pcd {name} removed form the scene")
+
+        # Add it back to the scene
+        self.scene.scene.add_geometry(name, self._scene_pcds[name], mat)
+        print(f"o3d: _add_pcd(): pcd {name} added back to the scene")
 
     # ------------ PCD OPERATIONS ------------ #
 
@@ -618,7 +611,7 @@ class VisualizationApp:
 
         # List of floats [x0, y0, x1, y1]
         points = odometry_data.payload
-        print(f"o3d: Converted odometry points: {points}")
+        print(f"o3d: _odometry_to_pcd(): Converted odometry points: {points}")
 
         # Convert the flat list into ndarray of shape (N, 2)
         # and add z = 0 to each pair, making the shape (N, 3)
@@ -629,7 +622,8 @@ class VisualizationApp:
         # Create the pcd and return it
         odometry_pcd = o3d.geometry.PointCloud()
         odometry_pcd.points = o3d.utility.Vector3dVector(np_points)
-        print(f"o3d: Odometry conversion to pcd ok")
+
+        print(f"o3d: _odometry_to_pcd(): Odometry conversion to pcd ok")
         return odometry_pcd
 
 '''

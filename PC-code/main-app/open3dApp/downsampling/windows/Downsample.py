@@ -143,8 +143,15 @@ class DownsampleWindows:
         self._set_mode(mode)
         self._set_lines(lines)
         self._set_percent(percent)
-        self._set_input_path(current_scan)
-        self._set_output_path(temp_folder)
+        print(f"Downsample: downsample(): Basics set, incoming: {current_scan}")
+
+        try:
+            self._set_input_path(current_scan)
+            self._set_output_path(temp_folder)
+        except Exception as e:
+            print(f"Downsample: downsample(): Exception occured: {e}")
+
+        print(f"Downsample: downsample(): All set")
         self._run()
         print("In windows downsample")
 
