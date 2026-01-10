@@ -214,7 +214,7 @@ class VisualizationApp:
         if((mode in (1,2) and lines >= 1) or mode == 0):
             if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
                 Linux_downsample = DownsampleModule()
-                Linux_downsample.downsample(mode, percent, lines, "","")
+                Linux_downsample.downsample(mode, percent, lines, str(source_path),str(target_path))
             else:
                 Windows_downsample = DownsampleWindows()
                 print(f"o3d: _downsample(): Window started")
