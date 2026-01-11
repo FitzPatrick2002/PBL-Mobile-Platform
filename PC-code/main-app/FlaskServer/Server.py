@@ -8,47 +8,48 @@ from utils.DataTypes import LidarScan, OdometryData
 
 
 class FlaskServer:
-    '''
-        Class runs the server logic.
-        :param HOST: Server IP address.
-        :param PORT: Port on which server will be run
-        :param open3d_queue: Mutliprocessing queue, used for communication with the
-               open3d app, which is running in different process.
-        :param qt_app_queue: Mutliprocessing queue, used for communication with the
-        Qt app, which is running in separate process.
-    '''
-
-    # ------------------ Constructor ------------------ #
+    """FlaskServer runs the server logic using Flask."""
+    """ ------------------ Constructor ------------------ """
 
     def __init__(self, open3d_queue : multiprocessing.Queue,
                  o3d_to_f: multiprocessing.Queue,
                  from_qt_app_queue : multiprocessing.Queue,
                  to_qt_app_queue: multiprocessing.Queue,
                  host : str = "192.168.21.17", port : int = 9000):
+        """Initialize the FlaskServer class with the following arguments.
+
+        Keyword arguments:
+        open3d_queue -- Mutliprocessing queue, used for communication with the
+                        open3d app, which is running in different process.
+        o3d_to_f -- Communication queue from Open3D Visualization to Flask.
+        from_qt_app_queue -- Mutliprocessing queue, used for communication with the
+                            Qt app, which is running in separate process.
+        host -- Server IP address (default: your IP address).
+        port -- Port on which server will be run (default: 9000).
+        """
         self.HOST = host
         self.PORT = port
 
-        # Create the app object which manages the Flask server
+        """Create the app object which manages the Flask server."""
         self.app = Flask(__name__)
         self.app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
 
-        # Setup queues, for interprocess communication
+        """Setup queues, for interprocess communication."""
         self.f_to_qt = to_qt_app_queue
         self.qt_to_f = from_qt_app_queue
         self.f_to_o3d = open3d_queue
         self.o3d_to_f = o3d_to_f
 
-        # Setup routes for the flask server
+        """Setup routes for the flask server."""
         self.setup_routes()
 
     def setup_routes(self):
-        '''
-        Establishes routes, to which external devices can make http requests.
-        Serviced requests are: POST. (and that's it)
-        '''
+        """Establishes routes, to which external devices can make http requests.
+        Serviced requests are: POST. (and that's it).
+        """
         @self.app.route('/receive_post', methods=["POST"])
         def receive_data():
-            # Check the request method
+            """Check the request method."""
             print(f"Here: {request}")
 
             data = request.get_json(silent=True, force=True)
@@ -60,11 +61,11 @@ class FlaskServer:
             print(request.get_json())
             print("YaY")
             if request.method == "POST":
-                # Print the received data
+                """Print the received data."""
                 #data = request.get_json()
                 print(f"Received data: {data}")
 
-                # Service the message from the mobile platform
+                """Service the message from the mobile platform."""
                 self.handle_platform_messages(data)
 
                 '''
@@ -91,19 +92,18 @@ class FlaskServer:
 
                 return "POST accepted"
 
-            print("Post is not really working")
+            print("Post is not working.")
             return "This wasn't POST"
 
     # ------------------ Initialization ------------------ #
 
     def start_server(self):
-        '''
-        Use this method to start the server.
+        """Use this method to start the server.
         You can start it in a separate process if you wish.
         Loop which handles reading messages from qt app runs on a thread separate from flask.
-        '''
+        """
 
-        # Run the polling function in separate thread
+        """Run the polling function in separate thread."""
         qt_poll_thread = threading.Thread(target=self.poll_qt_queue)
         qt_poll_thread.daemon = True
 
@@ -121,61 +121,64 @@ class FlaskServer:
     # ------------------ Communication With o3d App ------------------ #
 
     def handle_platform_messages(self, data):
-        '''
-        Handles actions based on messages sent from the mobile platform.
-        :param data: JSON sent by the platform and received via POST.
-        '''
+        """Handles actions based on messages sent from the mobile platform.
+
+        Keyword arguments:
+        data -- JSON sent by the platform and received via POST.
+        """
         message_type = data["data-type"]
 
         match message_type:
             case "lidar":
-                # 1. Propagate the lidar data to visualization app
-                # 2. Notify the qt app so that it can unblock its 'scan' button
+                """
+                1. Propagate the lidar data to visualization app.
+                2. Notify the qt app so that it can unblock its 'scan' button.
+                """
 
                 bearing = float(data["bearing"])
                 position = data["position"]
                 payload = data["payload"]
 
-                # Print what has been received
+                """Print what has been received."""
                 print("Received data:")
                 print(f"Bearing: {bearing}")
                 print(f"Position: {position}")
                 print(f"Payload: {payload}")
 
-                # Create the new LidarScan object
+                """Create the new LidarScan object."""
                 lidar_scan = LidarScan(bearing, position, payload)
 
-                # Send the scan data into the o3d app
+                """Send the scan data into the o3d app."""
                 self.f_to_o3d.put({
                     "type" : "lidar",
                     "payload" : lidar_scan
                 })
 
-                # Send the notification to qt app, so that it can unfreeze its 'send' buttton
+                """Send the notification to qt app, so that it can unfreeze its 'send' button."""
                 self.f_to_qt.put({
                     "type" : "scan-status",
                     "success" : True
                 })
 
-            # Propagate the odometry data further to the o3d app
+                """Propagate the odometry data further to the o3d app."""
             case "odometry":
                 print(f"Flask handle_platform_messages(): Received odometry data from platform:")
                 print(data)
-                # Create the OdometryData object
+                """Create the OdometryData object."""
                 odometry_data = OdometryData(data["payload"])
 
-                # Send the odometry data to o3d app
+                """Send the odometry data to o3d app."""
                 self.f_to_o3d.put({
                     "type": "odometry",
                     "payload": odometry_data
                 })
 
-                # Get the most recent platform position
+                """Get the most recent platform position."""
                 recent_x = odometry_data.payload[-2]
                 recent_y = odometry_data.payload[-1]
 
                 print(f"Flask: Preparing to send telemetry update to qt")
-                # Send the telemetry update to Qt app
+                """Send the telemetry update to Qt app."""
                 self.f_to_qt.put({
                     "type" : "telemetry",
 
@@ -190,18 +193,16 @@ class FlaskServer:
             case _:
                 print(f"Flask handle_platform_messages(): Unknown type of message received in flask server from mobile platform")
 
-    # ------------------ Communication With Qt App ------------------ #
+    """------------------ Communication With Qt App ------------------."""
 
     def poll_qt_queue(self):
-        '''
-        Polls qt_to_f queue in search for messages from the qt app
-        '''
+        """Polls qt_to_f queue in search for messages from the qt app."""
         while True:
             try:
-                # If queue is empty for longer than specified timeout, exception will be thrown
+                """If queue is empty for longer than specified timeout, exception will be thrown."""
                 new_qt_message = self.qt_to_f.get(timeout=0.1)
 
-                # If new message has been received, handle it
+                """If new message has been received, handle it."""
                 self.handle_qt_message(new_qt_message)
 
                 print(f"Flask received message: {new_qt_message}")
@@ -209,15 +210,13 @@ class FlaskServer:
                 pass
 
     def poll_o3d_queue(self):
-        '''
-        Polls qt_to_f queue in search for messages from the qt app
-        '''
+        """Polls qt_to_f queue in search for messages from the qt app."""
         while True:
             try:
-                # If queue is empty for longer than specified timeout, exception will be thrown
+                """If queue is empty for longer than specified timeout, exception will be thrown."""
                 new_o3d_message = self.o3d_to_f.get(timeout=0.1)
 
-                # If new message has been received, handle it
+                """If new message has been received, handle it."""
                 self.handle_o3d_message(new_o3d_message)
 
                 print(f"Flask received message: {new_o3d_message}")
@@ -229,8 +228,9 @@ class FlaskServer:
 
         match message_type:
             case "sessions-config":
-                # Configuration info about the existing sessions
-                # Send it to qt app so that it can configure its combobox for session selection
+                """Configuration info about the existing sessions.
+                Send it to qt app so that it can configure its combobox for session selection.
+                """
                 print("Received in flask:")
                 print(message["names"])
                 self.f_to_qt.put({
@@ -239,47 +239,47 @@ class FlaskServer:
                 })
 
     def handle_qt_message(self, message : dict):
-        '''
-        Handles interpretation of messages from the qt app.
-        :param message: The message.
-        '''
+        """Handles interpretation of messages from the qt app.
+
+        Keyword arguments:
+        message --- The message."""
         message_type = message["type"]
 
         match message_type:
             case "session-creation":
-                # When a new session request is received, propagate it further to the o3d app
-
-                # If the name has been specified, request creaton of a new session
+                """When a new session request is received, propagate it further to the o3d app.
+                If the name has been specified, request creation of a new session.
+                """
                 if message["name"]:
                     self.f_to_o3d.put({
                         "type" : "session",
                         "name" : message["name"]
                     })
 
-                # For now immediately send session switch confirmation to the qt app
+                """For now immediately send session switch confirmation to the qt app."""
                 self.f_to_qt.put({
                     "type": "session-creation",
                     "success": bool(message["name"])
                 })
 
             case "session-switch":
-                # When a session switch order is received, propagate it further to the o3d app
-
-                # If name of the session has been specified, switch sessions
+                """When a session switch order is received, propagate it further to the o3d app.
+                If name of the session has been specified, switch sessions.
+                """
                 if message["name"]:
                     self.f_to_o3d.put({
                         "type" : "session",
                         "name" : message["name"]
                     })
 
-                # For now immediately confirm the session switch to qt app
+                """For now immediately confirm the session switch to qt app."""
                 self.f_to_qt.put({
                     "type": "session-switch",
                     "success": bool(message["name"])
                 })
 
             case "steering":
-                # Make a POST request to the mobile platform for steering
+                """Make a POST request to the mobile platform for steering."""
                 print(f"Flask: Sending a steering request to rover")
                 r = requests.post("http://192.168.21.30/command", data={
                     "type" : "steering",
@@ -288,7 +288,7 @@ class FlaskServer:
                 print(f"Flask: Steering request status: {r}")
 
             case "scan":
-                # Send a scan request to the platform
+                """Send a scan request to the platform."""
                 print("Flask: Sending a scan request to rover")
                 r = requests.post("http://192.168.21.30/scan", data={
                     "type" : "scan",
