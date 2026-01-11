@@ -1,5 +1,7 @@
 import os
 import csv
+
+import numpy as np
 import open3d as o3d
 
 class Barycentre:
@@ -79,3 +81,17 @@ class Barycentre:
 
     def on_submit(self):
         self.callback()
+
+    def get_barycenter_as_pcd(self) -> o3d.geometry.PointCloud():
+        """
+        Returns the barycenter as point cloud.
+        :return: o3d.geometry.PointCloud() containing single point, that is barycenter.
+        """
+
+        np_arr = np.asarray([[self._result_x, self._result_y, self._result_z]])
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(np_arr)
+
+        return pcd
+
+

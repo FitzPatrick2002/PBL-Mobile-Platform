@@ -219,7 +219,7 @@ class VisualizationApp:
                 print(f"o3d: _downsample(): Downsampling done")
             #then take that output from the temp path and transform it into a new session
 
-        time.sleep(3)
+        #time.sleep(3)
 
         # Overwrite the current combined.npy, add as history file as well
         self._pcd_saver.apply_downsampling_changes()
@@ -251,23 +251,28 @@ class VisualizationApp:
         print(f"o3d _barycentre_window(): Barycenter calculation temporary files created")
 
         barycentre_dialog = Barycentre()
+
+        def barycenter_dialog_callback():
+            # Handles the dialog action and closing
+            self._barycentre_callback()
+            print(f"o3d: barycenter_dialog_callback(): window handled")
+
+            # Retrieves barycenter data and adds it as geometry to the scene & stores in the self._scene_pcds
+            barycenter_pcd = barycentre_dialog.get_barycenter_as_pcd()
+
+            print(f"o3d: barycenter_dialog_callback(): PCD retrieved")
+            self._add_pcd(pcd=barycenter_pcd, name="barycenter", color=[1.0, 0.0, 0.0, 1.0])
+            print(f"o3d: barycenter_dialog_callback(): PCD added")
+            self._pcd_saver.clear_temp_dir()
+            print(f"o3d: barycenter_dialog_callback(): Temporary files cleaned")
+
         # ADD INPUT
         o3d.visualization.gui.Application.instance.post_to_main_thread(
             self.window,
-            lambda: barycentre_dialog._calculate_barycentre(str(source_csv), parent_window=self.window, callback=self._barycentre_callback)
+            lambda: barycentre_dialog._calculate_barycentre(str(source_csv),
+                                                            parent_window=self.window,
+                                                            callback=barycenter_dialog_callback)
         )
-
-        print(f"o3d _barycentre_window(): Barycenter calculations performed")
-
-        # Create the barycenter cloud
-        barycenter_pcd = o3d.geometry.PointCloud()
-        barycenter_pcd.points = o3d.utility.Vector3dVector(np.asarray([barycentre_dialog._result_x, barycentre_dialog._result_y, barycentre_dialog._result_z]))
-
-        # Add it
-        self._add_pcd(pcd=barycenter_pcd, name="barycenter", color=[1.0, 0.0, 0.0, 1.0])
-
-        # Remove temporary files
-        self._pcd_saver.clear_temp_dir()
 
     def _on_menu_random(self):
         '''

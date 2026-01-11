@@ -1,6 +1,6 @@
 """
 This module provides utilities for the Flask server.
-It contains a class FlaskServer for managing the communication between threads and the platform.
+It contains a class FlaskServer for managing the communication between processes and the mobile platform.
 """
 import multiprocessing
 import threading
@@ -23,11 +23,12 @@ class FlaskServer:
         """Initialize the FlaskServer class with the following arguments.
 
         Keyword arguments:
-            open3d_queue -- Mutliprocessing queue, used for communication with the
+            open3d_queue -- Mutliprocessing queue, used used to send data to the
                             open3d app, which is running in different process.
-            o3d_to_f -- Communication queue from Open3D Visualization to Flask.
-            from_qt_app_queue -- Mutliprocessing queue, used for communication with the
-                                Qt app, which is running in separate process.
+            o3d_to_f -- Communication queue used to receive data from the open3d app.
+            from_qt_app_queue -- Mutliprocessing queue, used to receive data from the qt app,
+                                 which is running in different process.
+            to_qt_app_queue -- Communication queue, used to send data to the qt app.
             host -- Server IP address (default: your IP address).
             port -- Port on which server will be run (default: 9000).
         """

@@ -1,6 +1,6 @@
 """
-This module provides x
-It contains two classes for data storage.
+This module provides classes which store data received from the mobile platform.
+It contains two classes for data storage: LidarScan & OdometryData .
 """
 from typing import List
 
@@ -24,6 +24,6 @@ class OdometryData:
         """OdometryData initialisation.
 
         Keyword arguments:
-            payload --
+            payload -- Odometry readings in format [x0, y0, x1, y1, ...] where x0, y0  are oldest. Flat array.
         """
         self.payload = payload
