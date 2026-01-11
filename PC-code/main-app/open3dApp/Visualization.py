@@ -12,7 +12,7 @@ from utils.FileManagement import PCDSaver
 import utils.OperatingSystemCheck
 
 from open3dApp.downsampling.linux.Downsample_module import DownsampleModule
-from open3dApp.downsampling.windows.Downsample import DownsampleWindows
+from open3dApp.downsampling.windows.Downsample import DownsampleDefault
 from open3dApp.downsampling.MenuDialog import MenuDialog
 from open3dApp.Barycentre.BarycentreAlgorithm import Barycentre as Barycentre
 
@@ -213,7 +213,7 @@ class VisualizationApp:
                 Linux_downsample = DownsampleModule()
                 Linux_downsample.downsample(mode, percent, lines, str(source_csv.absolute()),str(target_csv.absolute()))
             else:
-                Windows_downsample = DownsampleWindows()
+                Windows_downsample = DownsampleDefault()
                 print(f"o3d: _downsample(): Window started")
                 Windows_downsample.downsample(mode, percent, lines, str(source_csv.absolute()), str(target_csv.absolute()))
                 print(f"o3d: _downsample(): Downsampling done")
