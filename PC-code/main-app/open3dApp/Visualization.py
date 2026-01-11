@@ -534,7 +534,7 @@ class VisualizationApp:
 
         return True
 
-    def _add_pcd(self, pcd : o3d.geometry.PointCloud, name : str, color : List[float]):
+    def _add_pcd(self, pcd : o3d.geometry.PointCloud, name : str, color : List[float] = None):
         '''
         Adds / appends a new pcd to the scene.
         If name does not exist in the #_scene_pcds dict then a new entry will be created.
