@@ -1,13 +1,21 @@
+/// @file Distance_Alarm.ino
+/// @brief Controlls two ultrasonic sensors and an LED, setting up the trigger pins via .S code.
 #define echo_uno 0
 #define trigger_uno 1
 #define echo_dos 2 
 #define trigger_dos 3
 #define led_uno 6 // changed from 5
 
+// -------------- Global Objects -------------- //
+
+/// @brief Initiating variables to calculate and read for ultrasonic sensors.
 float duration_uno, distance_uno;
 float duration_dos, distance_dos;
-float alarm_distance = 15.0;
 
+/// @brief Constant, alert the LED when the calculated distance is less than this value.
+float ALARM_DISTANCE = 15.0;
+
+/// @brief Externing functions from the Distance_Alarm.S file.
 extern "C"{
     void set_output_enable();
     void trigger_pin();
@@ -18,6 +26,8 @@ extern "C"{
     void led_low();
     void set_output_enable_led();
 } 
+
+// --------------Setup & Main Loop -------------- //
 
 void setup() {
 
@@ -34,17 +44,18 @@ void setup() {
 
 void loop() {
 
-  trigger_pin(); //instead of what is below
+  trigger_pin(); 
+  //instead of what is below
   // digitalWrite(trigger_uno,HIGH);
   // delayMicroseconds(10);
   // digitalWrite(trigger_uno,LOW);
 
   duration_uno = pulseIn(echo_uno, HIGH);
-  distance_uno = 0.0343 * duration_uno / 2; //this will stay in c++
+  distance_uno = 0.0343 * duration_uno / 2;
 
   Serial.print("Distance Uno: "); Serial.println(distance_uno);
   
-  if(distance_uno <= alarm_distance)
+  if(distance_uno <= ALARM_DISTANCE)
   {
     led_high();
     delay(100);
@@ -57,9 +68,9 @@ void loop() {
   trigger_pin_dos();
 
   duration_dos = pulseIn(echo_dos, HIGH);
-  distance_dos = 0.0343 * duration_dos / 2; //this will stay in c++
+  distance_dos = 0.0343 * duration_dos / 2;
   Serial.print("Distance Dos: "); Serial.println(distance_dos);
-  if(distance_dos <= alarm_distance)
+  if(distance_dos <= ALARM_DISTANCE)
   {
     led_high();
     delay(200);
