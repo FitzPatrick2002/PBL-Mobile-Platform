@@ -11,7 +11,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-/// @brief Stores viariables necessary.
+/// @brief Stores necessary variables.
 namespace Cores{
     extern TaskHandle_t task0Handle;        ///< Handle to the http handling which runs on core 0.
     extern QueueHandle_t manToHttpQ; ///< Handle to the queue with which Manager can send stuff to the http operator.
