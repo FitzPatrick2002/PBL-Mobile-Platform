@@ -17,6 +17,14 @@ import multiprocessing
 import time
 
 def start_flask(f_to_o3d, o3d_to_f, f_to_qt, qt_to_f):
+    """Starts the flask server.
+
+    Keyword arguments:
+        f_to_o3d -- Communication from Flask to Open3D.
+        o3d_to_f -- Communication from Open3D to Flask.
+        f_to_qt -- Communication from Flask to QT app.
+        qt_to_f -- Communication from QT app to Flask.
+    """
     flask_server = FlaskServer(open3d_queue=f_to_o3d,
                                o3d_to_f=o3d_to_f,
                                from_qt_app_queue=qt_to_f,
@@ -69,15 +77,27 @@ def start_flask(f_to_o3d, f_to_qt, qt_to_f):
 '''
 
 def start_open3d(f_to_o3d, o3d_to_f):
+    """Starts the Open3D window for visualisation.
+
+    Keyword arguments:
+        f_to_o3d -- Communication from Flask to Open3D.
+        o3d_to_f -- Communication from Open3D to Flask.
+    """
     o3d.visualization.gui.Application.instance.initialize()
     VisualizationApp(f_to_o3d, o3d_to_f)
     o3d.visualization.gui.Application.instance.run()
 
 def start_qt(f_to_qt, qt_to_f):
+    """Starts the QT app window.
+
+    Keyword arguments:
+        f_to_qt -- Communication from Flask to QT app.
+        qt_to_f -- Communication from QT app to Flask.
+    """
     qt_app = QApplication(sys.argv)
 
     if QGuiApplication.styleHints().colorScheme() == Qt.ColorScheme.Dark:
-        #force_dark(qt_app) #very ugly buttons later ;C
+        #force_dark(qt_app) #very ugly buttons later
         qt_app.setWindowIcon(QIcon(":/images/app_icon_dark.png"))
     else:
         qt_app.setWindowIcon(QIcon(":/images/app_icon_light.png"))
@@ -88,16 +108,16 @@ def start_qt(f_to_qt, qt_to_f):
     sys.exit(qt_app.exec())
 
 if __name__ == "__main__":
-    # Queue used to send data from server to open3d app
+    """Queue used to send data from server to open3d app."""
     f_to_o3d = multiprocessing.Queue()
-    # Queue used to send data from o3d app to server
+    """Queue used to send data from o3d app to server."""
     o3d_to_f = multiprocessing.Queue()
-    # Queue used to send data from server to qt app
+    """Queue used to send data from server to qt app."""
     f_to_qt = multiprocessing.Queue()
-    # Queue used to send data from qt app to server
+    """Queue used to send data from qt app to server."""
     qt_to_f = multiprocessing.Queue()
 
-    # Start the flask server, open3d app and qt app as separate processes
+    """Start the flask server, open3d app and qt app as separate processes."""
     flask_process = multiprocessing.Process(target=start_flask, name="flask-server", args=(f_to_o3d, o3d_to_f, f_to_qt, qt_to_f))
     #flask_process.start()
 
@@ -110,16 +130,16 @@ if __name__ == "__main__":
     processes = [flask_process, open3d_process, qt_process]
 
     try:
-        # Start all the processes
+        """Start all the processes."""
         for p in processes:
             p.start()
 
-        # Keep the main process alive as long as the other processes are alive
+        """Keep the main process alive as long as the other processes are alive."""
         while any([p.is_alive() for p in processes]):
             time.sleep(0.5)
 
     except KeyboardInterrupt:
-        # When user interrupted, kill processes and join them
+        """When user interrupted, kill processes and join them."""
         print(f"Main process terminated, shutting down other processes:")
 
     finally:
@@ -130,7 +150,7 @@ if __name__ == "__main__":
                 p.join()
 
 
-    # Close the queues after processes terminated
+    """Close the queues after processes terminated."""
     f_to_o3d.close()
     f_to_qt.close()
     qt_to_f.close()

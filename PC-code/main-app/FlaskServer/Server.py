@@ -19,13 +19,13 @@ class FlaskServer:
         """Initialize the FlaskServer class with the following arguments.
 
         Keyword arguments:
-        open3d_queue -- Mutliprocessing queue, used for communication with the
-                        open3d app, which is running in different process.
-        o3d_to_f -- Communication queue from Open3D Visualization to Flask.
-        from_qt_app_queue -- Mutliprocessing queue, used for communication with the
-                            Qt app, which is running in separate process.
-        host -- Server IP address (default: your IP address).
-        port -- Port on which server will be run (default: 9000).
+            open3d_queue -- Mutliprocessing queue, used for communication with the
+                            open3d app, which is running in different process.
+            o3d_to_f -- Communication queue from Open3D Visualization to Flask.
+            from_qt_app_queue -- Mutliprocessing queue, used for communication with the
+                                Qt app, which is running in separate process.
+            host -- Server IP address (default: your IP address).
+            port -- Port on which server will be run (default: 9000).
         """
         self.HOST = host
         self.PORT = port
@@ -124,7 +124,7 @@ class FlaskServer:
         """Handles actions based on messages sent from the mobile platform.
 
         Keyword arguments:
-        data -- JSON sent by the platform and received via POST.
+            data -- JSON sent by the platform and received via POST.
         """
         message_type = data["data-type"]
 
@@ -242,7 +242,8 @@ class FlaskServer:
         """Handles interpretation of messages from the qt app.
 
         Keyword arguments:
-        message --- The message."""
+            message --- The message.
+        """
         message_type = message["type"]
 
         match message_type:
