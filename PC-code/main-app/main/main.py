@@ -6,7 +6,6 @@ from PySide6.QtGui import QIcon, QPalette, QGuiApplication, Qt
 
 from FlaskServer.Server import FlaskServer
 from QtApp.QtWindow import MainQtWindow
-from utils.DarkTheme import force_dark
 import QtApp.Resources.rc_resources
 
 from open3dApp.Visualization import VisualizationApp
@@ -101,7 +100,6 @@ def start_qt(f_to_qt, qt_to_f):
     qt_app = QApplication(sys.argv)
 
     if QGuiApplication.styleHints().colorScheme() == Qt.ColorScheme.Dark:
-        #force_dark(qt_app) #very ugly buttons later
         qt_app.setWindowIcon(QIcon(":/images/app_icon_dark.png"))
     else:
         qt_app.setWindowIcon(QIcon(":/images/app_icon_light.png"))
