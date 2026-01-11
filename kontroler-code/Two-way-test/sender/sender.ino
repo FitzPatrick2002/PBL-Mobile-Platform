@@ -1,40 +1,57 @@
+/// @file sender.ino
+/// @brief Contains the entire mobile controller code for steering the platform
+
 #include <Wire.h>
 #include "Adafruit_seesaw.h"
-Adafruit_seesaw ss;
 
 #include <esp_now.h>
 #include <WiFi.h>
 
-//custom e-ink display setup
+#include "bitmaps.h"
+
+// Custom e-ink display setup
+// Install GxEPD2 library
 #include <GxEPD2_BW.h>
 #include <Fonts/FreeMonoBold9pt7b.h>
-//#include "GxEPD2_display_selection_new_style.h"
+
+// E-Ink pins
 #define EPD_CS    7
 #define EPD_DC    1
 #define EPD_RST   2
 #define EPD_BUSY  3
 
-//own constructor
-GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>
-display(GxEPD2_154_D67(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
-
-#include "bitmaps.h"
-
+// Message sender communicator
 #define blue_led 21
 
+// Controller buttons
 #define BUTTON_X         6
 #define BUTTON_Y         2
 #define BUTTON_A         5
 #define BUTTON_B         1
 #define BUTTON_SELECT    0
 #define BUTTON_START    16
+
+// Own constructor for the E-Ink display
+GxEPD2_BW<GxEPD2_154_D67, GxEPD2_154_D67::HEIGHT>
+display(GxEPD2_154_D67(EPD_CS, EPD_DC, EPD_RST, EPD_BUSY));
+
+// -------------- Global Objects -------------- //
+
+/// @brief Seesaw object for the Mini I2C Gamepad board
+Adafruit_seesaw ss;
+
+/// @brief Button mask for the Mini I2C Gamepad
 uint32_t button_mask = (1UL << BUTTON_X) | (1UL << BUTTON_Y) | (1UL << BUTTON_START) |
                        (1UL << BUTTON_A) | (1UL << BUTTON_B) | (1UL << BUTTON_SELECT);
 
+// TO DO CHANGE
+/// @brief MAC address of the platform
 uint8_t receiverAddress[] = {0xE4, 0xB0, 0x63, 0xAF, 0x36, 0xBC};
 
+/// @brief ESP-NOW peer info of the connected platform
 esp_now_peer_info_t peerInfo;
 
+/// @brief Message states to be chosen with controller buttons, sent to the platform
 enum manager_state{
   STANDBY = 0,
   MOVING = 1,
@@ -45,24 +62,33 @@ enum manager_state{
   ROVER_INIT = 6
 };
 
+/// @brief The structure of the transmitter message to the platform
 struct message{
   int x,y;
   bool start, select, x_b, y_b, b_b, a_b;
   manager_state state;
 };
 
+/// @brief Transmitter message, message to be sent to the platform
 message tx_message;
 
+/// @brief The structure of the receiver message, sent from the platform
 struct platforma_message{
   bool is_scanning;
   String status_text;
 };
 
+/// @brief Receiver message, message sent from the platform to the controller
 platforma_message rx_message;
 
+/// @brief Last read values from the Mini I2C Gamepad
 int last_x = 0, last_y =0;
 manager_state last_man_state = STANDBY;
 
+// --------------E-Ink Display methods -------------- //
+
+/// @brief Draws the bitmap from bitmaps.h, specified by the parameter choice, on the E-Ink display
+///         Used for the initial logo screen
 void drawBitmaps(int choice)
 {
   display.setRotation(1);
@@ -77,6 +103,7 @@ void drawBitmaps(int choice)
   }while(display.nextPage());
 }
 
+/// @brief Clears the E-Ink display
 void cleanDisplay()
 {
   display.setFullWindow();
@@ -86,33 +113,39 @@ void cleanDisplay()
   } while (display.nextPage());
 }
 
+/// @brief Displays the frame bitmap and the selected state text on the E-Ink display
 void displayMessage(const char message[])
 {
-  //cleanDisplay();
   display.setRotation(1);
   display.setFont(&FreeMonoBold9pt7b);
   display.setTextColor(GxEPD_BLACK);
+
   String text = message;
   int index = text.indexOf('\n');
-  if(index != -1)
+  if(index != -1) // The message contains two lines of text
   {
+    // Seperate the two lines
     String second_line = text.substring(index+1);
     String first_line = text.substring(0, index-1);
+
+    // Calculate the text positions
     int16_t tbx, tby; uint16_t tbw, tbh;
     display.getTextBounds(first_line.c_str(), 0, 0, &tbx, &tby, &tbw, &tbh);
-    // center the bounding box by transposition of the origin:
+    // Center the bounding box by transposition of the origin:
     uint16_t x = ((display.width() - tbw) / 2) - tbx;
     uint16_t y = ((display.height() - tbh) / 2) - tby-20;
 
     display.getTextBounds(second_line.c_str(), 0, 0, &tbx, &tby, &tbw, &tbh);
     uint16_t x_ = ((display.width() - tbw) / 2) - tbx;
     uint16_t y_ = ((display.height() - tbh) / 2) - tby+20;
+
     display.setFullWindow();
     display.firstPage();
     do
     {
+      // Draw the frame bitmap
       display.drawInvertedBitmap(0, 0, bitmaps[0], 200, 200, GxEPD_BLACK);
-      //display.fillScreen(GxEPD_WHITE);
+
       display.setCursor(x, y);
       display.print(first_line);
       display.setCursor(x_, y_);
@@ -130,7 +163,6 @@ void displayMessage(const char message[])
     display.firstPage();
     do
     {
-      //display.fillScreen(GxEPD_WHITE);
       display.setCursor(x, y);
       display.print(message);
     }
@@ -139,12 +171,30 @@ void displayMessage(const char message[])
   
 }
 
+// --------------ESP-NOW message creation -------------- //
 
+/// @brief Converts the manager_state state to a string value for printing
+const char* stateToString(manager_state state)
+{
+  switch (state)
+  {
+    case STANDBY:       return "STANDBY";
+    case MOVING:        return "MOVING";
+    case SCANNING:      return "SCANNING";
+    case UPLOADING:     return "UPLOADING";
+    case STATUS_UPDATE: return "STATUS UPDATE";
+    case IMU_CALIBRATION: return "IMU CALIBRATION";
+    case ROVER_INIT:          return "PLATFORMA INIT";
+    default:            return "UNKNOWN";
+  }
+}
 
+/// @brief Constructs new message based on the Mini I2C Gamepad input values and the previous message
 void constructMessage(message& new_message)
 {
   int x = 1023 - ss.analogRead(14);
   int y = 1023 - ss.analogRead(15); //fixed the pin reading
+  // Reset the message values
   new_message.a_b = false;
   new_message.b_b = false;
   new_message.x_b = false;
@@ -152,7 +202,6 @@ void constructMessage(message& new_message)
   new_message.start = false;
   new_message.select = false;
   new_message.state = last_man_state;
-  
 
   if(new_message.state!= SCANNING || new_message.state!= UPLOADING)
   {
@@ -217,55 +266,17 @@ void constructMessage(message& new_message)
 
   last_man_state = new_message.state;
 
-  //printing data
+  // Printing data
   Serial.println("*|==========================================================|*");
   Serial.print("Values: X: "); Serial.print(new_message.x);Serial.print(" | Y: "); Serial.print(new_message.y); 
   Serial.print(" |\nButtons: A: "); Serial.print(new_message.a_b); Serial.print(" | B: "); Serial.print(new_message.b_b);
   Serial.print(" | X: "); Serial.print(new_message.x_b); Serial.print(" | Y: "); Serial.print(new_message.y_b);
   Serial.print(" | Start: "); Serial.print(new_message.start); Serial.print(" | Select: "); Serial.println(new_message.select);
-  Serial.print("State: ");  
-  String state;
-  switch(new_message.state)
-  {
-    case STANDBY:
-      state = "STANDBY";
-      break;
-    case MOVING:
-      state = "MOVING";
-      break;
-    case SCANNING:
-      state = "SCANNING";
-      break;
-    case UPLOADING:
-      state = "UPLOADING";
-      break;
-    case STATUS_UPDATE:
-      state = "requesting update";
-      break;
-    case IMU_CALIBRATION:
-      state = "IMU CALIBRATION";
-      break;
-    case ROVER_INIT:
-      state = "platforma initialization";
-  }
+  Serial.print("State: "); Serial.print(stateToString(new_message.state));
   
 }
 
-const char* stateToString(manager_state state)
-{
-  switch (state)
-  {
-    case STANDBY:       return "STANDBY";
-    case MOVING:        return "MOVING";
-    case SCANNING:      return "SCANNING";
-    case UPLOADING:     return "UPLOADING";
-    case STATUS_UPDATE: return "STATUS UPDATE";
-    case IMU_CALIBRATION: return "IMU CALIBRATION";
-    case ROVER_INIT:          return "PLATFORMA INIT";
-    default:            return "UNKNOWN";
-  }
-}
-
+/// @brief Sends the message through ESP-NOW protocol to the platforma
 void send_message()
 {
   esp_err_t result = esp_now_send(receiverAddress, (uint8_t *) &tx_message, sizeof(tx_message));
@@ -281,9 +292,12 @@ void send_message()
     text += stateToString(tx_message.state);
     displayMessage(text.c_str());
   }
-  
 }
 
+// --------------ESP-NOW callback methods -------------- //
+
+/// @brief Callback method called when the message is sent to the platforma
+///         Lights up the blue diode
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status){
   digitalWrite(blue_led, HIGH);
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Failure");
@@ -291,14 +305,17 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status){
   digitalWrite(blue_led, LOW);
 }
 
+/// @brief Callback method called when the status update is received from the platforma
+///         Prints out the state on the E-Ink display
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len){
   memcpy(&rx_message, incomingData,len);
-  //last_man_state = STANDBY;
   Serial.println(rx_message.status_text);
   String text = "Received state:\n";
   text += rx_message.status_text;
   displayMessage(text.c_str());
 }
+
+// --------------Setup && Main Loop -------------- //
 
 void setup() {
 
@@ -323,7 +340,7 @@ void setup() {
   
   Serial.println("Found Product 5743");
   
-  //set up the mask for the i2c minicontroller
+  // Set up the mask for the Mini I2C Gamepad
   ss.pinModeBulk(button_mask, INPUT_PULLUP);
   ss.setGPIOInterrupts(button_mask, 1);
 
@@ -346,9 +363,10 @@ void setup() {
     return;
   }
 
-  //e-ink display
+  // E-Ink display initialization
   display.init(115200, true, 2, false); //2ms reset pulse
 
+  // Initial logo screen
   drawBitmaps(1);
   display.hibernate();
 }
