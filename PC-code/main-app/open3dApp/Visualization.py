@@ -16,6 +16,8 @@ from open3dApp.downsampling.windows.Downsample import DownsampleWindows
 from open3dApp.downsampling.MenuDialog import MenuDialog
 from open3dApp.Barycentre.BarycentreAlgorithm import Barycentre as Barycentre
 
+from typing import List, Dict, Tuple
+
 # Messages format
 # From flask server to o3d app:
 '''
@@ -243,24 +245,29 @@ class VisualizationApp:
             lambda: self.window.close_dialog())  # Closing in the main thread
 
     def _barycentre_window(self):
-        # Create the temporary csv files
-        self._pcd_saver.convert_combined_to_csv()
+        # Create the temporary csv files (we can use the downsampling files for now)
+        source_csv, _ = self._pcd_saver.get_downsampling_files()
 
-        # Get the temporary csv files paths of this session
-        csv_paths = self._pcd_saver.get_session_temp_files()
-        source_path = Path()
-        for p in csv_paths:
-            if "source" in p.name:
-                source_path = p
-
-        print(f"o3d: _barycenter_window(): Csv files paths: {csv_paths}")
+        print(f"o3d _barycentre_window(): Barycenter calculation temporary files created")
 
         barycentre_dialog = Barycentre()
         # ADD INPUT
         o3d.visualization.gui.Application.instance.post_to_main_thread(
             self.window,
-            lambda: barycentre_dialog._calculate_barycentre(str(source_path), parent_window=self.window, callback=self._barycentre_callback)
+            lambda: barycentre_dialog._calculate_barycentre(str(source_csv), parent_window=self.window, callback=self._barycentre_callback)
         )
+
+        print(f"o3d _barycentre_window(): Barycenter calculations performed")
+
+        # Create the barycenter cloud
+        barycenter_pcd = o3d.geometry.PointCloud()
+        barycenter_pcd.points = o3d.utility.Vector3dVector(np.asarray([barycentre_dialog._result_x, barycentre_dialog._result_y, barycentre_dialog._result_z]))
+
+        # Add it
+        self._add_pcd(pcd=barycenter_pcd, name="barycenter", color=[1.0, 0.0, 0.0, 1.0])
+
+        # Remove temporary files
+        self._pcd_saver.clear_temp_dir()
 
     def _on_menu_random(self):
         '''
@@ -527,7 +534,7 @@ class VisualizationApp:
 
         return True
 
-    def _add_pcd(self, pcd : o3d.geometry.PointCloud, name : str):
+    def _add_pcd(self, pcd : o3d.geometry.PointCloud, name : str, color : List[float]):
         '''
         Adds / appends a new pcd to the scene.
         If name does not exist in the #_scene_pcds dict then a new entry will be created.
@@ -537,12 +544,18 @@ class VisualizationApp:
         '''
         print(f"o3d: _add_pcd(): Starting function")
         mat = o3d.visualization.rendering.MaterialRecord()
-        mat.base_color = [
-            random.random(),
-            random.random(),
-            random.random(),
-            1.0
-        ]
+
+        if color is None:
+            mat.base_color = [
+                random.random(),
+                random.random(),
+                random.random(),
+                1.0
+            ]
+        else:
+            if len(color) == 3:
+                color.append(1.0)
+            mat.base_color = color
         mat.point_size = 5.0
         print(f"o3d: _add_pcd(): Material created")
 

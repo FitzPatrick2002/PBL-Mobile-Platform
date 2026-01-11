@@ -248,22 +248,21 @@ class PCDSaver:
         # Create pcd from the csv file which holds outcomes
         _, target_csv = self.get_downsampling_files()
 
-        print(f"target_csv: {target_csv}")
+        print(f"PCDSaver: apply_downsampling_changes(): target_csv: {target_csv}")
         try:
             downsampled_arr = np.genfromtxt(fname=str(target_csv.absolute()), delimiter=";", dtype=np.float64, invalid_raise=True)
+            print(f"PCDSaver: apply_downsampling_changes(): target_csv has been read, adding donwsampled version to history and overwriting...")
+
+            # Clear the combined.npy
+            np.save(self._combined_file, arr=np.empty((0, 3)), allow_pickle=True)
+            # open(self._combined_file, "w").close()
+            print(f"PCDSaver: apply_downsampling_changes(): Clearing done")
+
+            # Store the downsampled data in history and in the combined file
+            self.add_record(downsampled_arr)
+            print(f"PCDSaver: apply_downsampling_changes(): Record added - OK")
         except Exception as e:
-            print(f"ERROR: {e}")
-
-        print(f"target_csv has been read, adding donwsampled version to history and overwriting...")
-
-        # Clear the combined.npy
-        np.save(self._combined_file, arr=np.empty((0, 3)), allow_pickle=True)
-        #open(self._combined_file, "w").close()
-        print(f"Clearing done")
-
-        # Store the downsampled data in history and in the combined file
-        self.add_record(downsampled_arr)
-        print(f"Record added - OK")
+            print(f"PCDSaver: apply_downsampling_changes(): ERROR: {e}")
 
     def get_session_temp_files(self) -> List[Path]:
         '''
