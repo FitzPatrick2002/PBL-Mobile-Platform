@@ -2,7 +2,7 @@
 #define trigger_uno 1
 #define echo_dos 2 
 #define trigger_dos 3
-#define led_uno 5
+#define led_uno 6 // changed from 5
 
 float duration_uno, distance_uno;
 float duration_dos, distance_dos;
