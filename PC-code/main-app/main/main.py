@@ -1,3 +1,7 @@
+"""
+This module connects all modules and starts the app.
+It contains methods to manage communications and start threads.
+"""
 from PySide6.QtGui import QIcon, QPalette, QGuiApplication, Qt
 
 from FlaskServer.Server import FlaskServer

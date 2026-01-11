@@ -1,3 +1,7 @@
+"""
+This module provides utilities for the Flask server.
+It contains a class FlaskServer for managing the communication between threads and the platform.
+"""
 import multiprocessing
 import threading
 from pathlib import Path
