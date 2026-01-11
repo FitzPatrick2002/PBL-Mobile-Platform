@@ -1,3 +1,8 @@
+"""
+This module should be run separately, still having the access to the scan.c and Makefile files. Preferably, not moved.
+It contains methods to initiate the scan module, which is a Linux kernel module with a character device.
+This module is used for the downsampling algorithm.
+"""
 import subprocess
 import os
 from typing import Tuple
@@ -5,15 +10,27 @@ from typing import Tuple
 MODULE_NAME = "scan"
 DEVICE_PATH = "/dev/scan"
 
-
 class LinuxModule:
+    """Compiles and loads the Linux kernel module specified by the constants above."""
     def __init__(self, module_name, device_path):
+        """Initializes the LinuxModule class.
+
+        Keyword arguments:
+            module_name -- the name of the module, without the .ko suffix.
+            device_path -- the path to the character device (usually /dev/module_name).
+        """
         self.__module_name = module_name
         self._device_path: str = device_path
         self.__module_file = f"{self.__module_name}.ko"
         print(self.__module_name, self.__module_file)
 
     def _run_cmd(self, command: str, need_sudo=False) -> Tuple[bool, str, str]:
+        """Runs the command specified with or without superuser permission.
+
+        Keyword arguments:
+            command -- the command needed to be run.
+            need_sudo -- boolean value which specifies whether the command should be run with the superuser permission.
+        """
         if need_sudo and os.geteuid() != 0:
             command = ["sudo"] + command
 
@@ -25,9 +42,11 @@ class LinuxModule:
         return result.returncode == 0, result.stdout, result.stderr
     
     def _is_ko(self) -> bool:
+        """Checks whether the module file with the .ko suffix exists."""
         return os.path.exists(self.__module_file)
 
     def _compile_module(self) -> Tuple[bool, str, str]:
+        """Compiles the module."""
         success, out, err = self._run_cmd(["make", "clean"])
         success, out, err = self._run_cmd(["make"])
 
@@ -41,10 +60,12 @@ class LinuxModule:
         return success, out, err
 
     def is_module_loaded(self) -> bool:
+        """Checks whether the module has been loaded with the lsmod command."""
         success, out, err = self._run_cmd(["lsmod"])
         return MODULE_NAME in out
 
     def _loading_module(self) -> bool:
+        """Loads the module with insmod command, which requires superuser."""
         success, out, err = self._run_cmd(["insmod", self.__module_file], need_sudo=True)
         if not success:
             print(f"Module {self._device_path} failed to load: {err}")
@@ -52,18 +73,25 @@ class LinuxModule:
         return success
 
     def _unloading_module(self) -> bool:
-        success, out, err = self._run_cmd(["rmmod", self.__module_file], need_sudo=True)
+        """Unloads the module without the .ko suffix, which requires superuser."""
+        success, out, err = self._run_cmd(["rmmod", self.__module_name], need_sudo=True)
         if not success:
             print(f"Module {self._device_path} failed to unload: {err}")
             exit(1)
         return success
     
     def _check_device(self) -> bool:
+        """Checks whether the character device exists."""
         if(os.path.exists(path=self._device_path) == False):
             raise FileNotFoundError(f"Device {self._device_path} does not exist")
         return True
     
     def _kernel_log_tail(self, num_lines: int):
+        """Returns the kernel log with specified tail.
+
+        Keyword arguments:
+            num_lines -- the number of lines from the tail to be returned.
+        """
         success, out, err = self._run_cmd(["dmesg"], False)
 
         if not success:
@@ -93,6 +121,7 @@ class LinuxModule:
         return tail
 
 def main():
+    """Tries to compile and load the module."""
     module = LinuxModule(module_name=MODULE_NAME, device_path=DEVICE_PATH)
     if(module._is_ko() == False):
         success, out, err = module._compile_module()
