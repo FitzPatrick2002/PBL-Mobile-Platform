@@ -315,7 +315,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len){
   displayMessage(text.c_str());
 }
 
-// --------------Setup && Main Loop -------------- //
+// --------------Setup & Main Loop -------------- //
 
 void setup() {
 
