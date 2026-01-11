@@ -1,3 +1,6 @@
+/// @file  TheSetuper.cpp
+/// @brief Provides the definintion of TheSetuper class from TheSetuper.h.
+
 #include "TheSetuper.h"
 
 namespace Setup{
@@ -10,17 +13,12 @@ namespace Setup{
 
   // -------------- Constructor & Destructor -------------- //
 
-  /// @brief initializes the reference to the communication stream #commStream.
   TheSetuper::TheSetuper(Stream& s) : commStream(s) {}
 
-  /// @brief Empty.
   TheSetuper::~TheSetuper() {}
 
   // -------------- Initialization & Operation -------------- //
 
-  /// @brief Initializes the varaibles which should be constant such as platoform-mac platform-server-name.
-  ///        Other fields are set to their defaults.
-  /// @note  WiFi needs to be initialized before using this. 
   void TheSetuper::init(){
     // Setup the platform IP address
     this->variables["platform-server-name"] = WiFi.localIP().toString();
@@ -46,11 +44,9 @@ namespace Setup{
     this->runShow("all");
   }
 
-  /// @brief Main loop of the TheSetuper, user can issue commands and set the variables. 
-  ///        Available commands:
-  ///        set [varaible-name] [value]
-  ///        show [variable-name]
-  void TheSetuper::theSetup(){
+  void TheSetuper::theSetup(String initialMessage){
+    commStream.println(initialMessage);
+
     String command;
     while (this->setterActive){
       command = this->readCommand();
@@ -63,10 +59,6 @@ namespace Setup{
 
   // -------------- Utility -------------- //
 
-  /// @brief Converts a stringified MAC address into the uint8_t array of length 6.
-  /// @param dest Destination array where the MAC address value will be stored. It will take 6 bytes.
-  /// @param src Source string, which should look like this: 'AA:BB:CC:DD:EE:FF'.
-  ///            ':' can be replaced with '-', ',' or ' '. 
   void TheSetuper::getMACfromString(uint8_t dest[], String src){
     int numsRead = sscanf(src.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dest[0], &dest[1], &dest[2],
                                                                         &dest[3], &dest[4], &dest[5]);
@@ -88,8 +80,6 @@ namespace Setup{
 
   // -------------- Reading Commands -------------- //
 
-  /// @brief Reads a single line from the #commStream if any is avaialable and returns it.
-  /// @returns String read from the #commStream.
   String TheSetuper::readCommand(){
     String command = "";
 
@@ -102,9 +92,6 @@ namespace Setup{
     return command;
   }
 
-  /// @brief Recognises the issued command based on the first part of the string.
-  ///        Passes the rest of the string to one of the runXXX functions.
-  /// @param input User input read from the #commStream by #readCommand.
   void TheSetuper::handleCommand(String input){
     // Initially remove any trailing / leading spaces
     input.trim();
@@ -149,7 +136,6 @@ namespace Setup{
 
   // -------------- Commands -------------- //
 
-  /// @brief Prints the manual how to use the program via #commStream.
   void TheSetuper::runHelp(){
     commStream.println("Setup Manual");
     commStream.println("You can use the following commands. Please omit the [] in your input.");
@@ -184,8 +170,6 @@ namespace Setup{
 
   }
 
-  /// @brief Shows the value of passed variable.
-  /// @param content Should be the name of one of the variables or 'all'.
   void TheSetuper::runShow(String content){
     // Remove trailing / leading white spaces from the content 
     content.trim();
@@ -222,8 +206,6 @@ namespace Setup{
 
   }
 
-  /// @brief Sets the variable based on specified content.
-  /// @param content Chould contain the name of the variable and the value, separated by ' '.
   void TheSetuper::runSet(String content){
     // Split the content into variable and value assigned to the variable
     content.trim();
@@ -261,10 +243,6 @@ namespace Setup{
 
   // -------------- Accessing Variables -------------- //
 
-  /// @brief Returns a value of specified variable.
-  ///        If name is misspelled or such varaible does not exist, return "".
-  /// @param name Name of a variable.
-  /// @returns Value of a specified variable.
   String TheSetuper::getVariable(String name){
     return (variables.count(name) ? variables[name] : "");
   }

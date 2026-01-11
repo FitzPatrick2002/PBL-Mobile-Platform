@@ -1,8 +1,10 @@
-#ifndef MANAGER_SPACE_H
-#define MANAGER_SPACE_H
 /// @file ManagerSpace.h
 /// @brief Stores some classes, structs and functions used by the Manager.
 ///        Also contains the main loop for core 0 routine. 
+
+#ifndef MANAGER_SPACE_H
+#define MANAGER_SPACE_H
+
 #include "ManagerStates.h"
 #include "Odometer2Wheel.h"
 #include "HTTPCommunicator.h"
@@ -168,9 +170,8 @@ namespace ManagerSpace{
     /// @return State of the platform operation.
     ManagerState getState();
 
-    // /// @brief Accesses the odometry field.
-    // /// @return Reference to the #odometer field.
-    
+    /// @brief Accesses the odometry field.
+    /// @return Reference to the #odometer field.
     Odometry::Odometer2Wheel& accessOdometry();
     
   };

@@ -1,3 +1,7 @@
+/// @file Odometer2Wheel.h
+/// @brief Namespace @ref Odometry contains class @ref Odometer2Wheel which handles calculation 
+///        of mobile platform position.
+
 #ifndef Odometer_2_WHEEL_H
 #define Odometer_2_WHEEL_H
 
@@ -73,11 +77,16 @@ namespace Odometry{
     };
 
     /// @brief Class handles calculation of position with respect to starting position of a 2 wheeled robot.
+    ///        Odometry is calculated based on patterns derived in here:
+    /// @link https://medium.com/@nahmed3536/wheel-odometry-model-for-differential-drive-robotics-91b85a012299.
+    /// @warning The @ref theta parameter is currently set based on data provided from an IMU sensor.
+    ///          It can be calculated purely from wheel rotations data but currently is not.
+    /// @todo Provide some way to switch between ways of calculation of the @ref theta parameter.
     class Odometer2Wheel{
     public:
         // Pinout of the encoders
-        uint8_t leftPin;
-        uint8_t rightPin;
+        uint8_t leftPin;  ///< GPIO pin on which encoder for the left wheel is connected.
+        uint8_t rightPin; ///< GPIO pin on which encoder for the right wheel is connected.
 
         MotionDirection leftWheelDirection;  ///< Specifies direction of rotation of the left wheel.
         MotionDirection rightWheelDirection; ///< Specifies direction of rotation of the left wheel.
@@ -85,22 +94,22 @@ namespace Odometry{
     private:
         // Counts number of rotations of each encoder. [0] - left, [1] - right, looking from rear towards the front of the rover.
         portMUX_TYPE odometrySpinlock = portMUX_INITIALIZER_UNLOCKED; ///< Spinlock protecting #coder table from races.
-        volatile int16_t coder[2] = {0, 0}; ///< Counts rotations since last measurement.
+        volatile int16_t coder[2] = {0, 0};          ///< Counts rotations since last measurement.
         float totalDistance[3] = {0.0f, 0.0f, 0.0f}; ///< Total count of rotations of each wheel and the center point between them.
 
         // Position handling
-        float x, y = 0.0;  ///< Position in mm. Assuming (0, 0) on the start.
-        float theta = 0.0; ///< Hard to explain in short. Also, theta in normal polar coordinates. Angle between x-axis and direction of driving.
+        float x, y = 0.0;              ///< Position in mm. Assuming (0, 0) on the start.
+        float theta = 0.0;             ///< Hard to explain in short. Also, theta in normal polar coordinates. Angle between x-axis and direction of driving.
 
         // Timer
-        uint32_t timer = 0; ///< Internal timer.
-        uint32_t frequency = 10; ///< Frequency of measurements in Hz.
+        uint32_t timer = 0;            ///< Internal timer.
+        uint32_t frequency = 10;       ///< Frequency of measurements in Hz.
 
         // Physical dimensions 
-        float wheelRadius = 0; ///< Wheel radius in mm.
+        float wheelRadius = 0;         ///< Wheel radius in mm.
         uint8_t ticksPerRotation = 10; ///< Number of ticks per rotation of the encoder wheel.
 
-        float wheelSpacing = 10; ///< Distance between wheels on the platforma
+        float wheelSpacing = 10;       ///< Distance between wheels on the platforma
     private:
 
     public:
@@ -122,18 +131,27 @@ namespace Odometry{
 
         // ---------- Setters and Getters ---------- //
 
+        /// @brief Sets the pin on which ticks from left encoder will be registered.
+        /// @param left GPIO pin.
         void setLeftPin(uint8_t left);
 
+        /// @brief Sets the pin on which ticks from right encoder will be registered.
+        /// @param right GPIO pin.
         void setRightPin(uint8_t right);
 
+        /// @brief Getter for @ref leftPin.
         uint8_t getLeftPin();
 
+        /// @brief Getter for @ref rightPin.
         uint8_t getRightPin();
 
+        /// @brief Returns the @ref x position.
         float getXpos();
 
+        /// @brief Returns the @ref y position.
         float getYpos();
 
+        /// @brief Returns the current driving direction @ref theta.
         float getTheta();
 
         /// @brief Sets the left wheel motion direction.
@@ -178,8 +196,12 @@ namespace Odometry{
 
         // ---------- Interrupt Routines ---------- //
 
+        /// @brief ISR which counts the number of ticks on the left wheel.
+        ///        Each time tick occures @ref leftWheelDirection is added to [0]th entry in @ref coder.
         void IRAM_ATTR leftRotation();
 
+        /// @brief ISR which counts the number of ticks on the right wheel.
+        /// Each time tick occures @ref rightWheelDirection is added to [1]st entry in @ref coder.
         void IRAM_ATTR rightRotation();
 
         // ---------- Distance calculation ---------- //
@@ -187,7 +209,6 @@ namespace Odometry{
         /// @brief Calcualtes the new position of the rover
         /// @param thetaOffset Driving direction accoridng to external sensor, for example imu (yaw euelr angle).
         bool updatePosition(float thetaOffset);
-
     };
 };
 

@@ -1,3 +1,6 @@
+/// @file AsyncServerSpace.cpp
+/// @brief Implementation of elements from AsyncServerSpace.h.
+
 #include "AsyncServerSpace.h"
 
 namespace AsyncServerSpace{
@@ -8,16 +11,12 @@ namespace AsyncServerSpace{
 
   // ------------ Contructor & Destructor ------------ //
 
-  /// @brief Empty.
   ServerHandler::ServerHandler() {}
 
-  /// @brief Empty.
   ServerHandler::~ServerHandler() {}
 
   // ------------ Endpoints Initialization ------------ //
 
-  /// @brief Initializes the server endpoint where steering commands are received.
-  ///        Accepts POST requests in form {type: "steering", direction: "str"}.
   void ServerHandler::initCommandEndpoint(){
     // Start the server endpoint
     String endpoint = "/" + getSetting("platform-server-comm-endp");
@@ -53,8 +52,6 @@ namespace AsyncServerSpace{
     });
   }
 
-  /// @brief Initializes the server endpoint where lidar scan requests are received.
-  ///        Accepts POST requests in form {type: "scan", rotations: int, every_nth: int}.
   void ServerHandler::initScanEndpoint(){
     // Start the server endpoint
     String endpoint = "/" + getSetting("platform-server-scan-endp");
@@ -93,7 +90,6 @@ namespace AsyncServerSpace{
 
   // ------------ Data Retrieval ------------ //
 
-  /// @brief Determine if the steering command is fresh.
   bool ServerHandler::isNewSteeringCommand(){
     bool isNew;
 
@@ -104,7 +100,6 @@ namespace AsyncServerSpace{
     return isNew;
   }
 
-  /// @brief Determine if scan request is fresh.
   bool ServerHandler::isNewScanRequest(){
     bool isNew;
 
@@ -115,7 +110,6 @@ namespace AsyncServerSpace{
     return isNew;
   }
 
-  /// @brief Returns copy of the last received steering command and sets it as read (isNew = false).
   SteeringCommand ServerHandler::getSteeringCommand(){
     SteeringCommand comm;
 
@@ -127,7 +121,6 @@ namespace AsyncServerSpace{
     return comm;
   }
 
-  /// @brief Returns copy of the last received scan request and sets it as read (isNew = false).
   ScanRequest ServerHandler::getScanRequest(){
     ScanRequest scan;
 
@@ -141,7 +134,6 @@ namespace AsyncServerSpace{
 
   // ------------ Starting the Server ------------ //
 
-  /// @brief Starts the server.
   void ServerHandler::begin(){
     server.begin();
   }

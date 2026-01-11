@@ -1,3 +1,7 @@
+/// @file esp-no-callbacks.h
+/// @brief Defines the message struct used to communicate with the remote controller
+///        and callbacks which define the way of communiating with the remote controller..
+        
 #ifndef ESP_NOW_CALLBACK
 #define ESP_NOW_CALLBACK
 
@@ -16,24 +20,44 @@ namespace ManagerSpace{
 namespace EspNowCallback{
 
   //dc:06:75:f9:61:ac
-  extern uint8_t kontrolerAddress[6]; //kontroler address for two way communication
+  extern uint8_t kontrolerAddress[6];           ///< MAC address of the remote controler board. Initially its hardcoded however it can be changed using the TheSetuper class.
 
-  extern esp_now_peer_info_t peerInfo; //kontroler board info
+  extern esp_now_peer_info_t peerInfo;          ///< Kontroler board info.
 
   /// @brief Message struct is used to exchange data between rover and controller.
+  ///        It carries information from the controller to the mobile platform.
+  ///        Information contained in it determines the state and operation of mobile platform.
+  /// @note  Usually in code objects of type Message are volatile due to them being handled by the ESP NOW stack. 
   struct Message {
-    int x, y = 0; ///< Analog values of joystick potentiometers in range (0, 1023).
+    int x, y = 0;                               ///< Analog values of joystick potentiometers in range (0, 1023).
     bool start, select, x_b, y_b, b_b, a_b = 0; ///< Status of controllers buttons.
     ManagerState state = ManagerState::STANDBY; ///<  State into which the mobile platform should transitions after receiving the message.
 
     // -------------------- Constructors -------------------- //
 
+    /// @brief Copy constructor.
+    ///        Copies all values from the mess to the created object.
+    /// @param mess The message xchanged with ESP NOW.
     Message(const volatile Message& mess);
 
+    /// @brief Constructs the Message object.
+    /// @param xx Horizontal value of the joystick.
+    /// @param yy Vertical value of the joystick.
+    /// @param start_ 
+    /// @param select_ 
+    /// @param x_butt 
+    /// @param y_butt 
+    /// @param a_butt
+    /// @param newState The state into the platform will transition after receiving the message. 
     Message(int xx, int yy, bool start_, bool select_, bool x_butt, bool y_butt, bool b_butt, bool a_butt, ManagerState newState);
 
+    /// @brief Default constructor.
+    ///        Sets all values to 0 / false.
+    ///        State is set to @ref ManagerState::STANDBY
     Message();
 
+    /// @brief Copy assingment.
+    ///        Allows to copy volatile objects.
     volatile Message& operator=(const Message& mess) volatile;
     
     // -------------------- Utility Methods -------------------- //
@@ -49,12 +73,13 @@ namespace EspNowCallback{
 
   };
 
-  struct platforma_message{
-    bool is_scanning;
-    String status_text;
+  /// @brief Response sent from mobile platform to the remote controller.
+  struct platforma_message{ 
+    bool is_scanning;   ///< Determines if the mobile platform is in ManagerState::SCANNING state.
+    String status_text; ///< Status string specifies the current ManagerState type in which platform is currently operating.
   };
 
-  extern platforma_message tx_message;
+  extern platforma_message tx_message; ///< Holds the actual message sent by platform to the remote controller.
 
   // --------------- ESP NOW CALLBACKS --------------- //
 

@@ -1,3 +1,7 @@
+/// @file  TheSetuper.h
+/// @brief Contains the namespace which stores the class responsible for the setup of the mobile platform.
+///        In order to use the Setup::TheSetuper class mobile platform needs to be connected with PC via UART.
+
 #ifndef THE_SETUPER_H
 #define THE_SETUPER_H
 
@@ -7,32 +11,49 @@
 #include <map>
 #include <string>
 
-/// @file  TheSetuper.h
-/// @brief Contains the namespace which stores the class responsible for the setup of the mobile platform.
-///        In order to use the Setup::TheSetuper class mobile platform needs to be connected with PC via UART.
-
-/// @brief Contains TheSetuper class and some global variables.
+/// @brief Contains TheSetuper class which allows the user to set some 'global' values via a communication stream (like Serial).
 namespace Setup{
 
   /// @brief Manages the setup of the mobile platform via UART.
   ///        Stores variables needed for initialization and operation of other elements of the mobile platform
   ///        and provides a way to setup them via a communication Stream (like Serial).
   ///        Available commands:
-  ///         - set [varaible-name] [value] <- Sets the value of a variable.
-  ///         - show [variable-name]        <- Shows the value of the variable.
-  ///         - help, man                   <- Shows how to issue commands.
+  ///         - set [varaible-name] [value] : Sets the value of a variable.
+  ///         - show [variable-name]        : Shows the value of the variable.
+  ///         - help, man                   : Shows how to issue commands.
   ///        Supported varaible names:
-  ///        - long list of variables here...
+  ///         - **wifi-ssid**
+  ///           Specifies the names of the wifi network to which the mobile platform will connect to.
+  ///         - **wifi-password**
+  ///           Password to wifi. Visible to everyone :3.
+  ///         - **pc-server-name**
+  ///           Server url (e.g. http://192.168.21.17:9000)
+  ///         - **controller-mac**
+  ///           - MAC address of the remote controller (e.g. DC:06:75:F9:61:AC). 
+  ///           - Use only capital letters.
+  ///           - Separate hexadecimal values by ':'.
+  ///         - **platform-mac**
+  ///           - Automatically read MAC address of the mobile platform. 
+  ///           - Don't modify it, you will have te restart the platform to regenerate it.
+  ///         - **pc-server-post-endp**
+  ///           - Server endpoint which accepts the POST requests 
+  ///           - All POST messages (lidar & odometry data) will be send there.
+  ///         - **platform-server-name**
+  ///           Name of the server which is running on the mobile platform.
+  ///         - **platform-server-comm-endp**
+  ///           Endpoint of the platform server, which accepts POST requests which specify steering commands.
+  ///         - **platform-server-scan-endp**
+  ///           Enpoint on the platform server, which accepts POST requests which request a new lidar scan and specify its details.
   /// 
-  /// @note The MAC address strings are in hex uppercase format, values are separated by ','.
-  /// @note Even though its possible, please don't overwrite the MAC address value of the platform.
-  /// @note Write MAC with ':' delimieter: AA:BB:CC:DD:EE:FF.
-  /// Eaxmple Usage:
+  /// @note This class implements a singleton desing pattern (pointer singleton).
+  /// Example Usage:
+  /// 
   /// @code
-  /// // *Init Serial & WiFi here* //
   /// Setup::TheSetuper::getSetuper(&Serial); // Init the communication stream of TheSetuper as Serial (this can be done only once)
-  /// Setup::TheSetuper::getSetuper()->init(); // Setup the automatic variables (MAC & IP)
-  /// Setup::TheSetuper::getSetuper()->theSetup(); // Run the setup loop
+  /// Setup::TheSetuper::getSetuper()->theSetup(); // Setup the automatic variables (MAC & IP)
+  /// // *Init Serial & WiFi here* //
+  /// Setup::TheSetuper::getSetuper()->init(); // Run the setup loop again so that the server name of the mobile platform can be read
+  /// Setup::TheSetuper::getSetuper()->theSetup(); // Setup the automatic variables (MAC & IP)
   /// @endcode
   class TheSetuper{
   private:
@@ -65,7 +86,7 @@ namespace Setup{
 
     // -------------- Singleton Pointer -------------- //
 
-    static TheSetuper* instance;
+    static TheSetuper* instance; ///< The only instance of TheSetuper is allocated on heap once.
 
   private:
 
@@ -77,6 +98,7 @@ namespace Setup{
     /// @brief Disabled.
     TheSetuper& operator=(const TheSetuper& s) = delete;
 
+    /// @brief the copy assignment is disabled.
     TheSetuper(const TheSetuper& s) = delete;
 
   public:
@@ -112,7 +134,9 @@ namespace Setup{
     ///        Available commands:
     ///        set [varaible-name] [value]
     ///        show [variable-name]
-    void theSetup();
+    /// @param initialMessage Initial message which will be printed before the setuper enters the command loop.
+    ///                       By default its "".
+    void theSetup(String initialMessage = "");
 
     // -------------- Utility -------------- //
 

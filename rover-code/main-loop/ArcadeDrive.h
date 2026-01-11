@@ -1,10 +1,13 @@
+/// @file ArcadeDrive.h
+/// @brief Motor control logic for motors controlled with L298N bridge. 
+
 #ifndef SILNIK_H
 #define SILNIK_H
 
 #include <Arduino.h>
+#include "Defines.h"
 
-#define JOYSTICK_DEADZONE 20
-
+/// @brief Stores 2 classes which control the engines.
 namespace Engines{
 
   class Silnik {

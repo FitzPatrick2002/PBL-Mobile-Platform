@@ -1,14 +1,17 @@
+/// @file esp-no-callbacks.cpp
+/// @brief Defines the callbacks necessary to communicate with the remote controller.
+
 #include "esp-now-callbacks.h"
 #include "ManagerSpace.h"
 
 // The main manager of the program (from ManagerSpace::) is defined in full-loop-test.ino
-extern ManagerSpace::Manager manager;
+extern ManagerSpace::Manager manager; ///< Main manager instance. It should be created in the same file as void setup().
 
 namespace EspNowCallback{
 
-  uint8_t kontrolerAddress[6] = {0xDC, 0x06, 0x75, 0xF9, 0x61, 0xAC}; //kontroler address for two way communication
+  uint8_t kontrolerAddress[6] = {0xDC, 0x06, 0x75, 0xF9, 0x61, 0xAC}; 
 
-  esp_now_peer_info_t peerInfo; //kontroler board info
+  esp_now_peer_info_t peerInfo; 
 
   platforma_message tx_message;
 
@@ -64,16 +67,11 @@ namespace EspNowCallback{
 
   // -------------------- Utility Methods -------------------- //
 
-  /// @brief Returns size of the structure in bytes.
-  /// @return Size of the structure in bytes.
   size_t Message::getBytesLength(){
     return 18; //Nah I will make it better later on//sizeof(x) + sizeof(y) + sizeof(start) + sizeof(x) + sizeof(x) + sizeof(x) + sizeof(x) + sizeof(x) + sizeof(x) + sizeof(x) + sizeof(x) + 
     // It's only for testing anyways
   }
 
-  /// @brief Prints the contents of the struct into a stream.
-  /// @param stream Refernce to object that implements Stream class.
-  /// @param sep Character separator, by default = ';'.
   volatile void Message::printData(Stream &stream, char sep){
     stream.print(x);
     stream.print(sep);
@@ -101,12 +99,6 @@ namespace EspNowCallback{
   // -------------------- ESP NOW CALLBACKS -------------------- //
   // ----------------------------------------------------------- //
 
-  /// @brief Callback used when esp receives message via ESP NOW protocol.
-  ///        Copies received message into the manager.
-  ///        In debug mode prints the message via UART.
-  /// @param mac Mac address of the receiver device.
-  /// @param incomingData Incoming data bytes.
-  /// @param len Number of bytes to read.
   void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     // Copy the received bytes into the appropriate field of the manager
     portENTER_CRITICAL_ISR(&manager.messageSpinlock);
@@ -140,9 +132,6 @@ namespace EspNowCallback{
     portEXIT_CRITICAL_ISR(&manager.messageSpinlock);
   }
 
-  /// @brief ESP NOW callback used when platform is sending a respons to the contrller via esp now.
-  ///        If response was successfull state is set to STANDBY if not platform remains in STATUS_UPDATE
-  ///        and attempts to re-send the response.
   void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t _status){
     manager.setState( ESP_NOW_SEND_SUCCESS ? ManagerState::STANDBY : ManagerState::STATUS_UPDATE);
     //Serial.println(_status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Failure");

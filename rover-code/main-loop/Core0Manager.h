@@ -1,9 +1,9 @@
-#ifndef CORE_0_MANAGER_H
-#define CORE_0_MANAGER_H
-
 /// @file  Core0Manager.h
 /// @brief Contains namespace which includes the class which manages operation of core 0 of the esp.
 ///        It includes the routine which sends odometry updates to the flask server, queue which transports data from core 1 to core 0 and something else.
+
+#ifndef CORE_0_MANAGER_H
+#define CORE_0_MANAGER_H
 
 #include <Arduino.h>
 #include "Defines.h"

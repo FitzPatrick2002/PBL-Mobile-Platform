@@ -1,3 +1,6 @@
+/// @file ArcadeDrive.cpp
+/// @brief Provides definitions for functions from ArcadeDrive.h.
+
 #include "ArcadeDrive.h"
 
 namespace Engines{
@@ -82,30 +85,21 @@ namespace Engines{
   }
 
   // ------------------------------------------------ //
-  // ----------------- DOUBLE ENGINE CLASS ----------------- //
+  // ------------- DOUBLE ENGINE CLASS -------------- //
   // ------------------------------------------------ //
 
   // ------------------ Constructors ------------------ //
 
-  /// @brief Initilizes the egines controller. 
-  /// @param l_in1 
-  /// @param l_in2 
-  /// @param l_ena 
-  /// @param r_in1 
-  /// @param r_in2 
-  /// @param r_enb 
   DoubleEngine::DoubleEngine(uint8_t l_in1, uint8_t l_in2, uint8_t l_ena, uint8_t r_in1, uint8_t r_in2, uint8_t r_enb) : 
                 motorLeft(l_in1, l_in2, l_ena, 0),
                 motorRight(r_in1, r_in2, r_enb, 1),
                 leftSpeed(0), rightSpeed(0),
                 deadZone(JOYSTICK_DEADZONE) {}
 
-  /// @brief Does nothing
   DoubleEngine::~DoubleEngine() {}
 
   // ------------------ Initialization ------------------ //
 
-  /// @brief Initlizes both engines. 
   void DoubleEngine::initEngines(){
     motorLeft.begin();
     motorRight.begin();
@@ -113,15 +107,11 @@ namespace Engines{
 
   // ------------------ Steering ------------------ //
 
-  /// @brief Stops both engines
   void DoubleEngine::stop(){
     motorLeft.stop();
     motorRight.stop();
   }
 
-  /// @brief Applies sttering values and adjusts engines rotation speed and direction.
-  /// @param xx Pwm value in range 0-1023. (Should be taken from joystick).
-  /// @param yy Pwm value in range 0-1023. (Should be taken from joystick).
   void DoubleEngine::applySteering(int xx, int yy){
     //Transformacja wejscia z joysticka na predkosc/napiecie
 
@@ -139,7 +129,6 @@ namespace Engines{
     rightSpeed = constrain(rightSpeed, -255, 255);
   }
 
-  /// @brief Causes the engines to apply roation.
   void DoubleEngine::update(){
     motorLeft.setTargetSpeed(leftSpeed);
     motorRight.setTargetSpeed(rightSpeed);
@@ -151,16 +140,10 @@ namespace Engines{
 
   // ------------------ Getters ------------------ //
 
-  /// @brief Returns the #leftSpeed value.
-  ///        If its negative then the motor is going backwards.
-  /// @return #leftSpeed.
   int DoubleEngine::getLeftSpeed(){
     return this->leftSpeed;
   }
 
-  /// @brief Returns the #rightSpeed value.
-  ///        If its negative then the motor is going backwards.
-  /// @return #rightSpeed.
   int DoubleEngine::getRightSpeed(){  
     return this->rightSpeed;
   }

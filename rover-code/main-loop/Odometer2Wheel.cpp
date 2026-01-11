@@ -1,3 +1,6 @@
+/// @file Odometer2Wheel.cpp
+/// @brief Implements the mechanisms of elements specified in Odometer2Wheel.h.
+
 #include "Odometer2Wheel.h"
 
 namespace Odometry{
@@ -8,14 +11,6 @@ namespace Odometry{
 
   // ----------- Constructr & Destructor ----------- //
     
-  /// @brief Constructs the Odometer2Wheels class.
-  ///        By default motion direction for both wheels is set to #MotionDirection::FORWARD.
-  /// @param left Digital pin of the left encoder.
-  /// @param right Digital pin of the right encoder.
-  /// @param freq Maximal frequency of position updates in Hertz.
-  /// @param radius Radius of the wheels [mm].
-  /// @param ticksPerRot Number of ticks which encoder can measure per full wheel rotation.
-  /// @param wheelSpace Spacing of the wheels (distance between them, rozstaw po polskiemu).
   Odometer2Wheel::Odometer2Wheel(uint8_t left, uint8_t right, uint32_t freq, float radius, uint8_t ticksPerRot, float wheelSpace){
       // Pins
       leftPin = left;
@@ -32,7 +27,6 @@ namespace Odometry{
       rightWheelDirection = MotionDirection::FORWARD;
   }
 
-  /// @brief Destroys the Odometer2Wheels object, for now its empty.
   Odometer2Wheel::~Odometer2Wheel() {}
 
   // ---------- Setters and Getters ---------- //
@@ -65,45 +59,32 @@ namespace Odometry{
       return theta;
   }
 
-  /// @brief Sets the left wheel motion direction.
-  /// @param dir New motion direction
   void Odometer2Wheel::setLeftWheelMotionDirection(MotionDirection dir){
       leftWheelDirection = dir;
   }
 
-  /// @brief Sets the left wheel motion direction.
-  /// @param dir New motion direction
   void Odometer2Wheel::setRightWheelMotionDirection(MotionDirection dir){
       rightWheelDirection = dir;
   }
 
-  /// @brief Returns the left wheels motion direction.
-  /// @return left wheels motion direction.
   MotionDirection Odometer2Wheel::getLeftWheelMotionDirection(){
       return leftWheelDirection;
   }
 
-  /// @brief Returns the left wheels motion direction.
-  /// @return left wheels motion direction.
   MotionDirection Odometer2Wheel::getRightWheelMotionDirection(){
       return rightWheelDirection;
   }
 
   // ---------- Debugging Section ---------- //
 
-  /// @brief Sets the left #coder [0] encoder rotations to given number.
-  /// @param rots Number of rotations set.
   void Odometer2Wheel::setCoderLeft(int8_t rots){
       coder[0] = rots;
   }
 
-  /// @brief Sets the right #coder [0] encoder rotations to given number.
-  /// @param rots Number of rotations set.
   void Odometer2Wheel::setCoderRight(int8_t rots){
       coder[1] = rots;
   }
 
-  /// @brief Resets all the values to their defaults (0.0)
   void Odometer2Wheel::reset(){
       coder[0] = 0;
       coder[1] = 0;
@@ -117,13 +98,6 @@ namespace Odometry{
 
   // ---------- Communication ---------- //
 
-  /// @brief Writes the odometry data into a given stream in a csv file format.
-  ///        Data is not transposed, rows are rows and columns are columns.
-  ///        Default separator: ';'
-  ///        Default decimal:   '.'
-  ///        Columns: x | y | theta | totalDistance[0] (coder[0] distance) | totalDistance[1] (coder[1] distance) | totalDistance[2] ((coder[0] + coder[1]) / 2)
-  /// @param output Class inheriting from Stream. Needs methods .print() and .println().
-  /// @param sep Separator character in CSV file. Defaults to ';'.
   void Odometer2Wheel::writeToCSV(Stream& output, char sep){
       output.print(x);
       output.print(sep);
@@ -152,8 +126,6 @@ namespace Odometry{
 
   // ---------- Distance calculation ---------- //
 
-  /// @brief Calcualtes the new position of the rover
-  /// @param thetaOffset Driving direction accoridng to external sensor, for example imu (yaw euelr angle).
   bool Odometer2Wheel::updatePosition(float thetaOffset){
       if(millis() - timer > 1000 / frequency){
           // Calculate distance covered by each wheel

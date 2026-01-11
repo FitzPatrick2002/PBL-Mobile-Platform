@@ -1,11 +1,13 @@
+/// @file  Core0Manager.cpp
+/// @brief Provides implementation for the routine which runs on core 0 of the esp.
+/// @see Core0Manager.cpp
+
 #include "Core0Manager.h"
 
 namespace Cores{
-   TaskHandle_t task0Handle;        ///< Handle to the http handling which runs on core 0.
-   QueueHandle_t manToHttpQ = NULL; ///< Handle to the queue with which Manager can send stuff to the http operator.
+   TaskHandle_t task0Handle;       
+   QueueHandle_t manToHttpQ = NULL; 
 
-   /// @brief Handles slow http requests on core 0 of the esp.
-   ///        Uses 2 queues to communicate with core 1.
    void handleHttpOnCore0(void *param){
       // 0. Await indefinitely if there is any data in the queue
       // 1. Read all data from the queue
@@ -83,11 +85,7 @@ namespace Cores{
          vTaskDelay(pdMS_TO_TICKS(100));
       }
    }
-   
-   /// @brief Pins the #handleHttpOnCore0 to core 0 and contructs the queue with which core 1 can send data to core 0.
-   /// @param messageSize   Size of the objects (in bytes) which will be put in the queue.
-   /// @param queueCapacity Maximal number of objects which can be put in the queue.
-   /// @param stackSize     Size of stack assigned to core 0, expressed in words (word == 2 bytes).
+
    void initCore0Task(int messageSize, int queueCapacity, int stackSize){
       manToHttpQ = xQueueCreate(queueCapacity, messageSize);
       xTaskCreatePinnedToCore(handleHttpOnCore0, "core-0", stackSize, manToHttpQ, 0, &task0Handle, 0);

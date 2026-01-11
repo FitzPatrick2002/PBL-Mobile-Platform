@@ -1,7 +1,10 @@
+/// @file ManagerStates.h
+/// @brief Contains the enum which specify the main manager states.
+
 #ifndef MANAGER_STATES_H
 #define MANAGER_STATES_H
 
-/// @brief Defines possible states of operation for the rover
+/// @brief Defines all possible states of operation for the mobile platform.
 enum ManagerState{
   STANDBY = 0,         ///< Rover is not performing any actions that could break communication.
   MOVING = 1,          ///< Rover is changing position using engines.

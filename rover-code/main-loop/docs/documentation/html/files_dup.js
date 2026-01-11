@@ -1,0 +1,27 @@
+var files_dup =
+[
+    [ "ArcadeDrive.cpp", "_arcade_drive_8cpp.html", null ],
+    [ "ArcadeDrive.h", "_arcade_drive_8h.html", "_arcade_drive_8h" ],
+    [ "AsyncServerSpace.cpp", "_async_server_space_8cpp.html", null ],
+    [ "AsyncServerSpace.h", "_async_server_space_8h.html", "_async_server_space_8h" ],
+    [ "Core0Manager.cpp", "_core0_manager_8cpp.html", "_core0_manager_8cpp" ],
+    [ "Core0Manager.h", "_core0_manager_8h.html", "_core0_manager_8h" ],
+    [ "Defines.h", "_defines_8h.html", "_defines_8h" ],
+    [ "esp-now-callbacks.cpp", "esp-now-callbacks_8cpp.html", "esp-now-callbacks_8cpp" ],
+    [ "esp-now-callbacks.h", "esp-now-callbacks_8h.html", "esp-now-callbacks_8h" ],
+    [ "full-loop-test.ino", "full-loop-test_8ino.html", "full-loop-test_8ino" ],
+    [ "HTTPCommunicator.cpp", "_h_t_t_p_communicator_8cpp.html", null ],
+    [ "HTTPCommunicator.h", "_h_t_t_p_communicator_8h.html", "_h_t_t_p_communicator_8h" ],
+    [ "icm_imu.cpp", "icm__imu_8cpp.html", null ],
+    [ "icm_imu.h", "icm__imu_8h.html", "icm__imu_8h" ],
+    [ "LidarController.cpp", "_lidar_controller_8cpp.html", null ],
+    [ "LidarController.h", "_lidar_controller_8h.html", "_lidar_controller_8h" ],
+    [ "ManagerSpace.cpp", "_manager_space_8cpp.html", null ],
+    [ "ManagerSpace.h", "_manager_space_8h.html", "_manager_space_8h" ],
+    [ "ManagerStates.h", "_manager_states_8h.html", "_manager_states_8h" ],
+    [ "Odometer2Wheel.cpp", "_odometer2_wheel_8cpp.html", null ],
+    [ "Odometer2Wheel.h", "_odometer2_wheel_8h.html", "_odometer2_wheel_8h" ],
+    [ "QueueMessage.h", "_queue_message_8h.html", "_queue_message_8h" ],
+    [ "TheSetuper.cpp", "_the_setuper_8cpp.html", null ],
+    [ "TheSetuper.h", "_the_setuper_8h.html", "_the_setuper_8h" ]
+];

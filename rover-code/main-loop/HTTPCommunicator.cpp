@@ -1,12 +1,11 @@
+/// @file  HTTPCommunicator.cpp
+/// @brief Implements all functions from HTTPCommunicator.h.
+
 #include "HTTPCommunicator.h"
 
 namespace HTTP{
 // --------------- Constructors --------------- //
 
-  /// @brief Constructs the HTTPCommunicator object. 
-  /// @param ssid WiFis ssid code.
-  /// @param password Password to the WiFi.
-  /// @param serverName Name of the server to which data will be sent.
   HTTPCommunicator::HTTPCommunicator(String ssid, String password, String serverName){
       this->ssid = ssid;
       this->password = password;
@@ -14,12 +13,7 @@ namespace HTTP{
   }
 
   // --------------- Setup --------------- //
-  
-  /// @brief Establishes the connection with WiFi network.
-  ///        Use it in void setup(). 
-  ///        Prints the connection status to specified stream.
-  /// @param stream Stream to which information about info about the connection is printed.
-  ///               Stream such as Serial needs to be initilized, there is no checking of that.
+
   void HTTPCommunicator::setupWiFiConnection(Stream& stream){
 
       // Inits a WiFi connection
@@ -40,12 +34,6 @@ namespace HTTP{
 
   // --------------- Communication --------------- //
 
-  /// @brief Sends a jsonified data collected by lidar to the server.
-  /// @see #packLidarDataToJSON
-  /// @param jsonLidar Lidar data jsonified with function packLidarDataToJSON.
-  /// @param dest Destination on the server, the uh final site? serverName + dest -> final destination.
-  ///             Remember to make it like this: dest = "/some-destination"
-  /// @return If transmission was successfull, return true. If not, returns false.
   bool HTTPCommunicator::sendLidarData(String& jsonLidar, String dest){
 
       // If there is connection with the WiFi, try to send data to the server
@@ -83,16 +71,6 @@ namespace HTTP{
 
   // --------------- Data Operations --------------- //
 
-  /// @brief Packs a lidar scan and data associated with it into a json file. JSON format:
-  ///             "data-type" : "lidar"
-  ///             "position"  : [scanX, scanY]
-  ///             "bearing"   : bearing value
-  ///             "payload"   : [r0, phi0, theta0, r1, phi1, theta1, ...] <- lidarData
-  /// @param bearing Bearing of the mobile platform at the moment of making the scan.
-  /// @param scanX x-axis postion of the platform when the scan was being made.
-  /// @param scanY y-axis position of the platform when the scan was being made.
-  /// @param lidarData Data collected from lidar. 
-  /// @return Returns a jsonified version of the provided parameters
   String HTTPCommunicator::packLidarDataToJSON(float bearing, float scanX, float scanY, std::vector<float>& lidarData) {
       JsonDocument doc;
       

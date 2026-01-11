@@ -1,3 +1,6 @@
+/// @file ManagerSpace.cpp
+/// @brief Stores implementations for all functions from the ManagerSpace.h.
+
 #include "ManagerSpace.h"
 
 namespace ManagerSpace{
@@ -22,8 +25,6 @@ namespace ManagerSpace{
 
   // -------------- Components Initialization -------------- //
 
-  /// @brief Initilizes and start the asynchronous server #asyncServer. 
-  ///        Use at the end or after lidar has been initialized.
   void Manager::initAsyncServer(){
     // Init the endpoints where requests will be send 
     asyncServer.initCommandEndpoint();
@@ -33,20 +34,16 @@ namespace ManagerSpace{
     asyncServer.begin();
   }
 
-  /// @brief Wrapper for engines initilization.
-  /// @see #engineController
   void Manager::initEngines(){
     engineController.initEngines();
   }
 
-  /// @brief Initilizes lidar.
   void Manager::initLidar(){
     lidarController.setPinout(LIDAR_EN, LIDAR_RX, LIDAR_TX, LIDAR_PWM);
     lidarController.setInclination(90.0f); // Inclination in degrees
     lidarController.init();
   }
 
-  /// @brief Initializes imu.
   void Manager::initIMU(){
     // Init imu to use dmp, set the last bit of i2c address to 1 and show debug messages
     imu.init(true, 1, true);
@@ -54,7 +51,6 @@ namespace ManagerSpace{
 
   // -------------- Main Loop Actions -------------- //
 
-  /// @brief Main operation loop.
   void Manager::mainLoop(){
     // Check if any message has been received
     listenToMessage(); 
@@ -79,7 +75,6 @@ namespace ManagerSpace{
     Serial.println();
   }
 
-  /// @brief Performs action based on the current state.
   void Manager::performAction(){
     //printIMUdata(); // DEBUG only
 
@@ -154,8 +149,6 @@ namespace ManagerSpace{
     }
   }
 
-  /// @brief If the message flag is set, processes the message and sets appropriate state (and the state change flag).
-  ///        Whole function is protected by the #messageSpinlock. The message and the new message flag should not change during the whole execution.
   void Manager::listenToMessage(){
     taskENTER_CRITICAL(&messageSpinlock);
     if(messageReceived == true){
@@ -194,10 +187,6 @@ namespace ManagerSpace{
     taskEXIT_CRITICAL(&messageSpinlock);
   }
 
-  /// @brief Invokes routines necessary during every iteration through the main loop.
-  ///        1. Odometry position update.
-  ///        2. Send odometry update to core 0.
-  ///        3. Check if there is update from flask server on pc.
   void Manager::runEveryStep(){
     
     this->updateOdometry();
@@ -208,8 +197,6 @@ namespace ManagerSpace{
 
   // -------------- Functions Invoked Every Main Loop Step -------------- //
 
-  /// @brief Checks if odometry update happened.
-  ///        If it did, the data is sent to the core 0 queue and transmitted to the server.
   void Manager::updateOdometry(){
     // Read the driving direction with regard to north
     ICM_IMU::EulerAngles orientation;
@@ -247,12 +234,6 @@ namespace ManagerSpace{
     }
   }
 
-  /// @brief Checks if the #asyncServer has any new messages stored.
-  ///        Handled messages are: 
-  ///        - Lidar scan requests.
-  ///        - Steering commands (simplified).
-  ///        Based on server commands modifies #controllerMessage and #messageReceived in order
-  ///        to cause similiar behaviours as when steering with a remote contrller. 
   void Manager::checkPCmessages(){
     // Handle the commands received from the server.
     if(asyncServer.isNewSteeringCommand()){
@@ -356,7 +337,6 @@ namespace ManagerSpace{
     }
   }
 
-  /// @brief Updates the information in #odometer about the direction of spinning of the wheels.
   void Manager::updateOdometryDirection(){
 
     // Set the direction of left wheel
@@ -377,8 +357,6 @@ namespace ManagerSpace{
 
   }
 
-  /// @brief Performs a lidar scan at fixed inclination 90 degrees.
-  ///        In total 5 scans are done with default value of every_nth
   void Manager::lidarScan(){
 
     lidarController.setInclination(90.0f);
@@ -387,12 +365,6 @@ namespace ManagerSpace{
 
   // -------------- Communication -------------- //
 
-  /// @brief If there is a scan avaialable in #lidarController, uploads it to the PC via http request.
-  ///        Lidar data is cleared in the #lidarController after sending it to pc in order to save memory.
-  ///        Message content:
-  ///        0. Lidar data.
-  ///        1. Current position.
-  ///        2. Heading (IMU data read).
   void Manager::transmitLidarDataToPC(){
     // Request IMU heading reading
     ICM_IMU::EulerAngles eulerAngles;
@@ -433,20 +405,16 @@ namespace ManagerSpace{
 
   // -------------- Getters & Setters -------------- //
 
-  /// @brief Sets the value of #permanentStop.
-  /// @param state New value of the #permanentStop.
   void Manager::setPermanentStop(bool state){
     this->permanentStop = state;
   }
 
-  /// @brief Copies themessage received from the controller to #controllerMessage.
   void Manager::setControllerMessage(const EspNowCallback::Message& message){
     taskENTER_CRITICAL(&messageSpinlock);
     controllerMessage = message;
     taskEXIT_CRITICAL(&messageSpinlock);
   }
 
-  /// @brief Returns a copy of the last received message.
   EspNowCallback::Message Manager::getControllerLastMessage(){
     taskENTER_CRITICAL(&messageSpinlock);
     EspNowCallback::Message temp = controllerMessage;
@@ -454,34 +422,24 @@ namespace ManagerSpace{
     return temp;
   }
 
-  /// @brief Returns the address of the #controllerMessage field which stores the message issued by the controller.
-  /// @return Address of #controllerMessage.
   volatile EspNowCallback::Message* Manager::getControllerMessageLocation(){
     return &this->controllerMessage;
   }
 
-  /// @brief Sets the status of #messageReceived flag.
-  /// @param status true if message had been received and contents of #controllerMessage were changed.
-  ///               False otherwise.
   void Manager::setMessageReceived(bool status){
     messageReceived = status;
   }
 
-  /// @brief Sets the state of the main loop.
-  /// @param newState State in which platform will be operating now.
   void Manager::setState(ManagerState newState){
     state = newState;
   }
 
-  /// @brief Returns the current state of operation.
-  /// @return State of the platform operation.
   ManagerState Manager::getState(){
     return state;
   }
 
-  // /// @brief Accesses the odometry field.
-  // /// @return Reference to the #odometer field.
-  
+  /// @brief Accesses the #odometry field.
+  /// @return Reference to the #odometer field.
   Odometry::Odometer2Wheel& Manager::accessOdometry(){
     return odometer;
   }

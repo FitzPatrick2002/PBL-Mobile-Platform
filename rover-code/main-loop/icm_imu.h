@@ -1,10 +1,10 @@
-#ifndef ICM_IMU_FILE
-#define ICM_IMU_FILE
-
 /// @file icm_imu.h
 /// @brief File contains namespace which contains helper enums and structs such as:
 ///        Instruments, EulerAngles and Quat, which simplify interaction with an IMU.
 ///        It also provides the main class: IMU which simplifies interaction with the icm_20948 imu.
+
+#ifndef ICM_IMU_FILE
+#define ICM_IMU_FILE
 
 #include "ICM_20948.h"
 #include <EEPROM.h>
@@ -12,31 +12,33 @@
 /// @brief Contains the necessary classes and datastructures to operate on icm_20948 imu with a bit of ease.
 /**
  * Exemplary use of IMU:
-#define I2C_SDA 11 ///< Pin on which SDA is defined.
-#define I2C_SCL 12 ///< Pin on which SCL is defined.
-#define AD0_VAL 1  ///< The last value of the I2C address.
-ICM_IMU::IMU imu(Serial);
-uint32_t timer = 0;
-void setup() {
-  // Initilize the Serial communication with pc
-  Serial.begin(115200);
-  while(!Serial)
-    delay(10);
-  Serial.println("SERIAL - OK");
-  // Init I2C communication with SCL clock frequency = 400 kHz
-  Wire.begin(I2C_SDA, I2C_SCL);
-  Wire.setClock(400000);
-  Serial.println("WIRE - OK");
-  // Initilize the IMU
-  imu.init(true, 1, true);
-  Serial.println("IMU - OK");
-}
-void loop() {
-  if(millis() - timer > 1000){
-    imu.printEulerOrientation(true);
-    timer = millis();
-  }
-}
+ * @code 
+ * #define I2C_SDA 11 // Pin on which SDA is defined.
+ * #define I2C_SCL 12 // Pin on which SCL is defined.
+ * #define AD0_VAL 1  // The last value of the I2C address.
+ * ICM_IMU::IMU imu(Serial);
+ * uint32_t timer = 0;
+ * void setup() {
+ * // Initilize the Serial communication with pc
+ * Serial.begin(115200);
+ * while(!Serial)
+ *  delay(10);
+ * Serial.println("SERIAL - OK");
+ * // Init I2C communication with SCL clock frequency = 400 kHz
+ * Wire.begin(I2C_SDA, I2C_SCL);
+ * Wire.setClock(400000);
+ * Serial.println("WIRE - OK");
+ * // Initilize the IMU
+ * imu.init(true, 1, true);
+ * Serial.println("IMU - OK");
+ * }
+ * void loop() {
+ * if(millis() - timer > 1000){
+ *   imu.printEulerOrientation(true);
+ *   timer = millis();
+ * }
+ * }
+ * @endcode
  */
 namespace ICM_IMU{
     

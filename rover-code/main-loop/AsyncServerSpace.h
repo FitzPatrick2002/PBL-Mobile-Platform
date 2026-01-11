@@ -1,3 +1,6 @@
+/// @file AsyncServerSpace.h
+/// @brief Provides an async server which can accept http requests and structs which define type of received data.
+
 #ifndef ASYNC_SERVER_SPACE_H
 #define ASYNC_SERVER_SPACE_H
 

@@ -1,5 +1,10 @@
 /// @file mainloop-test.ino
-/// @brief Contains the skeleton for main loop of the rover.
+/// @brief Manages intilization of all elements necessary for the platform to work in the 
+/// @code 
+/// void setup()
+/// @code 
+/// function.
+/// Provides definitions for ISR routines. 
 
 #include <esp_now.h>
 #include <esp_wifi.h>

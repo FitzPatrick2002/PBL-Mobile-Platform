@@ -1,9 +1,9 @@
-#ifndef HTTP_COMMUNICATOR_H
-#define HTTP_COMMUNICATOR_H
-
 /// @file  HTTPCommunicator.h
 /// @brief HTTPCommunicator can be used to pack lidar scans data into a json file 
 ///        and to send it via a POST request to specified server.
+
+#ifndef HTTP_COMMUNICATOR_H
+#define HTTP_COMMUNICATOR_H
 
 #include <WiFi.h>
 #include <HTTPClient.h>
@@ -16,6 +16,7 @@
 // TO DO:
 // 1. Make the HTTPCommunicator a singleton, there should be no more than a single instance of it.
 
+/// @brief Contains the @ref HTTPCommunicator class which is responsible for sending lidar scans via http to server.
 namespace HTTP{
     
     /// @brief Used to transform measurement data from lidar and odometry into http POST requests 
