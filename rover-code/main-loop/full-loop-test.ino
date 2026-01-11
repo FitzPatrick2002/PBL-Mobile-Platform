@@ -162,6 +162,13 @@ void setup() {
 
   delay(250);
 
+  // Init TheSetuper
+    // Init the communication stream of TheSetuper as Serial (this can be done only once)
+  Setup::TheSetuper::getSetuper(&Serial);
+
+  // Run the setup loop
+  Setup::TheSetuper::getSetuper()->theSetup();
+
   // Init wifi communication
   // ESP NOW requires that esp controller is a wifi station
   // http requests need to be done within a specified network
@@ -169,7 +176,7 @@ void setup() {
   // Setup device as wifi station
   WiFi.mode(WIFI_STA);
 
-  WiFi.begin(MY_WIFI_SSID, WIFI_PASSWORD);
+  WiFi.begin(getSetting("wifi-ssid"), getSetting("wifi-password"));
   Serial.println("Connecting to wifi");
 
   // Await to connect to wifi
@@ -189,13 +196,10 @@ void setup() {
 
   // Once the Serial & WiFi are initalized, setup the needed variables
 
-  // Init the communication stream of TheSetuper as Serial (this can be done only once)
-  Setup::TheSetuper::getSetuper(&Serial);
-
   // Setup the automatic variables (MAC & IP)
   Setup::TheSetuper::getSetuper()->init();
 
-  // Run the setup loop
+  // Run the setup loop for the 2nd time
   Setup::TheSetuper::getSetuper()->theSetup();
 
   // Setup the Wire.h library for I2C communication
@@ -250,7 +254,11 @@ void setup() {
   //two way communication - setting up sender
   esp_now_register_send_cb(esp_now_send_cb_t(EspNowCallback::OnDataSent));
 
-  memcpy(EspNowCallback::peerInfo.peer_addr, EspNowCallback::kontrolerAddress,6);
+  // Read the controllers MAC address
+  String macString = getSetting("controller-mac");
+  Setup::TheSetuper::getSetuper()->getMACfromString(EspNowCallback::kontrolerAddress, macString);
+
+  memcpy(EspNowCallback::peerInfo.peer_addr, EspNowCallback::kontrolerAddress, 6);
   EspNowCallback::peerInfo.channel = 0;
   EspNowCallback::peerInfo.encrypt = false;
 

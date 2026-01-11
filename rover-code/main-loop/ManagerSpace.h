@@ -22,7 +22,7 @@ namespace ManagerSpace{
 
     // -------------- WiFi Communication -------------- //
     
-    HTTP::HTTPCommunicator httpCommunicator{MY_WIFI_SSID, WIFI_PASSWORD, SERVER_NAME};      ///< Communicator that is used to make http requests (mainly for lidar scans).
+    HTTP::HTTPCommunicator httpCommunicator; ///< Communicator that is used to make http requests (mainly for lidar scans).
     AsyncServerSpace::ServerHandler asyncServer;
 
     // -------------- Main Measurement Unit (LiDAR) -------------- //
@@ -33,7 +33,7 @@ namespace ManagerSpace{
 
     Odometry::Odometer2Wheel odometer{LEFT_ENCODER, RIGHT_ENCODER, 4, 25, 10, 150}; ///< Calculates the current position based on wheel turns and driving direction given by imu.
     ICM_IMU::IMU imu{Serial}; ///< Controls imu and provides to orientation quaternion. Retireval of orientation might be lengthy if last retrievel happened long ago.
-    DoubleEngine engineController{L_IN1, L_IN2, L_ENA, R_IN1, R_IN2, R_ENB};        ///< Controls the speed and direction of rotation of engines.
+    Engines::DoubleEngine engineController{L_IN1, L_IN2, L_ENA, R_IN1, R_IN2, R_ENB};        ///< Controls the speed and direction of rotation of engines.
 
     // -------------- Controller Messages -------------- //
 

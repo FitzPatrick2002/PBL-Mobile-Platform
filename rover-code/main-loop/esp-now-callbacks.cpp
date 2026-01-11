@@ -12,7 +12,9 @@ namespace EspNowCallback{
 
   platforma_message tx_message;
 
+  // -------------------------------------------------------- //
   // -------------------- STRUCT MESSAGE -------------------- //
+  // -------------------------------------------------------- //
 
   // -------------------- Constructors -------------------- //
 
@@ -95,7 +97,9 @@ namespace EspNowCallback{
     stream.print(sep);
   }
 
+  // ----------------------------------------------------------- //
   // -------------------- ESP NOW CALLBACKS -------------------- //
+  // ----------------------------------------------------------- //
 
   /// @brief Callback used when esp receives message via ESP NOW protocol.
   ///        Copies received message into the manager.

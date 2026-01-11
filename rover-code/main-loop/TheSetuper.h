@@ -44,14 +44,14 @@ namespace Setup{
     // -------------- Variables Map -------------- //
 
     std::map<String, String> variables = {
-      {"wifi-name", ""},
+      {"wifi-ssid", ""},
       {"wifi-password", ""},
       {"pc-server-name", "http://192.168.21.17:9000"},
 
-      {"controller-mac", ""},
+      {"controller-mac", "DC:06:75:F9:61:AC"}, 
       {"platform-mac", ""},
 
-      {"pc-server-post", "receive_post"},
+      {"pc-server-post-endp", "receive_post"},
 
       {"platform-server-name", "http://192.168.21.30"},
       {"platform-server-comm-endp", "command"},
@@ -122,6 +122,14 @@ namespace Setup{
     ///            ':' can be replaced with '-', ',' or ' '. 
     void getMACfromString(uint8_t dest[], String src);
 
+    // -------------- Accessing Variables -------------- //
+
+    /// @brief Returns a value of specified variable.
+    ///        If name is misspelled or such varaible does not exist, return "".
+    /// @param name Name of a variable.
+    /// @returns Value of a specified variable.
+    String getVariable(String name);
+
   private:
 
     // -------------- Reading Commands -------------- //
@@ -148,15 +156,17 @@ namespace Setup{
     /// @param content Chould contain the name of the variable and the value, separated by ' '.
     void runSet(String content);
 
-    // -------------- Accessing Variables -------------- //
-
-    /// @brief Returns a value of specified variable.
-    ///        If name is misspelled or such varaible does not exist, return "".
-    /// @param name Name of a variable.
-    /// @returns Value of a specified variable.
-    String getVariable(String name);
-
   };
 };
+
+/// @brief Wrapper which works the same as getVariable() form TheSetuper class.
+///        Its equvalent to the code below.
+/// @code return Setup::TheSetuper::getSetuper()->getVariable(name);
+/// @param name Name of the setup variable which we want to retreive.
+///             To see the full list of varaibles, refer to documentation of TheSetuper.
+/// @returns outcomes of the getVariable() function from TheSetuper class.
+static inline String getSetting(String name){
+  return Setup::TheSetuper::getSetuper()->getVariable(name);
+}
 
 #endif

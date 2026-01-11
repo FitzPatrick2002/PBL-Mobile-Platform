@@ -8,25 +8,25 @@
 
 #define LEFT_ENCODER 17  ///< Odometry encoder on left wheel.
 #define RIGHT_ENCODER 10 ///< Odmetry encoder on right wheel.
-#define HCSR_STOP 1     ///< ISR pin for stopping the platform when obstacle was detected by ultrasonic sensors. 
+#define HCSR_STOP 1      ///< ISR pin for stopping the platform when obstacle was detected by ultrasonic sensors. 
 
 // Lidar connection pins
-#define LIDAR_EN 2
-#define LIDAR_RX 7
-#define LIDAR_TX 6
-#define LIDAR_PWM 21
+#define LIDAR_EN 2   ///< Enable pin LiDAR.
+#define LIDAR_RX 7   ///< LiDARs receive pin of UART.
+#define LIDAR_TX 6   ///< LiDARS transmission pin of UART.
+#define LIDAR_PWM 21 ///< LiDARS PWM control pin, which steers the engine which rotates LiDAR.
 
 // Wifi setup
-#define MY_WIFI_SSID  "TELPOL-19886"
-#define WIFI_PASSWORD "38j8gze9sh"
-#define SERVER_NAME   "http://192.168.21.17:9000"
+//#define MY_WIFI_SSID  "TELPOL-19886"
+//#define WIFI_PASSWORD "38j8gze9sh"
+//#define SERVER_NAME   "http://192.168.21.17:9000"
 
 // Server running on PC endpoints
-#define SERVER_POST_ENDPOINT "/receive_post"
+//#define SERVER_POST_ENDPOINT "/receive_post"
 
 // Platform server endpoints
-#define PLATFORM_COMMAND_ENDPOINT "/steering"
-#define PLATFORM_SCAN_REQ_ENDPOINT "/lidar"
+//#define PLATFORM_COMMAND_ENDPOINT "/steering"
+//#define PLATFORM_SCAN_REQ_ENDPOINT "/lidar"
 
 // I2C setup
 #define I2C_SDA 11

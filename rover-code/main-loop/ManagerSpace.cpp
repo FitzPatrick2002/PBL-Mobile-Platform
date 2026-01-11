@@ -6,7 +6,14 @@ namespace ManagerSpace{
 
   // -------------- Constructors & Destructors -------------- //
 
-  Manager::Manager(Lidar::LidarController& lidarControllerInstance) : lidarController(lidarControllerInstance) {}
+  Manager::Manager(Lidar::LidarController& lidarControllerInstance) : 
+                                                                      lidarController(lidarControllerInstance),
+                                                                      httpCommunicator(getSetting("wifi-ssid"),
+                                                                                       getSetting("wifi-password"), 
+                                                                                       getSetting("pc-server-name")) {
+                                                                                       
+  }
+  
   Manager::~Manager() {}
 
   // -------------------------------------------- //
@@ -406,7 +413,7 @@ namespace ManagerSpace{
     Serial.println(dataJson);
 
     // Send the http request
-    httpCommunicator.sendLidarData(dataJson, SERVER_POST_ENDPOINT);
+    httpCommunicator.sendLidarData(dataJson, getSetting("pc-server-post-endp"));
 
     // Clear vector with lidar data
     lidarController.clearPoints();

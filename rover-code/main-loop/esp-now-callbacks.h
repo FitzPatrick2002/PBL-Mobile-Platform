@@ -5,6 +5,7 @@
 #include <esp_now.h>
 
 #include "ManagerStates.h"
+#include "TheSetuper.h"
 
 // Foreward declaration so that callbacks know it actually exists
 namespace ManagerSpace{

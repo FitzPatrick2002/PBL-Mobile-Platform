@@ -9,8 +9,7 @@ enum ManagerState{
   UPLOADING = 3,       ///< Rover is uploading data to PC.
   STATUS_UPDATE = 4,   ///< Another state for uploading to controller.
   IMU_CALIBRATION = 5, ///< Rover is basically in idle state but imu is calibration mode.
-  PLATFORM_SETUP = 6      ///< PLatform setup mode. User is able to setup some global proerties via UART commands.
-  //UPLOADING_TO_PC = 5 ///< Platform is sending data to PC.
+  PLATFORM_SETUP = 6   ///< PLatform setup mode. User is able to setup some global proerties via UART commands.
 };
 
 #endif
