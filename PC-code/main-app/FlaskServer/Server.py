@@ -9,7 +9,7 @@ import requests
 
 from flask import Flask, request
 from utils.DataTypes import LidarScan, OdometryData
-
+from FlaskServer.TheSetuper import TheSetuper
 
 class FlaskServer:
     """FlaskServer runs the server logic using Flask."""
@@ -19,7 +19,7 @@ class FlaskServer:
                  o3d_to_f: multiprocessing.Queue,
                  from_qt_app_queue : multiprocessing.Queue,
                  to_qt_app_queue: multiprocessing.Queue,
-                 host : str = "192.168.21.17", port : int = 9000):
+                 host : str = "192.168.21.17", port : int = 9000): #host and port can be read from the setuper, no need for them here, instead we can give the Server class the input path to the necessary data
         """Initialize the FlaskServer class with the following arguments.
 
         Keyword arguments:
@@ -32,6 +32,7 @@ class FlaskServer:
             host -- Server IP address (default: your IP address).
             port -- Port on which server will be run (default: 9000).
         """
+        self.Setuper = TheSetuper(r"Internet_connection.csv")
         self.HOST = host
         self.PORT = port
 

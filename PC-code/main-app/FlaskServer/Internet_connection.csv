@@ -1,0 +1,7 @@
+wifi-ssid,
+wifi-password,
+pc-server-name,http://192.168.21.17:9000
+platform-server-name,http://192.168.21.30
+platform-server-comm-endp,command
+platform-server-scan-ednp,scan
+pc_server_post_endp,receive_post

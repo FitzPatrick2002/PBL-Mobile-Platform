@@ -21,7 +21,7 @@ namespace Setup{
   ///         - set [varaible-name] [value] : Sets the value of a variable.
   ///         - show [variable-name]        : Shows the value of the variable.
   ///         - help, man                   : Shows how to issue commands.
-  ///        Supported varaible names:
+  ///        Supported variable names:
   ///         - **wifi-ssid**
   ///           Specifies the names of the wifi network to which the mobile platform will connect to.
   ///         - **wifi-password**

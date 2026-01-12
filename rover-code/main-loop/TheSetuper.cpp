@@ -63,7 +63,7 @@ namespace Setup{
     int numsRead = sscanf(src.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dest[0], &dest[1], &dest[2],
                                                                         &dest[3], &dest[4], &dest[5]);
 
-    // If there is didffernt delimieter in use, check other options
+    // If there is different delimeter in use, check other options
     if(numsRead < 6){
       numsRead = sscanf(src.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dest[0], &dest[1], &dest[2],
                                                                       &dest[3], &dest[4], &dest[5]);
