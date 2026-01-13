@@ -14,6 +14,12 @@ namespace HTTP{
 
   // --------------- Setup --------------- //
 
+  void HTTPCommunicator::resetVariables(String newSsid, String newPassword, String newServerName){
+    this->ssid = newSsid;
+    this->password = newPassword;
+    this->serverName = newServerName;
+  }
+
   void HTTPCommunicator::setupWiFiConnection(Stream& stream){
 
       // Inits a WiFi connection
@@ -43,16 +49,24 @@ namespace HTTP{
           HTTPClient http;
 
           // Begin the http communication with specified server
-          String destinationServer = serverName + dest;
+          String destinationServer = "http://" +  serverName + "/" + dest;
+          
+          Serial.println("Making http request (lidar data): ");
+          Serial.print(destinationServer);
+
           http.begin(client, destinationServer);
 
           // Specify the type of transmitted data and the data itself
           http.addHeader("Content-type", "application/json");
           int httpResponseCode = http.POST(jsonLidar);
 
+
           // Print the response code
           Serial.print("LiDAR data POST: Server response: ");
           Serial.println(httpResponseCode);
+
+          // Finish the http request. Why was it gone?
+          http.end(); 
 
           // If error occured, return false
           if (httpResponseCode < 0){

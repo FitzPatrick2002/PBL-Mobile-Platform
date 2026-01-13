@@ -56,8 +56,14 @@ namespace Cores{
                doc["collision"] = (bool)qData.collision;
                doc["angle"] = (float)qData.angle;
 
+               Serial.print("Position loaded into the message: ");
+               Serial.print(qData.x);
+               Serial.print(", ");
+               Serial.println(qData.y);
+
                Serial.print("Angle loaded to message: ");
                Serial.println(qData.angle);
+
                Serial.print("Collision status loaded to message: ");
                Serial.println(qData.collision);
                
@@ -69,11 +75,18 @@ namespace Cores{
                // Send the odometry data via POST
                WiFiClient client;
                HTTPClient http;
-               String destination = getSetting("pc-server-name") + "/" + getSetting("pc-server-post-endp");
+               String destination = "http://" + getSetting("pc-server-name") + "/" + getSetting("pc-server-post-endp");
                if (http.begin(client, destination)){
+                  Serial.print("Destination of telemetry post: ");
+                  Serial.println(destination);
+                  Serial.println("Http request (telemetry) done");
+                  
                   http.addHeader("Content-type", "application/json");
-
                   int httpResponseCode = http.POST(jsonString);
+
+                  Serial.println("Odometry data POST: Server response: ");
+                  Serial.println(httpResponseCode);
+
                   http.end();
 
                   Serial.println("Odometry data POST: Server response: ");

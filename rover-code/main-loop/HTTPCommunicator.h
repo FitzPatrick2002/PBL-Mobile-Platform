@@ -13,9 +13,6 @@
 
 #include "TheSetuper.h"
 
-// TO DO:
-// 1. Make the HTTPCommunicator a singleton, there should be no more than a single instance of it.
-
 /// @brief Contains the @ref HTTPCommunicator class which is responsible for sending lidar scans via http to server.
 namespace HTTP{
     
@@ -34,9 +31,16 @@ namespace HTTP{
         /// @param ssid WiFis ssid code.
         /// @param password Password to the WiFi.
         /// @param serverName Name of the server to which data will be sent.
-        HTTPCommunicator(String ssid, String password, String serverName);
+        HTTPCommunicator(String ssid = "", String password = "", String serverName = "");
 
         // --------------- Setup --------------- //
+
+        /// @brief If default contrstructor has been used, the fields are not initialized.
+        ///        This method can be used to set them.
+        /// @param newSsid Sets the @ref ssid field.
+        /// @param newPassword Sets the @ref password field.
+        /// @param newServerName Sets the @ref serverName field.
+        void resetVariables(String newSsid, String newPassword, String newServerName);
         
         /// @brief Establishes the connection with WiFi network.
         ///        Use it in void setup(). 

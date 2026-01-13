@@ -11,21 +11,21 @@
 // Uncomment those to enable debugging messages of some certain piece of software
 
 //#define DEBUG_ODOMETRY_PUTTY ///< If platform is connected to pc with putty software, odometry data can be printed to serial out and saved by the putty software. 
-//#define DEBUG_RECEIVE_MSG    ///< When message is received via ESP NOW it is logged through UART. Comment this out to disable
-//#define DEBUG_SAVE_MSG       ///< When received message is processed (Manager state is updated) in Manager::listenToMessage()
+#define DEBUG_RECEIVE_MSG    ///< When message is received via ESP NOW it is logged through UART. Comment this out to disable
+#define DEBUG_SAVE_MSG       ///< When received message is processed (Manager state is updated) in Manager::listenToMessage()
 
 // ----------------Wheel Encoders ---------------- //
 
-#define LEFT_ENCODER 17  ///< Odometry encoder on left wheel.
-#define RIGHT_ENCODER 10 ///< Odmetry encoder on right wheel.
-#define HCSR_STOP 1      ///< ISR pin for stopping the platform when obstacle was detected by ultrasonic sensors. 
+#define LEFT_ENCODER 38  ///< Odometry encoder on left wheel. 
+#define RIGHT_ENCODER 47 ///< Odmetry encoder on right wheel.
+#define HCSR_STOP 7      ///< ISR pin for stopping the platform when obstacle was detected by ultrasonic sensors. 
 
 // ---------------- LiDAR ---------------- //
 
 #define LIDAR_EN 2   ///< Enable pin LiDAR.
-#define LIDAR_RX 7   ///< LiDARs receive pin of UART.
-#define LIDAR_TX 6   ///< LiDARS transmission pin of UART.
-#define LIDAR_PWM 21 ///< LiDARS PWM control pin, which steers the engine which rotates LiDAR.
+#define LIDAR_RX 6   ///< LiDARs receive pin of UART. (D3)
+#define LIDAR_TX 5  ///< LiDARS transmission pin of UART.
+#define LIDAR_PWM 1  ///< LiDARS PWM control pin, which steers the engine which rotates LiDAR.
 
 // ---------------- I2C  ---------------- //
 
@@ -40,13 +40,13 @@
 
 // ---------------- L298N Configuration ---------------- //
 
-#define L_IN1 3  ///< Direction of rotation of engine A.  //5;   // kierunek silnik A
-#define L_IN2 4  ///< Direction of rotation of engine A.  //6;   // kierunek silnik A
-#define L_ENA 13 ///< PWM of engine A. PWM value on the pin determines the rotation speed. //18; // PWM silnik A
+#define L_IN1 9   ///< Direction of rotation of engine A.  //5;   // kierunek silnik A
+#define L_IN2 10  ///< Direction of rotation of engine A.  //6;   // kierunek silnik A
+#define L_ENA 8   ///< PWM of engine A. PWM value on the pin determines the rotation speed. //18; // PWM silnik A
 
-#define R_IN1 14 ///< Direction of rotation of engine B.  //7;  // kierunek silnik B
-#define R_IN2 9  ///< Direction of rotation of engine B.  //8;   // kierunek silnik B
-#define R_ENB 8  ///< PWM of engine B. PWM value on the pin determines the rotation speed. //21; // PWM silnik B
+#define R_IN1 17  ///< Direction of rotation of engine B.  //7;  // kierunek silnik B
+#define R_IN2 18  ///< Direction of rotation of engine B.  //8;   // kierunek silnik B
+#define R_ENB 21  ///< PWM of engine B. PWM value on the pin determines the rotation speed. //21; // PWM silnik B
 
 // ---------------- Engines / Joystick ---------------- //
 

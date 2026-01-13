@@ -31,7 +31,9 @@ namespace AsyncServerSpace{
         if (type == "steering"){
           String direction = request->getParam("direction", true)->value();
 
-          Serial.println("Steering command received");
+          Serial.println("Steering command received,");
+          Serial.print("Direction: ");
+          Serial.println(direction);
 
           portENTER_CRITICAL_ISR(&steeringCommandSpinlock);
           // Save the command data

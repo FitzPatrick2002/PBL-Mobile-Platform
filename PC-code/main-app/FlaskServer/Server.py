@@ -19,7 +19,7 @@ class FlaskServer:
                  o3d_to_f: multiprocessing.Queue,
                  from_qt_app_queue : multiprocessing.Queue,
                  to_qt_app_queue: multiprocessing.Queue,
-                 host : str = "192.168.21.17", port : int = 9000): #host and port can be read from the setuper, no need for them here, instead we can give the Server class the input path to the necessary data
+                 host : str = "10.214.168.134", port : int = 9000): #host and port can be read from the setuper, no need for them here, instead we can give the Server class the input path to the necessary data
         """Initialize the FlaskServer class with the following arguments.
 
         Keyword arguments:
@@ -288,7 +288,7 @@ class FlaskServer:
             case "steering":
                 """Make a POST request to the mobile platform for steering."""
                 print(f"Flask: Sending a steering request to rover")
-                r = requests.post("http://192.168.21.30/command", data={
+                r = requests.post("http://10.214.168.144/command", data={
                     "type" : "steering",
                     "direction" : message["direction"]
                 })
@@ -297,7 +297,7 @@ class FlaskServer:
             case "scan":
                 """Send a scan request to the platform."""
                 print("Flask: Sending a scan request to rover")
-                r = requests.post("http://192.168.21.30/scan", data={
+                r = requests.post("http://10.214.168.144/scan", data={
                     "type" : "scan",
                     "rotations" : message["rotations"],
                     "every_nth" : message["every_nth"]

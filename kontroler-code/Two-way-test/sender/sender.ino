@@ -46,7 +46,7 @@ uint32_t button_mask = (1UL << BUTTON_X) | (1UL << BUTTON_Y) | (1UL << BUTTON_ST
 
 // TO DO CHANGE
 /// @brief MAC address of the platform
-uint8_t receiverAddress[] = {0xE4, 0xB0, 0x63, 0xAF, 0x36, 0xBC};
+uint8_t receiverAddress[] = {0x48, 0xCA, 0x43, 0x2f, 0x6C, 0xA0};
 
 /// @brief ESP-NOW peer info of the connected platform
 esp_now_peer_info_t peerInfo;

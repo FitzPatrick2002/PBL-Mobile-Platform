@@ -21,7 +21,7 @@ namespace Setup{
   ///         - set [varaible-name] [value] : Sets the value of a variable.
   ///         - show [variable-name]        : Shows the value of the variable.
   ///         - help, man                   : Shows how to issue commands.
-  ///        Supported variable names:
+  ///        Supported varaible names:
   ///         - **wifi-ssid**
   ///           Specifies the names of the wifi network to which the mobile platform will connect to.
   ///         - **wifi-password**
@@ -46,6 +46,8 @@ namespace Setup{
   ///           Enpoint on the platform server, which accepts POST requests which request a new lidar scan and specify its details.
   /// 
   /// @note This class implements a singleton desing pattern (pointer singleton).
+  /// @note If the Serial communication is cluncky take a look at interrupts being disabled with portENTER_CRITICAL()
+  ///       Serial needs interrupts and this macro disbles them.
   /// Example Usage:
   /// 
   /// @code
@@ -65,16 +67,16 @@ namespace Setup{
     // -------------- Variables Map -------------- //
 
     std::map<String, String> variables = {
-      {"wifi-ssid", ""},
-      {"wifi-password", ""},
-      {"pc-server-name", "http://192.168.21.17:9000"},
+      {"wifi-ssid", "Buahaha"},
+      {"wifi-password", "Garfield1978"},
+      {"pc-server-name", "10.214.168.134:9000"},
 
       {"controller-mac", "DC:06:75:F9:61:AC"}, 
       {"platform-mac", ""},
 
       {"pc-server-post-endp", "receive_post"},
 
-      {"platform-server-name", "http://192.168.21.30"},
+      {"platform-server-name", "192.168.21.30"},
       {"platform-server-comm-endp", "command"},
       {"platform-server-scan-endp", "scan"}
     }; ///< Maps names of setup variables to their values.
@@ -82,11 +84,17 @@ namespace Setup{
     // -------------- Operation -------------- //
 
     bool commandServiced = true; ///< Specifies if the currently stored command has already been serviced.
-    bool setterActive = true;    ///< When setter is active user can issue command via #commStream.Once its deactivated #commandLoop terminates.
+    bool setterActive = true;    ///< When setter is active user can issue command via #commStream. Once its deactivated #commandLoop terminates.
 
     // -------------- Singleton Pointer -------------- //
 
     static TheSetuper* instance; ///< The only instance of TheSetuper is allocated on heap once.
+
+    // -------------- Mutexes -------------- //
+
+    static portMUX_TYPE variablesSpinlock;          ///< Spinlock protects the #variables map from concurrency.
+
+    static portMUX_TYPE theSetuperInstanceSpinlock; ///< Protects the instance of TheSetuper from concurrent access.
 
   private:
 
@@ -111,13 +119,18 @@ namespace Setup{
     // -------------- Singleton! -------------- //
 
     /// @brief Access the singleton instance.
+    ///        Instance of TheSetuper @ref instance is protected with the spinlock @ref theSetuperInstanceSpinlock.
     /// @returns Pointer to the only instance of the TheSetuper.
     static TheSetuper* getSetuper(Stream *s = nullptr){
       if(instance == nullptr){
-        if(s == nullptr){
-          return nullptr;
+
+        portENTER_CRITICAL(&theSetuperInstanceSpinlock);
+        if (instance == nullptr){
+          if(s != nullptr){
+            instance = new TheSetuper(*s);
+          }
         }
-        instance = new TheSetuper(*s);
+        portEXIT_CRITICAL(&theSetuperInstanceSpinlock);
       }
 
       return instance;

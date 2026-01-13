@@ -9,11 +9,7 @@ namespace ManagerSpace{
 
   // -------------- Constructors & Destructors -------------- //
 
-  Manager::Manager(Lidar::LidarController& lidarControllerInstance) : 
-                                                                      lidarController(lidarControllerInstance),
-                                                                      httpCommunicator(getSetting("wifi-ssid"),
-                                                                                       getSetting("wifi-password"), 
-                                                                                       getSetting("pc-server-name")) {
+  Manager::Manager(Lidar::LidarController& lidarControllerInstance) : lidarController(lidarControllerInstance) {
                                                                                        
   }
   
@@ -24,6 +20,12 @@ namespace ManagerSpace{
   // -------------------------------------------- //
 
   // -------------- Components Initialization -------------- //
+
+  void Manager::initHTTPCommunicator(){
+    this->httpCommunicator.resetVariables(getSetting("wifi-ssid"),
+                                          getSetting("wifi-password"), 
+                                          getSetting("pc-server-name"));
+  }
 
   void Manager::initAsyncServer(){
     // Init the endpoints where requests will be send 

@@ -1,6 +1,8 @@
 /// @file LidarController.cpp
 /// @brief Provides implementations for elements from LidarController.h.
 
+#include "LidarController.h"
+
 namespace Lidar{
 
   LidarController::LidarController() {
@@ -19,6 +21,38 @@ namespace Lidar{
       // Create instance of a used lidar
       lidar = new LDS_RPLIDAR_A1();
 
+      // Wait for everything to initialize 
+      // and start serial communication through the SoftwareSerial object.
+      delay(200);
+      this->LidarSerial.begin(lidar->getSerialBaudRate(), SERIAL_8N1, gpio_rx, gpio_tx);
+      delay(200);
+
+      // TO DO: exmplain what that is
+      this->LidarSerial.write("\xA5\x40", 2);
+      delay(1000);
+
+      // Power up the motor
+      pinMode(gpio_pwm, OUTPUT);
+      digitalWrite(gpio_pwm, HIGH);
+
+      delay(2000);
+
+      // Flush the serial buffer of the lidar
+      while(this->LidarSerial.available() > 0){
+        this->LidarSerial.read();
+      }
+
+      // If initialization failed, return an error
+      if(!LidarSerial){
+        Serial.println("ERROR: LiDAR Serial failed to init.");
+        return;
+      }
+
+      Serial.print("Lidar init on (RX, TX) = ");
+      Serial.print(gpio_rx);
+      Serial.print(", ");
+      Serial.println(gpio_tx);
+
       // Set the callbacks 
       this->lidar->setScanPointCallback(LidarController::getInstance().staticScanPointCallback);
       this->lidar->setPacketCallback(LidarController::getInstance().staticPacketCallback);
@@ -28,12 +62,6 @@ namespace Lidar{
       this->lidar->setMotorPinCallback(LidarController::staticMotorPinCallback);
       this->lidar->setInfoCallback(LidarController::getInstance().staticInfoCallback);
       this->lidar->setErrorCallback(LidarController::getInstance().staticErrorCallback);
-
-      // Wait for everything to initialize 
-      // and start serial communication through the SoftwareSerial object.
-      delay(200);
-      this->LidarSerial.begin(lidar->getSerialBaudRate(), SERIAL_8N1, gpio_tx, gpio_rx);
-      delay(200);
 
       this->lidar->init();
   }
@@ -62,9 +90,11 @@ namespace Lidar{
       this->scan_counter = 0;
   }
 
-  void LidarController::scanNtimes(uint8_t n = -1){
+  void LidarController::scanNtimes(uint8_t n){
       // Prepare the lidar
-      this->stop();
+
+      //this->stop();
+
       delay(5000);
 
       // Start the lidar and print outcome
@@ -73,14 +103,17 @@ namespace Lidar{
       Serial.print("scanNtimes() result: ");
       Serial.println(lidar->resultCodeToString(start_result));
 
-      // If the number of scans has been set globally, perform #desired_scans_num number of scans.
-      // If not, perform the number specified locally.
-      int loopBound = (n != -1 ? n : this->desired_scans_num);
-      while(this->scan_counter < n){
-          this->lidar->loop();
-      }
+      // Check the result code if it was successfull, start the measurements
+      if(start_result == LDS::RESULT_OK){
+        // If the number of scans has been set globally, perform #desired_scans_num number of scans.
+        // If not, perform the number specified locally.
+        int loopBound = (n != -1 ? n : this->desired_scans_num);
+        while(this->scan_counter < n){
+            this->lidar->loop();
+        }
 
-      this->stop();
+        this->stop();
+      }
 
       delay(5000);
   }
@@ -91,7 +124,7 @@ namespace Lidar{
 
   // ----------- Communication ----------- //
 
-  void LidarController::copyData(std::vector<float> &target, bool clearPoints = false){
+  void LidarController::copyData(std::vector<float> &target, bool clearPoints){
       // Copy points from the original location 
       target = points;
 
@@ -105,7 +138,7 @@ namespace Lidar{
       return this->points;
   }
 
-  void LidarController::printData(Stream &s, bool clearPoints = false){  
+  void LidarController::printData(Stream &s, bool clearPoints){  
       s.println("Format: radius [mm] | phi [deg] | theta [deg]");
 
       // Print the gathered data
@@ -183,6 +216,18 @@ namespace Lidar{
       #endif
       
       return LidarSerial.write(buffer, length);
+  }
+
+  void LidarController::packetCallback(uint8_t *packet, uint16_t length, bool scan_completed){
+    #ifdef DEBUG_PACKETS
+    Serial.println();
+    Serial.print("Packet callback, length=");
+    Serial.print(length);
+    Serial.print(", scan_completed=");
+    Serial.println(scan_completed);
+    #endif
+
+    return;
   }
 
   int LidarController::serialReadCallback() {
@@ -290,4 +335,5 @@ namespace Lidar{
       printByteAsHex(buffer[i]);
       }
   }
-}
+
+};

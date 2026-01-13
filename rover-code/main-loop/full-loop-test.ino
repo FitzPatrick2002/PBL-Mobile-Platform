@@ -86,8 +86,6 @@
 #define R_ENB 8 //21;  // PWM silnik B
 */
 
-
-
 // -------------- Global Objects -------------- //
 
 // Create the manager class with main loop.
@@ -168,11 +166,11 @@ void setup() {
   delay(250);
 
   // Init TheSetuper
-    // Init the communication stream of TheSetuper as Serial (this can be done only once)
+  // Init the communication stream of TheSetuper as Serial (this can be done only once)
   Setup::TheSetuper::getSetuper(&Serial);
 
-  // Run the setup loop
-  Setup::TheSetuper::getSetuper()->theSetup();
+  // Run the setup loop, 
+  Setup::TheSetuper::getSetuper()->theSetup("Setup the wifi-ssid and wifi-password.\nThe rest of the setup can be done during second run of the setup loop.\n");
 
   // Init wifi communication
   // ESP NOW requires that esp controller is a wifi station
@@ -205,12 +203,38 @@ void setup() {
   Setup::TheSetuper::getSetuper()->init();
 
   // Run the setup loop for the 2nd time
-  Setup::TheSetuper::getSetuper()->theSetup();
+  Setup::TheSetuper::getSetuper()->theSetup("The last run of the setup loop.\nSetup what you need. Don't change the wifi-ssid and wifi-password.\n");
+
+  // ------------ DEBUG ------------ //
+
+  Serial.print("Gateway: ");
+  Serial.println(WiFi.gatewayIP());
+
+  // Ping the flask server 
+  Serial.println("Pinging flask server...");
+  WiFiClient testClient;
+  if(testClient.connect("10.214.168.134", 9000)){
+    Serial.println("Platform can send stuff to server - OK");
+    testClient.stop();
+  }
+  else{
+    Serial.println("Platform cannot reach the server - ERROR");
+  }
+
+
+  // ------------ ENDDEB ------------ //
 
   // Setup the Wire.h library for I2C communication
   Wire.begin(I2C_SDA, I2C_SCL);
   Wire.setClock(400000);
   Serial.println("Wire I2C - OK");
+
+  delay(250);
+
+  // Initialize the http manager
+
+  manager.initHTTPCommunicator();
+  Serial.println("HTTP Communicator - OK");
 
   delay(250);
 

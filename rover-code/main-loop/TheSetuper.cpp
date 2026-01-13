@@ -11,6 +11,10 @@ namespace Setup{
 
   TheSetuper* TheSetuper::instance = nullptr;
 
+  portMUX_TYPE TheSetuper::variablesSpinlock = portMUX_INITIALIZER_UNLOCKED;
+
+  portMUX_TYPE TheSetuper::theSetuperInstanceSpinlock = portMUX_INITIALIZER_UNLOCKED;
+
   // -------------- Constructor & Destructor -------------- //
 
   TheSetuper::TheSetuper(Stream& s) : commStream(s) {}
@@ -21,7 +25,10 @@ namespace Setup{
 
   void TheSetuper::init(){
     // Setup the platform IP address
+
+    portENTER_CRITICAL(&variablesSpinlock);
     this->variables["platform-server-name"] = WiFi.localIP().toString();
+    portEXIT_CRITICAL(&variablesSpinlock);
 
     // Setup the platform MAC
     uint8_t platformMACArray[6];
@@ -33,7 +40,9 @@ namespace Setup{
       sprintf(macString, "%02X:%02X:%02X:%02X:%02X:%02X", platformMACArray[0], platformMACArray[1],
                                                           platformMACArray[2], platformMACArray[3],
                                                           platformMACArray[4], platformMACArray[5]);
+      portENTER_CRITICAL(&variablesSpinlock);                                                    
       this->variables["platform-mac"] = String(macString);
+      portEXIT_CRITICAL(&variablesSpinlock);
     }
     else{
       commStream.println("Could not read the platform MAC.");
@@ -46,6 +55,7 @@ namespace Setup{
 
   void TheSetuper::theSetup(String initialMessage){
     commStream.println(initialMessage);
+    this->setterActive = true;
 
     String command;
     while (this->setterActive){
@@ -63,17 +73,17 @@ namespace Setup{
     int numsRead = sscanf(src.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dest[0], &dest[1], &dest[2],
                                                                         &dest[3], &dest[4], &dest[5]);
 
-    // If there is different delimeter in use, check other options
+    // If there is didffernt delimieter in use, check other options
     if(numsRead < 6){
-      numsRead = sscanf(src.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dest[0], &dest[1], &dest[2],
+      numsRead = sscanf(src.c_str(), "%hhx,%hhx,%hhx,%hhx,%hhx,%hhx", &dest[0], &dest[1], &dest[2],
                                                                       &dest[3], &dest[4], &dest[5]);
     }
     if(numsRead < 6){
-      numsRead = sscanf(src.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dest[0], &dest[1], &dest[2],
+      numsRead = sscanf(src.c_str(), "%hhx-%hhx-%hhx-%hhx-%hhx-%hhx", &dest[0], &dest[1], &dest[2],
                                                                       &dest[3], &dest[4], &dest[5]);
     }
     if(numsRead < 6){
-      numsRead = sscanf(src.c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &dest[0], &dest[1], &dest[2],
+      numsRead = sscanf(src.c_str(), "%hhx.%hhx.%hhx.%hhx.%hhx.%hhx", &dest[0], &dest[1], &dest[2],
                                                                       &dest[3], &dest[4], &dest[5]);
     }
   }
@@ -183,16 +193,19 @@ namespace Setup{
     if(content == "all"){
       commStream.println("All variables:");
 
+      portENTER_CRITICAL(&variablesSpinlock);
       for(const auto& elem : variables){
         commStream.print(elem.first);
         commStream.print(": ");
         commStream.println(elem.second);
       }
+      portEXIT_CRITICAL(&variablesSpinlock);
 
       return;
     }
 
     // Print the specified variable
+    portENTER_CRITICAL(&variablesSpinlock);
     if(variables.find(content) != variables.end()){
       commStream.print(content);
       commStream.print(": ");
@@ -203,6 +216,7 @@ namespace Setup{
       commStream.print(content);
       commStream.println(" not found");
     }
+    portEXIT_CRITICAL(&variablesSpinlock);
 
   }
 
@@ -231,7 +245,10 @@ namespace Setup{
 
     // If variable exists, 
     if(variables.find(setVariable) != variables.end()){
+      portENTER_CRITICAL(&variablesSpinlock);
       variables[setVariable] = setValue;
+      portEXIT_CRITICAL(&variablesSpinlock);
+
       commStream.println("Variable value set!");
     }
     else{
@@ -244,7 +261,13 @@ namespace Setup{
   // -------------- Accessing Variables -------------- //
 
   String TheSetuper::getVariable(String name){
-    return (variables.count(name) ? variables[name] : "");
+    String value;
+
+    portENTER_CRITICAL(&variablesSpinlock);
+    value = (variables.count(name) ? variables[name] : "");
+    portEXIT_CRITICAL(&variablesSpinlock);
+
+    return value;
   }
 }
 

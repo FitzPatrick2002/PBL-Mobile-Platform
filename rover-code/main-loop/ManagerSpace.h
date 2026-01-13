@@ -33,14 +33,14 @@ namespace ManagerSpace{
 
     // -------------- Position and Orientation in Space -------------- //
 
-    Odometry::Odometer2Wheel odometer{LEFT_ENCODER, RIGHT_ENCODER, 4, 25, 10, 150}; ///< Calculates the current position based on wheel turns and driving direction given by imu.
+    Odometry::Odometer2Wheel odometer{LEFT_ENCODER, RIGHT_ENCODER, 4, 25, 10, 150};   ///< Calculates the current position based on wheel turns and driving direction given by imu.
     ICM_IMU::IMU imu{Serial}; ///< Controls imu and provides to orientation quaternion. Retireval of orientation might be lengthy if last retrievel happened long ago.
-    Engines::DoubleEngine engineController{L_IN1, L_IN2, L_ENA, R_IN1, R_IN2, R_ENB};        ///< Controls the speed and direction of rotation of engines.
+    Engines::DoubleEngine engineController{L_IN1, L_IN2, L_ENA, R_IN1, R_IN2, R_ENB}; ///< Controls the speed and direction of rotation of engines.
 
     // -------------- Controller Messages -------------- //
 
-    volatile EspNowCallback::Message controllerMessage;         ///< Stores message received from the Controller. 
-    volatile bool messageReceived = false;      ///< Specifies if any new message has been received. It will be cleared after the new message has been processed.w
+    volatile EspNowCallback::Message controllerMessage; ///< Stores message received from the Controller. 
+    volatile bool messageReceived = false;              ///< Specifies if any new message has been received. It will be cleared after the new message has been processed.w
 
     // -------------- State Handling -------------- //
 
@@ -67,6 +67,11 @@ namespace ManagerSpace{
     // -------------------------------------------- //
 
     // -------------- Components Initialization -------------- //
+
+    /// @brief Initializes the @ref httpCommunicator.
+    /// @note References fields from @ref TheSetuper class so it needs to be initialized 
+    ///       before this function is run.
+    void initHTTPCommunicator();
 
     /// @brief Initilizes and start the asynchronous server #asyncServer. 
     ///        Use at the end or after lidar has been initialized.

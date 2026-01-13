@@ -144,7 +144,7 @@ namespace Lidar{
 
         /// @brief Invokes the lidars loop.
         ///        Measurements are gathered and stored in ?.
-        void loop()
+        void loop();
 
         /// @brief Sets the point counter to zero.
         void resetPointCounter();
