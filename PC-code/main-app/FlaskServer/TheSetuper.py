@@ -44,6 +44,14 @@ class TheSetuper:
             self.__platform_server_scan_endp = read_values[5]
             self.__pc_server_post_endp = read_values[6]
 
+            host_index = self.__pc_server_name.find('//')
+            port_index = self.__pc_server_name.rfind(':')
+
+            self.__host_name = self.__pc_server_name[host_index + 2: port_index]
+            self.__port_number = self.__pc_server_name[port_index+1:]
+
+            # print(self.__host_name)
+            # print(self.__port_number)
             # print(self.__wifi_ssid)
             # print(self.__wifi_password)
             # print(self.__pc_server_name)
@@ -52,6 +60,14 @@ class TheSetuper:
             # print(self.__platform_server_scan_endp)
             # print(self.__pc_server_post_endp)
 
+    def _get_host_name(self):
+        """Getter for host name."""
+        return self.__host_name
+
+    def _get_port_number(self):
+        """Getter for port number."""
+        return self.__port_number
+    
     def _get_wifi_ssid(self):
         """Getter for wifi ssid."""
         return self.__wifi_ssid
