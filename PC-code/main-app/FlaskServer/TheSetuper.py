@@ -67,7 +67,7 @@ class TheSetuper:
     def _get_port_number(self):
         """Getter for port number."""
         return self.__port_number
-    
+
     def _get_wifi_ssid(self):
         """Getter for wifi ssid."""
         return self.__wifi_ssid

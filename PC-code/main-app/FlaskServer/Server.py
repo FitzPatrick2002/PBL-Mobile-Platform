@@ -18,8 +18,7 @@ class FlaskServer:
     def __init__(self, open3d_queue : multiprocessing.Queue,
                  o3d_to_f: multiprocessing.Queue,
                  from_qt_app_queue : multiprocessing.Queue,
-                 to_qt_app_queue: multiprocessing.Queue,
-                 host : str = "10.214.168.134", port : int = 9000): #host and port can be read from the setuper, no need for them here, instead we can give the Server class the input path to the necessary data
+                 to_qt_app_queue: multiprocessing.Queue): #host and port can be read from the setuper, no need for them here, instead we can give the Server class the input path to the necessary data
         """Initialize the FlaskServer class with the following arguments.
 
         Keyword arguments:
@@ -33,8 +32,8 @@ class FlaskServer:
             port -- Port on which server will be run (default: 9000).
         """
         self.Setuper = TheSetuper(r"Internet_connection.csv")
-        self.HOST = host
-        self.PORT = port
+        self.HOST = self.Setuper._get_host_name()
+        self.PORT = self.Setuper._get_port_number()
 
         """Create the app object which manages the Flask server."""
         self.app = Flask(__name__)
@@ -288,7 +287,7 @@ class FlaskServer:
             case "steering":
                 """Make a POST request to the mobile platform for steering."""
                 print(f"Flask: Sending a steering request to rover")
-                r = requests.post("http://10.214.168.144/command", data={
+                r = requests.post(self.Setuper._get_platform_server_name()+'/'+self.Setuper._get_platform_server_comm_endp(), data={
                     "type" : "steering",
                     "direction" : message["direction"]
                 })
@@ -297,7 +296,7 @@ class FlaskServer:
             case "scan":
                 """Send a scan request to the platform."""
                 print("Flask: Sending a scan request to rover")
-                r = requests.post("http://10.214.168.144/scan", data={
+                r = requests.post(self.Setuper._get_platform_server_name()+'/'+self.Setuper._get_platform_server_scan_endp(), data={
                     "type" : "scan",
                     "rotations" : message["rotations"],
                     "every_nth" : message["every_nth"]
