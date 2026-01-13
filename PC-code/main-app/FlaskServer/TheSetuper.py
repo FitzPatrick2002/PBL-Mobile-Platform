@@ -51,3 +51,31 @@ class TheSetuper:
             # print(self.__platform_server_comm_endp)
             # print(self.__platform_server_scan_endp)
             # print(self.__pc_server_post_endp)
+
+    def _get_wifi_ssid(self):
+        """Getter for wifi ssid."""
+        return self.__wifi_ssid
+
+    def _get_wifi_password(self):
+        """Getter for wifi password."""
+        return self.__wifi_password
+
+    def _get_pc_server_name(self):
+        """Getter for pc server name."""
+        return self.__pc_server_name
+
+    def _get_platform_server_name(self):
+        """Getter for platform server name."""
+        return self.__platform_server_name
+
+    def _get_platform_server_comm_endp(self):
+        """Getter for platform server comm endp."""
+        return self.__platform_server_comm_endp
+
+    def _get_platform_server_scan_endp(self):
+        """Getter for platform server scan endp."""
+        return self.__platform_server_scan_endp
+
+    def _get_pc_server_post_endp(self):
+        """Getter for pc server post endp."""
+        return self.__pc_server_post_endp
