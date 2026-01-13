@@ -1,4 +1,8 @@
 # This Python file uses the following encoding: utf-8
+
+"""
+This module contains the main menu window in QT, communication methods and platform steering.
+"""
 import math
 import sys
 import multiprocessing
@@ -10,11 +14,11 @@ from PySide6.QtCore import Slot, QTimer
 from QtApp.UI.UiMainWindow import Ui_MainWindow
 
 
-# Communication protocol with flask server
-# 1. Packetes are in json format
+"""Communication protocol with flask server
+    1. Packetes are in json format
 
-# 2. Packets received from the server:
-'''
+    2. Packets received from the server:
+
     // Packet is sent periodically as an update of the telemetry
     {
         // Specifies the type of data sent as the payload
@@ -54,12 +58,12 @@ from QtApp.UI.UiMainWindow import Ui_MainWindow
     // Packet sent by the server which tells qt app which sessions exist
     {
         type: "sessions-config",
-        names: list[str] // Names of exisitng sessions
+        names: list[str] // Names of existing sessions
     }
-'''
 
-# 3. Packets sent to the server:
-'''
+
+    3. Packets sent to the server:
+
 
     // New session creation / start
     {
@@ -104,80 +108,89 @@ from QtApp.UI.UiMainWindow import Ui_MainWindow
     {
         type: 'standby'
     }
-'''
+"""
 
 class MainQtWindow(QMainWindow):
-    '''
-    :param server_queue: Multiprocessing queue, used to communicate with the flask server.
-    '''
+    """This class manages the communication between the flask server and qt app.
+
+    Important parameter:
+        server_queue: Multiprocessing queue, used to communicate with the flask server.
+    """
 
     def __init__(self, from_server: multiprocessing.Queue,
                  to_server: multiprocessing.Queue, parent=None):
+        """Initialisation of the window.
+
+        Keyword arguments:
+            from_server -- Queue used to store communication messages from the server.
+            to_server -- Queue used to store communication messages to the server from the qt app.
+        """
         super(MainQtWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
 
-        # Timer is used to periodically read the data sent from the server to qt app
+        """Timer is used to periodically read the data sent from the server to qt app."""
         self.timer = QTimer()
         self.timer.setSingleShot(False)
-        self.timer.setInterval(100) # Read the queue every 100 ms
+        """Read the queue every 100 ms."""
+        self.timer.setInterval(100)
         self.timer.timeout.connect(self.read_flask_queue)
         self.timer.start()
 
-        # Queues are used for communication with the server.
-        # We need bidirectional communication so there are 2 queues,
-        # one for sending to server and one for receiving data from server
+        """Queues are used for communication with the server.
+            We need bidirectional communication so there are 2 queues,
+            one for sending to server and one for receiving data from server.
+        """
         self.f_to_qt = from_server
         self.qt_to_f = to_server
 
-        # ------------ Movement Slots ------------ #
+        """------------ Movement Slots ------------"""
 
-        # Slots connections for forward motion
+        """Slots connections for forward motion."""
         self.ui.forward_ctrl_btn.pressed.connect(self.onForwardClicked)
         self.ui.forward_ctrl_btn.released.connect(self.onForwardReleased)
 
-        # Slots for backward motion
+        """Slots for backward motion."""
         self.ui.backward_ctrl_btn.pressed.connect(self.onBackwardClicked)
         self.ui.backward_ctrl_btn.released.connect(self.onBackwardReleased)
 
-        # Slots for turning left
+        """Slots for turning left."""
         self.ui.left_ctrl_button.pressed.connect(self.onLeftClicked)
         self.ui.left_ctrl_button.released.connect(self.onLeftReleased)
 
-        # Slots for turning right
+        """Slots for turning right."""
         self.ui.right_ctrl_btn.pressed.connect(self.onRightClicked)
         self.ui.right_ctrl_btn.released.connect(self.onRightReleased)
 
-        # ------------ Session Management Slots ------------ #
+        """------------ Session Management Slots ------------"""
 
-        # Slot for starting a new session
+        """Slot for starting a new session."""
         self.ui.new_session_btn.clicked.connect(self.onNewSessionClicked)
 
-        # Slot for selecting a different session
+        """Slot for selecting a different session."""
         self.ui.session_select.currentTextChanged.connect(self.onSessionSelected)
 
-        # ------------ Measurements Slots ------------ #
+        """------------ Measurements Slots ------------"""
 
         self.ui.scan_btn.clicked.connect(self.onMeasurementClicked)
 
-        # ------------ LCD Number Display ------------ #
+        """------------ LCD Number Display ------------"""
         
-        # Make it display 3-digit numbers with accuracy 10^-2
+        """Make it display 3-digit numbers with accuracy 10^-2"""
         self.ui.angle_display.setDigitCount(7)
         self.ui.angle_display.setSmallDecimalPoint(True)
 
-    # ------------ Session Management Slots ------------ #
+    """------------ Session Management Slots ------------"""
 
     @Slot()
     def onNewSessionClicked(self):
-        '''
-        Requests creation of a new session by the server (and switch to it)
-        '''
-        # Check the name of the new session
+        """Requests creation of a new session by the server (and switch to it)."""
+
+        """Check the name of the new session."""
         new_name = self.ui.new_session_name_edit.text()
 
-        # Send the request to the server
+        """Send the request to the server."""
         self.qt_to_f.put({
             "type" : "session-creation",
             "name" : new_name
@@ -185,30 +198,31 @@ class MainQtWindow(QMainWindow):
 
     @Slot(str)
     def onSessionSelected(self, new_text):
-        '''
-        Sends a message to the server, requesting a session change.
-        :param new_text: New session name selected from the list of available sessions
-        '''
+        """Sends a message to the server, requesting a session change.
 
-        # Request switch to a different session
+        Keyword arguments:
+            new_text -- The new session name selected from the list of available sessions.
+        """
+
+        """Request switch to a different session."""
         self.qt_to_f.put({
             "type": "session-switch",
             "name": new_text
         })
 
-    # ------------ Measurements Slots ------------ #
+    """------------ Measurements Slots ------------"""
 
     @Slot()
     def onMeasurementClicked(self):
-        '''
-            Sends a request for a scan to the server.
+        """Sends a request for a scan to the server.
             Blocks the scan button until completion packet arrives from the server.
-        '''
-        # Check the scan configuration
+        """
+
+        """Check the scan configuration."""
         rot = int(self.ui.scans_number_selector.currentText())
         nth = int(self.ui.every_nth_selector.currentText())
 
-        # Send info to the server
+        """Send info to the server."""
         self.qt_to_f.put({
             "type": "scan",
 
@@ -216,14 +230,15 @@ class MainQtWindow(QMainWindow):
             "every_nth": nth
         })
 
-        # Disable the scan button for the time duration of the scan
+        """Disable the scan button for the time duration of the scan."""
         self.ui.scan_btn.setEnabled(False)
         print("Measurement requested")
 
-    # ------------ Movement Slots ------------ #
+    """------------ Movement Slots ------------"""
 
     @Slot()
     def onForwardClicked(self):
+        """Callback method for when the forward motion button is pressed."""
         print("Going forward")
         self.qt_to_f.put({
             "type" : "steering",
@@ -232,6 +247,7 @@ class MainQtWindow(QMainWindow):
 
     @Slot()
     def onForwardReleased(self):
+        """Callback method for when the forward motion button is released."""
         print("Stopping forward motion")
         self.qt_to_f.put({
             "type": "steering",
@@ -240,6 +256,7 @@ class MainQtWindow(QMainWindow):
 
     @Slot()
     def onBackwardClicked(self):
+        """Callback method for when the backward motion button is pressed."""
         print("Going backwards")
         self.qt_to_f.put({
             "type": "steering",
@@ -248,6 +265,7 @@ class MainQtWindow(QMainWindow):
 
     @Slot()
     def onBackwardReleased(self):
+        """Callback method for when the backward motion button is released."""
         print("Stopping backward motion")
         self.qt_to_f.put({
             "type": "steering",
@@ -256,6 +274,7 @@ class MainQtWindow(QMainWindow):
 
     @Slot()
     def onLeftClicked(self):
+        """Callback method for when the left motion button is pressed."""
         print("Going left")
         self.qt_to_f.put({
             "type": "steering",
@@ -264,6 +283,7 @@ class MainQtWindow(QMainWindow):
 
     @Slot()
     def onLeftReleased(self):
+        """Callback method for when the left motion button is released."""
         print("Stopping left motion")
         self.qt_to_f.put({
             "type": "steering",
@@ -272,6 +292,7 @@ class MainQtWindow(QMainWindow):
 
     @Slot()
     def onRightClicked(self):
+        """Callback method for when the right motion button is pressed."""
         print("Going right")
         self.qt_to_f.put({
             "type": "steering",
@@ -280,21 +301,20 @@ class MainQtWindow(QMainWindow):
 
     @Slot()
     def onRightReleased(self):
+        """Callback method for when the right motion button is released."""
         print("Stopping right motion")
         self.qt_to_f.put({
             "type": "steering",
             "direction": "none"
         })
 
-    # ------------ Reading from Flask ------------ #
+    """------------ Reading from Flask ------------"""
 
     @Slot()
     def read_flask_queue(self):
-        '''
-        Reads data from the flask queue and sets the UI elements
-        :return: None
-        '''
-        # While there is some info from the server, poll it
+        """Reads data from the flask queue and sets the UI elements."""
+
+        """While there is some info from the server, poll it."""
         while not self.f_to_qt.empty():
             packet = self.f_to_qt.get_nowait()
             tt = packet["type"]
@@ -302,15 +322,15 @@ class MainQtWindow(QMainWindow):
 
             match packet["type"]:
                 case "telemetry":
-                    # Display the telemetry data in Qt app
+                    """Display the telemetry data in Qt app."""
                     print(f"Qt: Qt received telemetry update: {packet}")
                     print(f"Qt: Telemetry angle: {str(packet['angle'])}")
 
-                    # Display position in LCDs
+                    """Display position in LCDs."""
                     self.ui.x_pos_display.display(str(packet["x"]))
                     self.ui.y_pos_display.display(str(packet["y"]))
 
-                    # Transform angle to degrees [0 ; 360]
+                    """Transform angle to degrees [0 ; 360]."""
                     angle = float(packet["angle"]) * 180.0 / math.pi
                     angle = (angle + 360) % 360
 
@@ -318,10 +338,11 @@ class MainQtWindow(QMainWindow):
 
                     self.ui.angle_display.display(str(angle))
 
-                    # Update status of collision bars
+                    """Update status of collision bars."""
 
-                    # If collision status is true, set element to red as there is possibility of collision
-                    # If not, reset to green (yes THAT green)
+                    """If collision status is true, set element to red as there is possibility of collision,
+                        If not, reset to green (yes THAT green).
+                    """
 
                     if packet["collision"]:
                         self.ui.collision_frame.setStyleSheet("background-color:rgb(255, 0, 0)")
@@ -329,26 +350,30 @@ class MainQtWindow(QMainWindow):
                         self.ui.collision_frame.setStyleSheet("background-color:rgb(0, 255, 0)")
 
                 case "scan-status":
-                    # Do some stuff which shows that scan is going on or smth
-                    # Unblock the button for scanning or smth
+                    """Do some stuff which shows that scan is going on or something,
+                        Unblock the button for scanning or something.
+                    """
 
                     self.ui.scan_btn.setEnabled(True)
                     print(f"Qt: Scanning done, unblocking the button")
 
                 case "session-switch":
-                    # Server response to the session switch request.
-                    # If session switch was succesful, then well, do nothing lol
+                    """Server response to the session switch request.
+                        If session switch was successful, then do nothing.
+                    """
                     if packet["success"]:
                         print("Session change was successful in qt app")
                     else:
                         print("Session switch was successful as seen by the qt app")
 
                 case "session-creation":
-                    # Server response to the session creation request
-                    # If sessions has been created successfully, well then do nothing lol
+                    """Server response to the session creation request.
+                        If sessions has been created successfully, then do nothing.
+                    """
                     if packet["success"]:
-                        # If creation of new session has been successful, add the option in the combobox
-                        # and switch to the new session?
+                        """If creation of new session has been successful, add the option in the combobox
+                            and switch to the new session?
+                        """
                         print("Session creation was successful as seen by qt app")
                         self.ui.session_select.addItem(self.ui.new_session_name_edit.text())
 
@@ -356,13 +381,14 @@ class MainQtWindow(QMainWindow):
                         print("Session creation was NOT successful as seen by qt app")
 
                 case "sessions-config":
-                    # Info about the existing sessions
-                    # Configure the combobox so that user can choose from among existing sessions
+                    """Info about the existing sessions
+                        Configure the combobox so that user can choose from among existing sessions.
+                    """
 
-                    # Clear the combobox
+                    """Clear the combobox."""
                     #self.ui.session_select.clear()
 
-                    # Fill it with possible names for sessions
+                    """Fill it with possible names for sessions."""
                     for name in packet["names"]:
                         self.ui.session_select.addItem(name)
 
@@ -370,15 +396,13 @@ class MainQtWindow(QMainWindow):
 
                     print(f"Qt: Unknown packet received from server by Qt app: {packet}")
 
-    # ------------ Running The QT Window ------------ #
+    """------------ Running The QT Window ------------"""
 
-    # Unused so far
+    """Unused so far."""
     def run_qt_window(self):
-        '''
-        Runs the main Qt application window.
+        """Runs the main Qt application window.
         Handles the cleanup after closing the qt window.
-        :return:
-        '''
+        """
         qt_window = MainQtWindow()
         qt_app = QApplication(sys.argv)
 

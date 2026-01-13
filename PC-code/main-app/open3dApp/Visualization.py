@@ -205,9 +205,14 @@ class VisualizationApp:
     """ ------------ MENU CALLBACKS ------------ """
 
     def _downsample(self, mode, percent, lines):
-
         """Get the temporary csv files paths of this session,
             If they don't exist, they will be created.
+
+            Keyword arguments:
+                mode -- mode of operation for the downsampling algoritm.
+                        0 - x percentage of lines will be filtered out.
+                        1 - per x lines of scan will be fitered out.
+                        2 - per x lines of scan will be kept.
         """
         source_csv, target_csv = self._pcd_saver.get_downsampling_files()
 
@@ -220,8 +225,8 @@ class VisualizationApp:
 
         print(f"o3d: _downsample(): post_to_main_htrad done")
 
-        if((mode in (1,2) and lines >= 1) or mode == 0):
-            if (utils.OperatingSystemCheck.OS_SYSTEM == 'Linux'):
+        if(mode in (1,2) and lines >= 1) or mode == 0:
+            if utils.OperatingSystemCheck.OS_SYSTEM == 'Linux':
                 Linux_downsample = DownsampleModule()
                 Linux_downsample.downsample(mode, percent, lines, str(source_csv.absolute()),str(target_csv.absolute()))
             else:
