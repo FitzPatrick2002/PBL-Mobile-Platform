@@ -21,6 +21,9 @@ namespace Lidar{
       // Create instance of a used lidar
       lidar = new LDS_RPLIDAR_A1();
 
+      // Set the buffer size for 1 KB
+      this->LidarSerial.setRxBufferSize(1024);
+
       // Wait for everything to initialize 
       // and start serial communication through the SoftwareSerial object.
       delay(200);

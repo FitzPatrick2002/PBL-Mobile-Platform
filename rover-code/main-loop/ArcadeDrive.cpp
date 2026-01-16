@@ -3,6 +3,8 @@
 
 #include "ArcadeDrive.h"
 
+int timer2 = 0;
+
 namespace Engines{
 
   // ------------------------------------------------ //
@@ -15,6 +17,7 @@ namespace Engines{
     pinIN1 = in1;
     pinIN2 = in2;
     channel = ch;
+
   }
 
   // Inicjalizacja 
@@ -24,8 +27,8 @@ namespace Engines{
     
     // Konfiguracja PWM (LEDC) dla ESP32
     // 20kHz usuwa piszczenie silników
-    ledcAttach(pinENA, 20000, 8);
-
+    //ledcAttach(pinENA, 20000, 8);
+    pinMode(pinENA, OUTPUT);
 
     // Old code below ->
     //ledcSetup(channel, 20000, 8); // (channel, freq, resolution)
@@ -43,7 +46,9 @@ namespace Engines{
     unsigned long now = millis();
     
     // Sprawdzamy, czy nadszedł czas na kolejny krok zmiany prędkości
-    if (now - lastUpdate < rampTime) return;
+    if (now - lastUpdate < rampTime) 
+      return;
+    
     lastUpdate = now;
 
     // --- 1. Logika Ramping (Soft Start / Soft Stop) ---
@@ -74,11 +79,18 @@ namespace Engines{
     }
 
     // Wysłanie sygnału PWM
-    ledcWrite(channel, pwmOutput);
+    //ledcWrite(channel, pwmOutput);
+    //ledcWrite(pinENA, pwmOutput);
+
+    analogWrite(pinENA, pwmOutput);
   }
   
   void Silnik::stop(){
-    ledcWrite(channel, 0);
+    //ledcWrite(channel, 0);
+    analogWrite(pinENA, 0);
+    targetSpeed = 0;
+    
+
     digitalWrite(pinIN1, LOW);
     digitalWrite(pinIN2, LOW);
 
@@ -91,8 +103,8 @@ namespace Engines{
   // ------------------ Constructors ------------------ //
 
   DoubleEngine::DoubleEngine(uint8_t l_in1, uint8_t l_in2, uint8_t l_ena, uint8_t r_in1, uint8_t r_in2, uint8_t r_enb) : 
-                motorLeft(l_in1, l_in2, l_ena, 0),
-                motorRight(r_in1, r_in2, r_enb, 1),
+                motorLeft(l_ena, l_in1, l_in2, 0),
+                motorRight(r_enb, r_in1, r_in2, 1),
                 leftSpeed(0), rightSpeed(0),
                 deadZone(JOYSTICK_DEADZONE) {}
 
@@ -149,3 +161,4 @@ namespace Engines{
   }
 
 };
+

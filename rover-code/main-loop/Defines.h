@@ -14,6 +14,11 @@
 #define DEBUG_RECEIVE_MSG    ///< When message is received via ESP NOW it is logged through UART. Comment this out to disable
 #define DEBUG_SAVE_MSG       ///< When received message is processed (Manager state is updated) in Manager::listenToMessage()
 
+#define DEBUG_GPIO
+#define DEBUG_PACKETS
+#define DEBUG_SERIAL_IN
+#define DEBUG_SERIAL_OUT
+
 // ----------------Wheel Encoders ---------------- //
 
 #define LEFT_ENCODER 38  ///< Odometry encoder on left wheel. 
@@ -22,9 +27,9 @@
 
 // ---------------- LiDAR ---------------- //
 
-#define LIDAR_EN 2   ///< Enable pin LiDAR.
-#define LIDAR_RX 6   ///< LiDARs receive pin of UART. (D3)
-#define LIDAR_TX 5  ///< LiDARS transmission pin of UART.
+#define LIDAR_EN 4   ///< Enable pin LiDAR.
+#define LIDAR_RX 3   ///< LiDARs receive pin of UART. (D3)
+#define LIDAR_TX 2   ///< LiDARS transmission pin of UART.
 #define LIDAR_PWM 1  ///< LiDARS PWM control pin, which steers the engine which rotates LiDAR.
 
 // ---------------- I2C  ---------------- //

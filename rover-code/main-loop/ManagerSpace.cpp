@@ -38,6 +38,7 @@ namespace ManagerSpace{
 
   void Manager::initEngines(){
     engineController.initEngines();
+    Serial.println("Engines Initialized");
   }
 
   void Manager::initLidar(){
@@ -86,16 +87,20 @@ namespace ManagerSpace{
         Serial.println("Standby");
         EspNowCallback::tx_message.is_scanning=false;
         EspNowCallback::tx_message.status_text="Standby";
-        delay(200);
+
+      //  delay(200);
       break;
 
       case ManagerState::MOVING:
         moveRover();
         updateOdometryDirection();
         Serial.println("Moving");
+
+        // Platform is moving so update the odometry
+        //this->updateOdometry(); 
         EspNowCallback::tx_message.is_scanning=false;
         EspNowCallback::tx_message.status_text="Moving";
-        delay(200);
+      //  delay(200);
       break;
 
       case ManagerState::SCANNING:
@@ -160,6 +165,7 @@ namespace ManagerSpace{
       // If rover is moving and the new state does not allow it to move, stop it
       if(state == ManagerState::MOVING && localCopyMessage.state != ManagerState::MOVING){
         engineController.stop();
+        Serial.println("ENgines stopped on state change");
       }
 
       // If imu was in calibration mode and it was switched off, newly learned biases are saved to EEPROM
@@ -204,12 +210,12 @@ namespace ManagerSpace{
     ICM_IMU::EulerAngles orientation;
     imu.getEulerAngles(orientation, true);
 
-    Serial.print("IMU readings: ");
-    Serial.print(orientation.yaw);
-    Serial.print(", ");
-    Serial.print(orientation.pitch);
-    Serial.print(", ");
-    Serial.println(orientation.roll);
+   // Serial.print("IMU readings: ");
+   // Serial.print(orientation.yaw);
+   // Serial.print(", ");
+   // Serial.print(orientation.pitch);
+   // Serial.print(", ");
+   // Serial.println(orientation.roll);
 
     // If the position has been updated, then send the new position to the core 0 which handles odometry updates to flask server
     if(odometer.updatePosition(orientation.yaw) == true){
@@ -221,10 +227,10 @@ namespace ManagerSpace{
         qMessage.collision = permanentStop;
         qMessage.angle = orientation.yaw;
 
-        Serial.print("Angle loaded to message: ");
-        Serial.println(qMessage.angle);
-        Serial.print("Collision status loaded to message: ");
-        Serial.println(qMessage.collision);
+       // Serial.print("Angle loaded to message: ");
+       // Serial.println(qMessage.angle);
+       // Serial.print("Collision status loaded to message: ");
+       // Serial.println(qMessage.collision);
 
         // Send the odometry data to the queue
         xQueueSend(Cores::manToHttpQ, (void*)(&qMessage), 0);
@@ -239,7 +245,7 @@ namespace ManagerSpace{
   void Manager::checkPCmessages(){
     // Handle the commands received from the server.
     if(asyncServer.isNewSteeringCommand()){
-      // Retireve the new command, commnd goes stale after the read
+      // Retrieve the new command, commnd goes stale after the read
       AsyncServerSpace::SteeringCommand newCommand;
       newCommand = asyncServer.getSteeringCommand();
 
@@ -257,23 +263,23 @@ namespace ManagerSpace{
         this->controllerMessage.state = ManagerState::STANDBY;
       }
       if(newCommand.direction == "forward"){
-        this->controllerMessage.y = 900;
-        this->controllerMessage.x = 0;
+        this->controllerMessage.y = 1023;
+        this->controllerMessage.x = 512;
         this->controllerMessage.state = ManagerState::MOVING;
       }
       else if(newCommand.direction == "backward"){
-        this->controllerMessage.y = 100;
-        this->controllerMessage.x = 0;
+        this->controllerMessage.y = 0;
+        this->controllerMessage.x = 512;
         this->controllerMessage.state = ManagerState::MOVING;
       }
       else if(newCommand.direction == "left"){
-        this->controllerMessage.x = 900;
-        this->controllerMessage.y = 0;
+        this->controllerMessage.y = 512;
+        this->controllerMessage.x = 0;
         this->controllerMessage.state = ManagerState::MOVING;
       }
       else if(newCommand.direction == "right"){
-        this->controllerMessage.x = 100;
-        this->controllerMessage.y = 0;
+        this->controllerMessage.y = 512;
+        this->controllerMessage.x = 1024;
         this->controllerMessage.state = ManagerState::MOVING;
       }
 
@@ -333,9 +339,15 @@ namespace ManagerSpace{
     if (permanentStop == false){
       //engineController.applySteering(controllerMessage.x, controllerMessage.y);
       engineController.update();
+     // Serial.println("Updating engines");
+     // Serial.print("Engines speed: ");
+     // Serial.print(this->engineController.getLeftSpeed());
+     // Serial.print(", ");
+     // Serial.println(this->engineController.getRightSpeed());
     }
     else{
       engineController.stop();
+      Serial.println("Stopping engines");
     }
   }
 

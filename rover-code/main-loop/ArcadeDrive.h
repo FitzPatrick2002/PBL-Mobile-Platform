@@ -5,7 +5,9 @@
 #define SILNIK_H
 
 #include <Arduino.h>
-#include "Defines.h"
+//#include "Defines.h"
+
+#define JOYSTICK_DEADZONE 20
 
 /// @brief Stores 2 classes which control the engines.
 namespace Engines{
@@ -28,7 +30,7 @@ namespace Engines{
       // Im mniejszy rampStep, tym wolniej silnik reaguje (większa bezwładność)
       // Im mniejszy rampTime, tym częściej aktualizujemy prędkość
       const int rampTime = 5;      // [ms] Czas między krokami zmiany prędkości
-      const float rampStep = 4.0;  // O ile zmieniamy PWM w jednym kroku (0-255)
+      const float rampStep = 1.0;  // O ile zmieniamy PWM w jednym kroku (0-255)
       
     public:
       // Konstruktor
@@ -45,6 +47,7 @@ namespace Engines{
       void update();
       
       void stop();
+
   };
 
   /// @brief Controls two engines of class Silnik, both should be powered from L298N bridge.

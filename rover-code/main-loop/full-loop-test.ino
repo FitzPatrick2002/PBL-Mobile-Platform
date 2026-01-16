@@ -165,6 +165,12 @@ void setup() {
 
   delay(250);
 
+  // Init the lidar unit and perform a basic scan
+  manager.initLidar();
+  Serial.println("LiDAR - OK");
+
+  delay(250);
+
   // Init TheSetuper
   // Init the communication stream of TheSetuper as Serial (this can be done only once)
   Setup::TheSetuper::getSetuper(&Serial);
@@ -194,11 +200,11 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   Serial.println("WiFi - OK");
-
+  
   delay(250);
 
   // Once the Serial & WiFi are initalized, setup the needed variables
-
+  
   // Setup the automatic variables (MAC & IP)
   Setup::TheSetuper::getSetuper()->init();
 
@@ -206,7 +212,7 @@ void setup() {
   Setup::TheSetuper::getSetuper()->theSetup("The last run of the setup loop.\nSetup what you need. Don't change the wifi-ssid and wifi-password.\n");
 
   // ------------ DEBUG ------------ //
-
+  /*
   Serial.print("Gateway: ");
   Serial.println(WiFi.gatewayIP());
 
@@ -220,6 +226,7 @@ void setup() {
   else{
     Serial.println("Platform cannot reach the server - ERROR");
   }
+  */
 
 
   // ------------ ENDDEB ------------ //
@@ -238,14 +245,18 @@ void setup() {
 
   delay(250);
 
+  // ----------- DEBUG ----------- //
+
   // Initialize IMU
   manager.initIMU();
   Serial.println("IMU - OK");
 
+  // ----------- ENDB ----------- //
+
   delay(250);
 
-  manager.initLidar();
-  Serial.println("LiDAR - OK");
+  //manager.initLidar();
+  //Serial.println("LiDAR - OK");
 
   delay(250);
 
@@ -255,7 +266,7 @@ void setup() {
   Serial.println("Odometry ISRs - OK");
 
   // Attach collision system detection interrupt
-  attachInterrupt(HCSR_STOP, collisionDetection, CHANGE); 
+  //attachInterrupt(HCSR_STOP, collisionDetection, CHANGE); 
   Serial.println("HCSR ISR - OK");
 
   delay(250);
@@ -323,8 +334,6 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-
-  //testCommunicationWithFlask();
 
   manager.mainLoop();
 }
