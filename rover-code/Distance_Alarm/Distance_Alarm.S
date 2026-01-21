@@ -15,7 +15,7 @@ set_output_enable: #setting the pin 1 - trigger as output
   addi t0, t0, 0x024 #offset for the GPIO_ENABLE_REG to enable output, input is by default
 
   lw t1, 0(t0) # in order not to overwrite, read the current value
-  ori t1, t1, 0x2A #pin number 1
+  ori t1, t1, 0x29 #pin number 1
   #li t1, 0x2 #pin number 1
   sw t1, 0(t0)
 
@@ -29,7 +29,7 @@ trigger_pin: #sending a high for 10us then low to trigger the signal
   addi t0, t0, 0x004 #GPIO_OUT_REG address
   
   lw t1, 0(t0) # in order not to overwrite, read the current value
-  ori t1, t1, 0x02 #pin number 1
+  ori t1, t1, 0x01 #pin number 1
   #li t1, 0x2 #pin number 1
   sw t1, 0(t0)
 
@@ -45,7 +45,7 @@ reset_pin: #sending a low signal
   addi t0, t0, 0x004 #GPIO_OUT_REG address
 
   lw t1, 0(t0) # in order not to overwrite, read the current value
-  li t2, 0x02 #mask for pin 1
+  li t2, 0x01 #mask for pin 1
   not t2, t2 #invert 
   and t1, t1, t2 #reset only pin 1
   sw t1, 0(t0)
@@ -84,7 +84,7 @@ led_high: #works
   addi t0, t0, 0x004 #GPIO_OUT_REG address
   
   lw t1, 0(t0) # in order not to overwrite, read the current value
-  ori t1, t1, 0x20 #pin number 5
+  ori t1, t1, 0x40 #pin number 5 0010 0000
   sw t1, 0(t0)
   ret
 
@@ -93,7 +93,7 @@ led_low: #works
   addi t0, t0, 0x004 #GPIO_OUT_REG address
 
   lw t1, 0(t0) # in order not to overwrite, read the current value
-  li t2, 0x20 #mask for pin 5
+  li t2, 0x40 #mask for pin 5
   not t2, t2 #invert 
   and t1, t1, t2 #reset only pin 5
   sw t1, 0(t0)

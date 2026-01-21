@@ -1,0 +1,205 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlaskServer.TheSetuper &mdash; Platforma_PBL_App 2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fc6fd62b"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Platforma_PBL_App
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Packages</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../open3dApp.html">open3dApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">utils package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../FlaskServer.html">FlaskServer package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../QtApp.html">QtApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">main package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Platforma_PBL_App</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">FlaskServer.TheSetuper</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for FlaskServer.TheSetuper</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains TheSetuper class responsible for:</span>
+<span class="sd">Reading the config file and providing setup information for the wifi connection between PC app and the platform.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<div class="viewcode-block" id="TheSetuper">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TheSetuper</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads the following input data necessary to setup the connection between PC app and the platform:</span>
+<span class="sd">        wifi-ssid</span>
+<span class="sd">        wifi-password</span>
+<span class="sd">        pc-server-name</span>
+<span class="sd">        platform-server-name</span>
+<span class="sd">        platform-server-comm-endp</span>
+<span class="sd">        platform-server-scan-ednp</span>
+<span class="sd">        pc_server_post_endp</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiates the input path and immediately calls the method to read the data from it.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            input_path -- the input path to the file containing the internet configuration data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">base_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_input_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="n">input_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_read_setup</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_read_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads and assigns the setup information.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">csv_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+            <span class="n">read_values</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="n">row</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv_reader</span><span class="p">:</span>
+                <span class="n">read_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__wifi_ssid</span> <span class="o">=</span> <span class="n">read_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__wifi_password</span> <span class="o">=</span> <span class="n">read_values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span> <span class="o">=</span> <span class="n">read_values</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_name</span> <span class="o">=</span> <span class="n">read_values</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_comm_endp</span> <span class="o">=</span> <span class="n">read_values</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_scan_endp</span> <span class="o">=</span> <span class="n">read_values</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_post_endp</span> <span class="o">=</span> <span class="n">read_values</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span>
+
+            <span class="n">host_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;//&#39;</span><span class="p">)</span>
+            <span class="n">port_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">__host_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span><span class="p">[</span><span class="n">host_index</span> <span class="o">+</span> <span class="mi">2</span><span class="p">:</span> <span class="n">port_index</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__port_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span><span class="p">[</span><span class="n">port_index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+
+            <span class="c1"># print(self.__host_name)</span>
+            <span class="c1"># print(self.__port_number)</span>
+            <span class="c1"># print(self.__wifi_ssid)</span>
+            <span class="c1"># print(self.__wifi_password)</span>
+            <span class="c1"># print(self.__pc_server_name)</span>
+            <span class="c1"># print(self.__platform_server_name)</span>
+            <span class="c1"># print(self.__platform_server_comm_endp)</span>
+            <span class="c1"># print(self.__platform_server_scan_endp)</span>
+            <span class="c1"># print(self.__pc_server_post_endp)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_host_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for host name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__host_name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_port_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for port number.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__port_number</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_wifi_ssid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for wifi ssid.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wifi_ssid</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_wifi_password</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for wifi password.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wifi_password</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_pc_server_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for pc server name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_platform_server_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for platform server name.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_name</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_platform_server_comm_endp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for platform server comm endp.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_comm_endp</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_platform_server_scan_endp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for platform server scan endp.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_scan_endp</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_pc_server_post_endp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for pc server post endp.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_post_endp</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Miłosz Liniewiecki, Magdalena Rąpała, Jakub Gomola, Michał Świątczak.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

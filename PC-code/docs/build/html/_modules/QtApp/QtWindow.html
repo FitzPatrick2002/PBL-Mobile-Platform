@@ -1,0 +1,567 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QtApp.QtWindow &mdash; Platforma_PBL_App 2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fc6fd62b"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Platforma_PBL_App
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Packages</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../open3dApp.html">open3dApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">utils package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../FlaskServer.html">FlaskServer package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../QtApp.html">QtApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">main package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Platforma_PBL_App</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">QtApp.QtWindow</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for QtApp.QtWindow</h1><div class="highlight"><pre>
+<span></span><span class="c1"># This Python file uses the following encoding: utf-8</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the main menu window in QT, communication methods and platform steering.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PySide6</span><span class="w"> </span><span class="kn">import</span> <span class="n">QtGui</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtGui</span><span class="w"> </span><span class="kn">import</span> <span class="n">QColor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">QApplication</span><span class="p">,</span> <span class="n">QMainWindow</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">Slot</span><span class="p">,</span> <span class="n">QTimer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">QtApp.UI.UiMainWindow</span><span class="w"> </span><span class="kn">import</span> <span class="n">Ui_MainWindow</span>
+
+
+<span class="sd">&quot;&quot;&quot;Communication protocol with flask server</span>
+<span class="sd">    1. Packetes are in json format</span>
+
+<span class="sd">    2. Packets received from the server:</span>
+
+<span class="sd">    // Packet is sent periodically as an update of the telemetry</span>
+<span class="sd">    {</span>
+<span class="sd">        // Specifies the type of data sent as the payload</span>
+<span class="sd">        type: &#39;telemetry&#39;,</span>
+<span class="sd">        </span>
+<span class="sd">        // Position data &amp; heading</span>
+<span class="sd">        x: float,    </span>
+<span class="sd">        y: float,</span>
+<span class="sd">        angle: float,</span>
+<span class="sd">        </span>
+<span class="sd">        // Distance sensors status</span>
+<span class="sd">        collision: bool</span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    // Packet sent on demand.</span>
+<span class="sd">    // Server sends it to qt app, to inform about a successfully ended scan</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &#39;scan-status&#39;,</span>
+<span class="sd">        </span>
+<span class="sd">        success: bool</span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    // Packet sent by the server as a response to request to session creation</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &#39;session-creation&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        success: bool</span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    // Packet sent by the server as a response to request to session switch</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &#39;session-switch&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        success: bool</span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    // Packet sent by the server which tells qt app which sessions exist</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &quot;sessions-config&quot;,</span>
+<span class="sd">        names: list[str] // Names of existing sessions</span>
+<span class="sd">    }</span>
+
+
+<span class="sd">    3. Packets sent to the server:</span>
+
+
+<span class="sd">    // New session creation / start</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &#39;new-session&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        // Name of the new session</span>
+<span class="sd">        name: str</span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    // Session switch / change</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &#39;session-switch&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        // Name of the currently used session</span>
+<span class="sd">        name: str</span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    // Steering data</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &#39;steering&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        // Specifies which way the platform should move</span>
+<span class="sd">        // &#39;forward&#39;, &#39;backward&#39;, &#39;left&#39;, &#39;right&#39;</span>
+<span class="sd">        direction: str </span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    // Scan request</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &#39;scan&#39;</span>
+<span class="sd">        </span>
+<span class="sd">        // Details of the method of scanning (how many rotations &amp; how many points to skip)</span>
+<span class="sd">        rotations: int</span>
+<span class="sd">        every_nth: int</span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    // Calibration request</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &#39;calibration&#39;</span>
+<span class="sd">    }</span>
+
+<span class="sd">    // Standby request</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &#39;standby&#39;</span>
+<span class="sd">    }</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MainQtWindow">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">MainQtWindow</span><span class="p">(</span><span class="n">QMainWindow</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class manages the communication between the flask server and qt app.</span>
+
+<span class="sd">    Important parameter:</span>
+<span class="sd">        server_queue: Multiprocessing queue, used to communicate with the flask server.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_server</span><span class="p">:</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">,</span>
+                 <span class="n">to_server</span><span class="p">:</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialisation of the window.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            from_server -- Queue used to store communication messages from the server.</span>
+<span class="sd">            to_server -- Queue used to store communication messages to the server from the qt app.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MainQtWindow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">Ui_MainWindow</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Timer is used to periodically read the data sent from the server to qt app.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span> <span class="o">=</span> <span class="n">QTimer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">setSingleShot</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read the queue every 100 ms.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">setInterval</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">timeout</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">read_flask_queue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">timer</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Queues are used for communication with the server.</span>
+<span class="sd">            We need bidirectional communication so there are 2 queues,</span>
+<span class="sd">            one for sending to server and one for receiving data from server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">f_to_qt</span> <span class="o">=</span> <span class="n">from_server</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span> <span class="o">=</span> <span class="n">to_server</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;------------ Movement Slots ------------&quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slots connections for forward motion.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">forward_ctrl_btn</span><span class="o">.</span><span class="n">pressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onForwardClicked</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">forward_ctrl_btn</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onForwardReleased</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slots for backward motion.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">backward_ctrl_btn</span><span class="o">.</span><span class="n">pressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onBackwardClicked</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">backward_ctrl_btn</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onBackwardReleased</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slots for turning left.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">left_ctrl_button</span><span class="o">.</span><span class="n">pressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onLeftClicked</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">left_ctrl_button</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onLeftReleased</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slots for turning right.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">right_ctrl_btn</span><span class="o">.</span><span class="n">pressed</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onRightClicked</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">right_ctrl_btn</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onRightReleased</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;------------ Session Management Slots ------------&quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slot for starting a new session.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">new_session_btn</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onNewSessionClicked</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slot for selecting a different session.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">session_select</span><span class="o">.</span><span class="n">currentTextChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onSessionSelected</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;------------ Measurements Slots ------------&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">scan_btn</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">onMeasurementClicked</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;------------ LCD Number Display ------------&quot;&quot;&quot;</span>
+<span class="w">        </span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Make it display 3-digit numbers with accuracy 10^-2&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">angle_display</span><span class="o">.</span><span class="n">setDigitCount</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">angle_display</span><span class="o">.</span><span class="n">setSmallDecimalPoint</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;------------ Session Management Slots ------------&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MainQtWindow.onNewSessionClicked">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onNewSessionClicked">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onNewSessionClicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Requests creation of a new session by the server (and switch to it).&quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check the name of the new session.&quot;&quot;&quot;</span>
+        <span class="n">new_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">new_session_name_edit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send the request to the server.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;session-creation&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="n">new_name</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="MainQtWindow.onSessionSelected">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onSessionSelected">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onSessionSelected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_text</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sends a message to the server, requesting a session change.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            new_text -- The new session name selected from the list of available sessions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Request switch to a different session.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;session-switch&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">new_text</span>
+        <span class="p">})</span></div>
+
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;------------ Measurements Slots ------------&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MainQtWindow.onMeasurementClicked">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onMeasurementClicked">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onMeasurementClicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sends a request for a scan to the server.</span>
+<span class="sd">            Blocks the scan button until completion packet arrives from the server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check the scan configuration.&quot;&quot;&quot;</span>
+        <span class="n">rot</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">scans_number_selector</span><span class="o">.</span><span class="n">currentText</span><span class="p">())</span>
+        <span class="n">nth</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">every_nth_selector</span><span class="o">.</span><span class="n">currentText</span><span class="p">())</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send info to the server.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;scan&quot;</span><span class="p">,</span>
+
+            <span class="s2">&quot;rotations&quot;</span><span class="p">:</span> <span class="n">rot</span><span class="p">,</span>
+            <span class="s2">&quot;every_nth&quot;</span><span class="p">:</span> <span class="n">nth</span>
+        <span class="p">})</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Disable the scan button for the time duration of the scan.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">scan_btn</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Measurement requested&quot;</span><span class="p">)</span></div>
+
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;------------ Movement Slots ------------&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MainQtWindow.onForwardClicked">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onForwardClicked">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onForwardClicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback method for when the forward motion button is pressed.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Going forward&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;steering&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span> <span class="p">:</span> <span class="s2">&quot;forward&quot;</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="MainQtWindow.onForwardReleased">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onForwardReleased">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onForwardReleased</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback method for when the forward motion button is released.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Stopping forward motion&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;steering&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="MainQtWindow.onBackwardClicked">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onBackwardClicked">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onBackwardClicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback method for when the backward motion button is pressed.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Going backwards&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;steering&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;backward&quot;</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="MainQtWindow.onBackwardReleased">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onBackwardReleased">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onBackwardReleased</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback method for when the backward motion button is released.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Stopping backward motion&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;steering&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="MainQtWindow.onLeftClicked">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onLeftClicked">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onLeftClicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback method for when the left motion button is pressed.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Going left&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;steering&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;left&quot;</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="MainQtWindow.onLeftReleased">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onLeftReleased">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onLeftReleased</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback method for when the left motion button is released.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Stopping left motion&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;steering&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="MainQtWindow.onRightClicked">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onRightClicked">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onRightClicked</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback method for when the right motion button is pressed.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Going right&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;steering&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;right&quot;</span>
+        <span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="MainQtWindow.onRightReleased">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.onRightReleased">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">onRightReleased</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback method for when the right motion button is released.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Stopping right motion&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">qt_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;steering&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;direction&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span>
+        <span class="p">})</span></div>
+
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;------------ Reading from Flask ------------&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MainQtWindow.read_flask_queue">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.read_flask_queue">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_flask_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads data from the flask queue and sets the UI elements.&quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;While there is some info from the server, poll it.&quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_to_qt</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+            <span class="n">packet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f_to_qt</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+            <span class="n">tt</span> <span class="o">=</span> <span class="n">packet</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Qt: Reading server queue: </span><span class="si">{</span><span class="n">tt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">match</span> <span class="n">packet</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+                <span class="k">case</span> <span class="s2">&quot;telemetry&quot;</span><span class="p">:</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Display the telemetry data in Qt app.&quot;&quot;&quot;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Qt: Qt received telemetry update: </span><span class="si">{</span><span class="n">packet</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Qt: Telemetry angle: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">packet</span><span class="p">[</span><span class="s1">&#39;angle&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Display position in LCDs.&quot;&quot;&quot;</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">x_pos_display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">packet</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">y_pos_display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">packet</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]))</span>
+
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Transform angle to degrees [0 ; 360].&quot;&quot;&quot;</span>
+                    <span class="n">angle</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">packet</span><span class="p">[</span><span class="s2">&quot;angle&quot;</span><span class="p">])</span> <span class="o">*</span> <span class="mf">180.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
+                    <span class="n">angle</span> <span class="o">=</span> <span class="p">(</span><span class="n">angle</span> <span class="o">+</span> <span class="mi">360</span><span class="p">)</span> <span class="o">%</span> <span class="mi">360</span>
+
+                    <span class="n">angle</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">angle</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">angle_display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">angle</span><span class="p">))</span>
+
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Update status of collision bars.&quot;&quot;&quot;</span>
+
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;If collision status is true, set element to red as there is possibility of collision,</span>
+<span class="sd">                        If not, reset to green (yes THAT green).</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+
+                    <span class="k">if</span> <span class="n">packet</span><span class="p">[</span><span class="s2">&quot;collision&quot;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">collision_frame</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;background-color:rgb(255, 0, 0)&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">collision_frame</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="s2">&quot;background-color:rgb(0, 255, 0)&quot;</span><span class="p">)</span>
+
+                <span class="k">case</span> <span class="s2">&quot;scan-status&quot;</span><span class="p">:</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Do some stuff which shows that scan is going on or something,</span>
+<span class="sd">                        Unblock the button for scanning or something.</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">scan_btn</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Qt: Scanning done, unblocking the button&quot;</span><span class="p">)</span>
+
+                <span class="k">case</span> <span class="s2">&quot;session-switch&quot;</span><span class="p">:</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Server response to the session switch request.</span>
+<span class="sd">                        If session switch was successful, then do nothing.</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+                    <span class="k">if</span> <span class="n">packet</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Session change was successful in qt app&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Session switch was successful as seen by the qt app&quot;</span><span class="p">)</span>
+
+                <span class="k">case</span> <span class="s2">&quot;session-creation&quot;</span><span class="p">:</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Server response to the session creation request.</span>
+<span class="sd">                        If sessions has been created successfully, then do nothing.</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+                    <span class="k">if</span> <span class="n">packet</span><span class="p">[</span><span class="s2">&quot;success&quot;</span><span class="p">]:</span>
+<span class="w">                        </span><span class="sd">&quot;&quot;&quot;If creation of new session has been successful, add the option in the combobox</span>
+<span class="sd">                            and switch to the new session?</span>
+<span class="sd">                        &quot;&quot;&quot;</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Session creation was successful as seen by qt app&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">session_select</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">new_session_name_edit</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Session creation was NOT successful as seen by qt app&quot;</span><span class="p">)</span>
+
+                <span class="k">case</span> <span class="s2">&quot;sessions-config&quot;</span><span class="p">:</span>
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Info about the existing sessions</span>
+<span class="sd">                        Configure the combobox so that user can choose from among existing sessions.</span>
+<span class="sd">                    &quot;&quot;&quot;</span>
+
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Clear the combobox.&quot;&quot;&quot;</span>
+                    <span class="c1">#self.ui.session_select.clear()</span>
+
+<span class="w">                    </span><span class="sd">&quot;&quot;&quot;Fill it with possible names for sessions.&quot;&quot;&quot;</span>
+                    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">packet</span><span class="p">[</span><span class="s2">&quot;names&quot;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">session_select</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+                <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Qt: Unknown packet received from server by Qt app: </span><span class="si">{</span><span class="n">packet</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;------------ Running The QT Window ------------&quot;&quot;&quot;</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Unused so far.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="MainQtWindow.run_qt_window">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.run_qt_window">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_qt_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the main Qt application window.</span>
+<span class="sd">        Handles the cleanup after closing the qt window.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">qt_window</span> <span class="o">=</span> <span class="n">MainQtWindow</span><span class="p">()</span>
+        <span class="n">qt_app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+
+        <span class="n">qt_window</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">qt_app</span><span class="o">.</span><span class="n">exec</span><span class="p">())</span></div>
+</div>
+
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">if __name__ == &quot;__main__&quot;:</span>
+<span class="sd">    app = QApplication(sys.argv)</span>
+
+<span class="sd">    window = MainQtWindow()</span>
+<span class="sd">    window.show()</span>
+
+<span class="sd">    sys.exit(app.exec())</span>
+<span class="sd">&#39;&#39;&#39;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Miłosz Liniewiecki, Magdalena Rąpała, Jakub Gomola, Michał Świątczak.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
