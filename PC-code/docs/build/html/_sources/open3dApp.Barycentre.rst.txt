@@ -9,13 +9,17 @@ open3dApp.Barycentre.BarycentreAlgorithm module
 
 .. automodule:: open3dApp.Barycentre.BarycentreAlgorithm
    :members:
-   :show-inheritance:
+   :private-members:
    :undoc-members:
+   :show-inheritance:
+   :special-members: __init__
 
 Module contents
 ---------------
 
 .. automodule:: open3dApp.Barycentre
    :members:
-   :show-inheritance:
+   :private-members:
    :undoc-members:
+   :show-inheritance:
+   :special-members: __init__

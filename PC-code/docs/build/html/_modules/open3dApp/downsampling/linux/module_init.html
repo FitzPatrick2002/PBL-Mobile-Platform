@@ -7,14 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>open3dApp.downsampling.linux.module_init &mdash; Platforma_PBL_App 2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a6a68382" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/fonts.css?v=5583d106" />
 
   
       <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../../_static/documentation_options.js?v=fc6fd62b"></script>
-      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -89,6 +91,8 @@
 <a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LinuxModule</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Compiles and loads the Linux kernel module specified by the constants above.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LinuxModule.__init__">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">module_name</span><span class="p">,</span> <span class="n">device_path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the LinuxModule class.</span>
 
@@ -99,8 +103,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__module_name</span> <span class="o">=</span> <span class="n">module_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_device_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">device_path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__module_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__module_name</span><span class="si">}</span><span class="s2">.ko&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__module_file</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__module_file</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="LinuxModule._run_cmd">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule._run_cmd">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_run_cmd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">need_sudo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the command specified with or without superuser permission.</span>
 
@@ -116,12 +123,18 @@
             <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">text</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">stderr</span></div>
+
     
+<div class="viewcode-block" id="LinuxModule._is_ko">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule._is_ko">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_is_ko</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks whether the module file with the .ko suffix exists.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module_file</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__module_file</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="LinuxModule._compile_module">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule._compile_module">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_compile_module</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compiles the module.&quot;&quot;&quot;</span>
         <span class="n">success</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_cmd</span><span class="p">([</span><span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="s2">&quot;clean&quot;</span><span class="p">])</span>
@@ -134,7 +147,8 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
             <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">success</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span>
+        <span class="k">return</span> <span class="n">success</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span></div>
+
 
 <div class="viewcode-block" id="LinuxModule.is_module_loaded">
 <a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule.is_module_loaded">[docs]</a>
@@ -144,28 +158,39 @@
         <span class="k">return</span> <span class="n">MODULE_NAME</span> <span class="ow">in</span> <span class="n">out</span></div>
 
 
+<div class="viewcode-block" id="LinuxModule._loading_module">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule._loading_module">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_loading_module</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads the module with insmod command, which requires superuser.&quot;&quot;&quot;</span>
         <span class="n">success</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_cmd</span><span class="p">([</span><span class="s2">&quot;insmod&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__module_file</span><span class="p">],</span> <span class="n">need_sudo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Module </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_path</span><span class="si">}</span><span class="s2"> failed to load: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">success</span>
+        <span class="k">return</span> <span class="n">success</span></div>
 
+
+<div class="viewcode-block" id="LinuxModule._unloading_module">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule._unloading_module">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_unloading_module</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Unloads the module without the .ko suffix, which requires superuser.&quot;&quot;&quot;</span>
         <span class="n">success</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run_cmd</span><span class="p">([</span><span class="s2">&quot;rmmod&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__module_name</span><span class="p">],</span> <span class="n">need_sudo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Module </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_path</span><span class="si">}</span><span class="s2"> failed to unload: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">success</span>
+        <span class="k">return</span> <span class="n">success</span></div>
+
     
+<div class="viewcode-block" id="LinuxModule._check_device">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule._check_device">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_device</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks whether the character device exists.&quot;&quot;&quot;</span>
         <span class="k">if</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_path</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_path</span><span class="si">}</span><span class="s2"> does not exist&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
     
+<div class="viewcode-block" id="LinuxModule._kernel_log_tail">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.linux.html#open3dApp.downsampling.linux.module_init.LinuxModule._kernel_log_tail">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_kernel_log_tail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_lines</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the kernel log with specified tail.</span>
 
@@ -199,6 +224,7 @@
         <span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">tail</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tail</span></div>
+</div>
 
 
 <div class="viewcode-block" id="main">

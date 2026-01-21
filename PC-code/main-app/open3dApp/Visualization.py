@@ -54,9 +54,9 @@ from typing import List, Dict, Tuple
 
 class VisualizationApp:
     """Visualizes point clouds and other geometries.
-    Provides a running open3d application, which communicates with other processes via a Queue.
-    Should be run on a different thread.
-    Accepts LidarScan & OdometryData objects from the queue and displays them in the scene.
+        Provides a running open3d application, which communicates with other processes via a Queue.
+        Should be run on a different thread.
+        Accepts LidarScan & OdometryData objects from the queue and displays them in the scene.
 
     Important arguments:
         _id -- ID of a geometry in the scene.
@@ -81,8 +81,8 @@ class VisualizationApp:
 
     def __init__(self, queue : multiprocessing.Queue, o3d_to_f : multiprocessing.Queue):
         """Adds necessary features to the gui.Application instance.
-        Initializes the menu, menu callbacks and callbacks which handle communication
-        with other processes.
+            Initializes the menu, menu callbacks and callbacks which handle communication
+            with other processes.
 
         Keyword arguments:
             queue -- Queue used to communicate with different processes.
@@ -319,10 +319,7 @@ class VisualizationApp:
         self.scene.scene.add_geometry("pcd" + str(self._id), new_pcd, mat)
 
     def _on_menu_quit(self):
-        """
-        Menu callback which stops the application.
-        :return:
-        """
+        """Menu callback which stops the application."""
         o3d.visualization.gui.Application.instance.quit()
 
     def _show_coordinate_frame(self):
@@ -382,7 +379,7 @@ class VisualizationApp:
 
     def _toggle_height_map(self):
         """Colors all points on the scene according to their z (height) value.
-        Does not preserve the original colouring.
+            Does not preserve the original colouring.
         """
 
         """If height map is not enabled, enable it."""
@@ -486,8 +483,8 @@ class VisualizationApp:
 
     def _reload_session(self, name : str):
         """Clears the scene and resets the self._scene_pcds dictionary.
-        Creates new session or selects an existing one.
-        Loads the 'combined' file of the selected session into the scene with name self.SCENE_LIDAR_PCD.
+            Creates new session or selects an existing one.
+            Loads the 'combined' file of the selected session into the scene with name self.SCENE_LIDAR_PCD.
 
         Keyword argument:
             name -- Name of the session.
@@ -525,9 +522,9 @@ class VisualizationApp:
 
     def _monitor_server(self) -> bool:
         """Monitors the state of the queue.
-        If new data is received, process it.
-        If its is an instance of LidarData or OdometryData, accept it and display on the scene.
-        Other data is discarded.
+            If new data is received, process it.
+            If its is an instance of LidarData or OdometryData, accept it and display on the scene.
+            Other data is discarded.
 
         Returns:
             True  -- when data from the queue has been accepted.
@@ -552,8 +549,8 @@ class VisualizationApp:
 
     def _add_pcd(self, pcd : o3d.geometry.PointCloud, name : str, color : List[float] = None):
         """Adds / appends a new pcd to the scene.
-        If name does not exist in the #_scene_pcds dict then a new entry will be created.
-        Otherwise, the new pcd will be appended to the specified point cloud and displayed in the scene.
+            If name does not exist in the #_scene_pcds dict then a new entry will be created.
+            Otherwise, the new pcd will be appended to the specified point cloud and displayed in the scene.
 
         Keyword arguments:
             pcd -- Correctly processed pcd, oriented in the right coordinate frame.

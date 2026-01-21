@@ -11,6 +11,7 @@ utils.DataTypes module
    :members:
    :show-inheritance:
    :undoc-members:
+   :private-members:
 
 utils.FileManagement module
 ---------------------------
@@ -19,6 +20,7 @@ utils.FileManagement module
    :members:
    :show-inheritance:
    :undoc-members:
+   :private-members:
 
 utils.OperatingSystemCheck module
 ---------------------------------
@@ -27,6 +29,7 @@ utils.OperatingSystemCheck module
    :members:
    :show-inheritance:
    :undoc-members:
+   :private-members:
 
 Module contents
 ---------------

@@ -7,14 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>QtApp.QtWindow &mdash; Platforma_PBL_App 2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a6a68382" />
+      <link rel="stylesheet" type="text/css" href="../../_static/fonts.css?v=5583d106" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../_static/documentation_options.js?v=fc6fd62b"></script>
-      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -194,6 +196,8 @@
 <span class="sd">        server_queue: Multiprocessing queue, used to communicate with the flask server.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+<div class="viewcode-block" id="MainQtWindow.__init__">
+<a class="viewcode-back" href="../../QtApp.html#QtApp.QtWindow.MainQtWindow.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_server</span><span class="p">:</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">,</span>
                  <span class="n">to_server</span><span class="p">:</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialisation of the window.</span>
@@ -256,7 +260,8 @@
 <span class="w">        </span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make it display 3-digit numbers with accuracy 10^-2&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">angle_display</span><span class="o">.</span><span class="n">setDigitCount</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">angle_display</span><span class="o">.</span><span class="n">setSmallDecimalPoint</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">angle_display</span><span class="o">.</span><span class="n">setSmallDecimalPoint</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
 
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;------------ Session Management Slots ------------&quot;&quot;&quot;</span>
 

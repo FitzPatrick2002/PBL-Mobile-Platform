@@ -7,14 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>open3dApp.downsampling.windows.Downsample &mdash; Platforma_PBL_App 2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/custom.css?v=a6a68382" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/fonts.css?v=5583d106" />
 
   
       <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../../../_static/documentation_options.js?v=fc6fd62b"></script>
-      <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -83,12 +85,17 @@
 <a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DownsampleDefault</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Downsampling algorithm and file parsing.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="DownsampleDefault.__init__">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializing the default values for the algorithm.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__percent</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__line</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__mode</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mode</span> <span class="o">=</span> <span class="mi">1</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._downsampling_per">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._downsampling_per">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_downsampling_per</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs the downsampling algorithm for a percent of filtered-out lines.&quot;&quot;&quot;</span>
         <span class="n">csv_result</span> <span class="o">=</span> <span class="p">[]</span>
@@ -112,11 +119,14 @@
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__output_abs_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">newline</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-            <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">csv_result</span><span class="p">)</span>
+            <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">csv_result</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._downsampling_line">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._downsampling_line">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_downsampling_line</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs the downsampling algorithm for the number of lines.</span>
-<span class="sd">        Regardless of mode:</span>
+<span class="sd">            Regardless of mode:</span>
 <span class="sd">            1 - x line is ignored,</span>
 <span class="sd">            2 - x line is kept.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -141,8 +151,11 @@
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__output_abs_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">newline</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-            <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">csv_result</span><span class="p">)</span>
+            <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">csv_result</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._set_input_path">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._set_input_path">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_input_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the input path.</span>
 
@@ -166,16 +179,22 @@
             <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__input_path</span> <span class="o">=</span> <span class="n">input_path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__input_abs_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__input_abs_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">input_path</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._get_input_path">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._get_input_path">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_input_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the input path.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            input_path -- str value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__input_path</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__input_path</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._set_output_path">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._set_output_path">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_output_path</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the output path.</span>
 
@@ -193,16 +212,22 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Overwritting existing output file&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">__output_path</span> <span class="o">=</span> <span class="n">output_path</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__output_abs_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__output_abs_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._get_output_path">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._get_output_path">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_output_path</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the output path.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            output_path -- str value.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__output_path</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__output_path</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._set_percent">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._set_percent">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_percent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">percent</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the percent value for mode 0.</span>
 
@@ -213,16 +238,22 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The percent cannot have this value: </span><span class="si">{</span><span class="n">percent</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">Use range [0-100]&quot;</span><span class="p">)</span>
             <span class="k">return</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__percent</span> <span class="o">=</span> <span class="n">percent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__percent</span> <span class="o">=</span> <span class="n">percent</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._get_percent">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._get_percent">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_percent</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the percent value.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            percent -- integer value ranging from 0 to 100.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__percent</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__percent</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._set_lines">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._set_lines">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the number of lines for modes 1 and 2.</span>
 
@@ -231,16 +262,22 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">lines</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The number of lines should be positive and no longer than the number of lines in the input file&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__line</span> <span class="o">=</span> <span class="n">lines</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__line</span> <span class="o">=</span> <span class="n">lines</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._get_lines">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._get_lines">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the number of lines for mode 1 or 2.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            line -- integer value, min. 1.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__line</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__line</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._set_mode">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._set_mode">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_set_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the mode of operation for the algorithm.</span>
 
@@ -253,16 +290,22 @@
         <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">mode</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The mode has to be in range [0-2]&quot;</span><span class="p">)</span>
             <span class="k">return</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__mode</span> <span class="o">=</span> <span class="n">mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mode</span> <span class="o">=</span> <span class="n">mode</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._get_mode">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._get_mode">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the operation mode.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            mode -- integer value ranging from 0 to 2.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mode</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mode</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._run">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._run">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the adequate operation mode.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_path</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__output_path</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
@@ -273,15 +316,19 @@
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__mode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_downsampling_per</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_downsampling_line</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_downsampling_line</span><span class="p">()</span></div>
 
+
+<div class="viewcode-block" id="DownsampleDefault._get_info">
+<a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault._get_info">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Prints the information about all the parameters.&quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__mode</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Percent: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__percent</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Lines: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__line</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Input path: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_path</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output path: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__output_path</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output path: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">__output_path</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="DownsampleDefault.downsample">
 <a class="viewcode-back" href="../../../../open3dApp.downsampling.windows.html#open3dApp.downsampling.windows.Downsample.DownsampleDefault.downsample">[docs]</a>

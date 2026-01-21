@@ -7,14 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FlaskServer.TheSetuper &mdash; Platforma_PBL_App 2026 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a6a68382" />
+      <link rel="stylesheet" type="text/css" href="../../_static/fonts.css?v=5583d106" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="../../_static/documentation_options.js?v=fc6fd62b"></script>
-      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
-      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -92,6 +94,8 @@
 <span class="sd">        platform-server-scan-ednp</span>
 <span class="sd">        pc_server_post_endp</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TheSetuper.__init__">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiates the input path and immediately calls the method to read the data from it.</span>
 
@@ -100,8 +104,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">base_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_input_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="n">input_path</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_read_setup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_read_setup</span><span class="p">()</span></div>
 
+
+<div class="viewcode-block" id="TheSetuper._read_setup">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._read_setup">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_read_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads and assigns the setup information.&quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
@@ -125,7 +132,8 @@
             <span class="n">port_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">__host_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span><span class="p">[</span><span class="n">host_index</span> <span class="o">+</span> <span class="mi">2</span><span class="p">:</span> <span class="n">port_index</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__port_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span><span class="p">[</span><span class="n">port_index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__port_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span><span class="p">[</span><span class="n">port_index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span></div>
+
 
             <span class="c1"># print(self.__host_name)</span>
             <span class="c1"># print(self.__port_number)</span>
@@ -137,41 +145,68 @@
             <span class="c1"># print(self.__platform_server_scan_endp)</span>
             <span class="c1"># print(self.__pc_server_post_endp)</span>
 
+<div class="viewcode-block" id="TheSetuper._get_host_name">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._get_host_name">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_host_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for host name.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__host_name</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__host_name</span></div>
 
+
+<div class="viewcode-block" id="TheSetuper._get_port_number">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._get_port_number">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_port_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for port number.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__port_number</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__port_number</span></div>
 
+
+<div class="viewcode-block" id="TheSetuper._get_wifi_ssid">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._get_wifi_ssid">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_wifi_ssid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for wifi ssid.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wifi_ssid</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wifi_ssid</span></div>
 
+
+<div class="viewcode-block" id="TheSetuper._get_wifi_password">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._get_wifi_password">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_wifi_password</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for wifi password.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wifi_password</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wifi_password</span></div>
 
+
+<div class="viewcode-block" id="TheSetuper._get_pc_server_name">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._get_pc_server_name">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_pc_server_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for pc server name.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_name</span></div>
 
+
+<div class="viewcode-block" id="TheSetuper._get_platform_server_name">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._get_platform_server_name">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_platform_server_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for platform server name.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_name</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_name</span></div>
 
+
+<div class="viewcode-block" id="TheSetuper._get_platform_server_comm_endp">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._get_platform_server_comm_endp">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_platform_server_comm_endp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for platform server comm endp.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_comm_endp</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_comm_endp</span></div>
 
+
+<div class="viewcode-block" id="TheSetuper._get_platform_server_scan_endp">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._get_platform_server_scan_endp">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_platform_server_scan_endp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for platform server scan endp.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_scan_endp</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__platform_server_scan_endp</span></div>
 
+
+<div class="viewcode-block" id="TheSetuper._get_pc_server_post_endp">
+<a class="viewcode-back" href="../../FlaskServer.html#FlaskServer.TheSetuper.TheSetuper._get_pc_server_post_endp">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_get_pc_server_post_endp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Getter for pc server post endp.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pc_server_post_endp</span></div>
+</div>
 
 </pre></div>
 

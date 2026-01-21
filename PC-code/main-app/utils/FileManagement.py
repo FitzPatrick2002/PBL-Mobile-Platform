@@ -46,10 +46,10 @@ class PCDSaver:
                     - path.npy
                     - combined.npy
 
-        history dir - Stores historical scans (each separately).
-        temp - stores temporary files (like .csv files generated for the downsampling algorithm).
-        path.npy - stores combined odometry data.
-        combined.npy - stores combined point cloud scans.
+            history dir - Stores historical scans (each separately).
+            temp - stores temporary files (like .csv files generated for the downsampling algorithm).
+            path.npy - stores combined odometry data.
+            combined.npy - stores combined point cloud scans.
 
         Keyword arguments:
             name -- Name of the session directory. If such folder does not exist it will be created
@@ -145,7 +145,7 @@ class PCDSaver:
 
     def update_position(self, pos : np.ndarray) -> None:
         """Appends the points to the path.npy file.
-        In case array of shape (N, 2) is provided, z-coordinate is assumed to be equal 0.
+            In case array of shape (N, 2) is provided, z-coordinate is assumed to be equal 0.
 
         Keyword arguments:
             pos -- np.ndarray of shape (N, 2) or (N, 3).
@@ -173,7 +173,7 @@ class PCDSaver:
 
     def prepare_for_downsampling(self):
         """Copies the combined.npy data and stores it in temp folder as [session-name]-downsample-source.csv.
-        Creates an empty file [session-name]-downsample-target.csv where the downsampling content should be stored.
+            Creates an empty file [session-name]-downsample-target.csv where the downsampling content should be stored.
         """
 
         print(f"PCDSaver: convert_combined_to_csv(): Entered")
@@ -336,7 +336,7 @@ class PCDSaver:
 
     def get_dirs(self) -> Dict[str, Path]:
         """Returns a list of all directories in such order:
-        root, working dir, working history dir, temp dir, working combined file, working path file.
+            root, working dir, working history dir, temp dir, working combined file, working path file.
 
         Returns:
             list[Path]

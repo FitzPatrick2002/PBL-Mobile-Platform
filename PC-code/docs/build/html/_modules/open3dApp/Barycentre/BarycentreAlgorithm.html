@@ -1,0 +1,221 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>open3dApp.Barycentre.BarycentreAlgorithm &mdash; Platforma_PBL_App 2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=a6a68382" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/fonts.css?v=5583d106" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=fc6fd62b"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Platforma_PBL_App
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Packages</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../open3dApp.html">open3dApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">utils package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../FlaskServer.html">FlaskServer package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../QtApp.html">QtApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../main.html">main package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Platforma_PBL_App</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">open3dApp.Barycentre.BarycentreAlgorithm</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for open3dApp.Barycentre.BarycentreAlgorithm</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the algorithm for calculating the Barycentre.</span>
+<span class="sd">It also contains the Open3D dialog for communicating the result.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">open3d</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">o3d</span>
+
+<div class="viewcode-block" id="Barycentre">
+<a class="viewcode-back" href="../../../open3dApp.Barycentre.html#open3dApp.Barycentre.BarycentreAlgorithm.Barycentre">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Barycentre</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;For calculating the Barycentre of the current session scan.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Barycentre.__init__">
+<a class="viewcode-back" href="../../../open3dApp.Barycentre.html#open3dApp.Barycentre.BarycentreAlgorithm.Barycentre.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Empty constructor.&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Barycentre._calculate_barycentre">
+<a class="viewcode-back" href="../../../open3dApp.Barycentre.html#open3dApp.Barycentre.BarycentreAlgorithm.Barycentre._calculate_barycentre">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_barycentre</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">parent_window</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculates the barycentre for 3 dimensions, from the input path to the file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            input_path -- will be given by the PCDSaver.</span>
+<span class="sd">            parent_window -- the parent window of this dialog.</span>
+<span class="sd">            callback -- the callback function to be called on the &#39;OK&#39; button press.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__input_abs_path</span> <span class="o">=</span> <span class="n">input_path</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result_y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result_z</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_abs_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">csv_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Iterate through each row in the CSV.&quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv_reader</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__input_abs_path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">csv_reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;;&#39;</span><span class="p">)</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Iterate through each row in the CSV.&quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv_reader</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="o">=</span> <span class="n">row</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_result_x</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_result_y</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_result_z</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result_x</span> <span class="o">/=</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result_y</span> <span class="o">/=</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result_z</span> <span class="o">/=</span> <span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="s2">&quot;( &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_result_x</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; , &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_result_y</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; , &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_result_z</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; )&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_result_window</span><span class="p">(</span><span class="n">parent_window</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Barycentre._result_window">
+<a class="viewcode-back" href="../../../open3dApp.Barycentre.html#open3dApp.Barycentre.BarycentreAlgorithm.Barycentre._result_window">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_result_window</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent_window</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a dialog window to show the calculation result.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="n">callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">parent_window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dialog</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Dialog</span><span class="p">(</span><span class="s2">&quot;Barycentre result&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">panel</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Vert</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Margins</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Title.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_row</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Horiz</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title_row</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="s2">&quot;Barycentre:&quot;</span><span class="p">))</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Result.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result_row</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Horiz</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">result_row</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_result</span><span class="p">))</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Ok button.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button_row</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Horiz</span><span class="p">()</span>
+        <span class="n">btn</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="s2">&quot;Ok&quot;</span><span class="p">)</span>
+        <span class="n">btn</span><span class="o">.</span><span class="n">set_on_clicked</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on_submit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button_row</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="n">btn</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">title_row</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">result_row</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">button_row</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dialog</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">panel</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Show dialog attached to the main window.&quot;&quot;&quot;</span>
+        <span class="n">parent_window</span><span class="o">.</span><span class="n">show_dialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dialog</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Barycentre.on_submit">
+<a class="viewcode-back" href="../../../open3dApp.Barycentre.html#open3dApp.Barycentre.BarycentreAlgorithm.Barycentre.on_submit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">on_submit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;On pressing the &#39;Ok&#39; button call the callback function.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Barycentre.get_barycenter_as_pcd">
+<a class="viewcode-back" href="../../../open3dApp.Barycentre.html#open3dApp.Barycentre.BarycentreAlgorithm.Barycentre.get_barycenter_as_pcd">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_barycenter_as_pcd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the barycenter as point cloud.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            o3d.geometry.PointCloud() -- containing single point, that is barycenter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">np_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="bp">self</span><span class="o">.</span><span class="n">_result_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result_y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_result_z</span><span class="p">]])</span>
+        <span class="n">pcd</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">()</span>
+        <span class="n">pcd</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">utility</span><span class="o">.</span><span class="n">Vector3dVector</span><span class="p">(</span><span class="n">np_arr</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">pcd</span></div>
+</div>
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Miłosz Liniewiecki, Magdalena Rąpała, Jakub Gomola, Michał Świątczak.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
