@@ -93,15 +93,13 @@ ManagerSpace::Manager manager(Lidar::LidarController::getInstance());
 
 // -------------- Interrupt Service Routines -------------- //
 
-/// @brief ISR routine which increases number of rotation of the left wheel by 1 tick.
+/// @brief ISR routine which increases number of rotations of the left wheel by 1 tick.
 void IRAM_ATTR leftTick(){
-  // Increases number of rotation of the left wheel by 1 tick.
   manager.accessOdometry().leftRotation();
 }
 
-/// @brief ISR routine which increases number of rotation of the right wheel by 1 tick.
+/// @brief ISR routine which increases number of rotations of the right wheel by 1 tick.
 void IRAM_ATTR rightTick(){
-  // Increases number of rotation of the right wheel by 1 tick.
   manager.accessOdometry().rightRotation();
 }
 
@@ -228,7 +226,6 @@ void setup() {
   }
   */
 
-
   // ------------ ENDDEB ------------ //
 
   // Setup the Wire.h library for I2C communication
@@ -255,18 +252,20 @@ void setup() {
 
   delay(250);
 
-  //manager.initLidar();
-  //Serial.println("LiDAR - OK");
+  manager.initLidar();
+  Serial.println("LiDAR - OK");
 
   delay(250);
 
   // Attach odometry interrupts
+
   attachInterrupt(manager.accessOdometry().getLeftPin(), leftTick, FALLING);
   attachInterrupt(manager.accessOdometry().getRightPin(), rightTick, FALLING);
+  
   Serial.println("Odometry ISRs - OK");
 
   // Attach collision system detection interrupt
-  //attachInterrupt(HCSR_STOP, collisionDetection, CHANGE); 
+  attachInterrupt(HCSR_STOP, collisionDetection, CHANGE); 
   Serial.println("HCSR ISR - OK");
 
   delay(250);

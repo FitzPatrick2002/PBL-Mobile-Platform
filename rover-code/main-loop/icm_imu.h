@@ -158,7 +158,7 @@ namespace ICM_IMU{
 
         /// @brief Reads biases from IMU and saves them in EEPROM under address == 0.
         ///        Use this to update the biases stored in EEPROM.
-        /// @returns True uf biases were read from EEPROM and loaded into IMU succesfully, false otherwise.
+        /// @returns True if biases were read from EEPROM and loaded into IMU succesfully, false otherwise.
         bool storeBiases();
 
         /// @brief Rests DMP and cleares FIFO, zeroes all biases.
@@ -170,6 +170,7 @@ namespace ICM_IMU{
         /// @brief Refreshes the value stored in #orientationQuat with the newest data.
         ///        IMUs FIFO queue is emptied and the last (newest element) is saved to #orientationQuat.
         void refresh();
+
         /// @brief Calculates the euler angles in 
         void getEulerAngles(EulerAngles& dest, bool refresh = true);
 

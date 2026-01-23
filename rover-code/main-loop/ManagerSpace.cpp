@@ -107,9 +107,30 @@ namespace ManagerSpace{
         Serial.println("Scanning");
 
         // Disable the ESP NOW for the duration of the scan and re-enable it after the scan
-        esp_now_unregister_recv_cb();
+        //esp_now_unregister_recv_cb();
+
+        // Disable wifi for the time of the scan
+        WiFi.disconnect();
+        WiFi.mode(WIFI_OFF);
+
         lidarScan();
-        esp_now_register_recv_cb(esp_now_recv_cb_t(EspNowCallback::OnDataRecv));
+
+        // Reconnect to wifi
+        WiFi.mode(WIFI_STA);
+        WiFi.begin();
+
+        while(WiFi.status() != WL_CONNECTED){
+          delay(500);
+          Serial.println(".");
+        }
+
+        if(esp_now_init() != ESP_OK){
+          Serial.println("Failed to re initiliaze the ESP NOW after LiDAR scan.");
+        }
+
+        // Reconnect toesp now
+
+        //esp_now_register_recv_cb(esp_now_recv_cb_t(EspNowCallback::OnDataRecv));
 
         // Scan is performed once
         // After its done, platform is back to STANDBY state
@@ -117,7 +138,7 @@ namespace ManagerSpace{
         // vTaskDelay(pdMS_TO_TICKS(50)); // Let the core 0 finish http transmission
 
         setState(ManagerState::UPLOADING); // For now just upload data right after the scan
-        delay(200);
+        //delay(200);
         
         EspNowCallback::tx_message.is_scanning=true;
         EspNowCallback::tx_message.status_text="Scanning";
@@ -129,7 +150,7 @@ namespace ManagerSpace{
         
         // After transmitting data to pc, platform switches to STANDBY state
         setState(ManagerState::STANDBY);
-        delay(200);
+        //delay(200);
 
         EspNowCallback::tx_message.is_scanning=false;
         EspNowCallback::tx_message.status_text="Uploading";
@@ -143,7 +164,17 @@ namespace ManagerSpace{
 
       case ManagerState::IMU_CALIBRATION:
         Serial.println("IMU is in calibration mode, do the dance!");
+
+        // Reset the bias values in the DMP processor of IMU
         imu.resetIMU();
+
+        // Delay for about 30 seconds needed to calibrate the IMU
+        //vTaskDelay(portTICK_PERIOD_MS(30000));
+        delay(30000); // This potentially may break a lot of things like lidar
+        imu.storeBiases();
+        delay(100);
+        //vTaskDelay(portTICK_PERIOD_MS(100));
+
       break;
 
       default:
@@ -224,7 +255,9 @@ namespace ManagerSpace{
 
         qMessage.x = odometer.getXpos();
         qMessage.y = odometer.getYpos();
+        portENTER_CRITICAL(&permanentStopSpinlock);
         qMessage.collision = permanentStop;
+        portEXIT_CRITICAL(&permanentStopSpinlock);
         qMessage.angle = orientation.yaw;
 
        // Serial.print("Angle loaded to message: ");
@@ -336,7 +369,12 @@ namespace ManagerSpace{
 
     // Allow movement only if the flag which indicates presence of an obstacle is not raised.
     // Disable movement otherwise.
-    if (permanentStop == false){
+    bool stop;
+    portENTER_CRITICAL(&permanentStopSpinlock);
+    stop = permanentStop;
+    portEXIT_CRITICAL(&permanentStopSpinlock);
+
+    if (stop == false){
       //engineController.applySteering(controllerMessage.x, controllerMessage.y);
       engineController.update();
      // Serial.println("Updating engines");
@@ -420,7 +458,9 @@ namespace ManagerSpace{
   // -------------- Getters & Setters -------------- //
 
   void Manager::setPermanentStop(bool state){
+    portENTER_CRITICAL(&permanentStopSpinlock);
     this->permanentStop = state;
+    portEXIT_CRITICAL(&permanentStopSpinlock);
   }
 
   void Manager::setControllerMessage(const EspNowCallback::Message& message){

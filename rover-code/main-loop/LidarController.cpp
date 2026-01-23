@@ -30,21 +30,6 @@ namespace Lidar{
       this->LidarSerial.begin(lidar->getSerialBaudRate(), SERIAL_8N1, gpio_rx, gpio_tx);
       delay(200);
 
-      // TO DO: exmplain what that is
-      this->LidarSerial.write("\xA5\x40", 2);
-      delay(1000);
-
-      // Power up the motor
-      pinMode(gpio_pwm, OUTPUT);
-      digitalWrite(gpio_pwm, HIGH);
-
-      delay(2000);
-
-      // Flush the serial buffer of the lidar
-      while(this->LidarSerial.available() > 0){
-        this->LidarSerial.read();
-      }
-
       // If initialization failed, return an error
       if(!LidarSerial){
         Serial.println("ERROR: LiDAR Serial failed to init.");

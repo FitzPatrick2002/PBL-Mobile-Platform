@@ -94,6 +94,7 @@ namespace Odometry{
     private:
         // Counts number of rotations of each encoder. [0] - left, [1] - right, looking from rear towards the front of the rover.
         portMUX_TYPE odometrySpinlock = portMUX_INITIALIZER_UNLOCKED; ///< Spinlock protecting #coder table from races.
+        
         volatile int16_t coder[2] = {0, 0};          ///< Counts rotations since last measurement.
         float totalDistance[3] = {0.0f, 0.0f, 0.0f}; ///< Total count of rotations of each wheel and the center point between them.
 

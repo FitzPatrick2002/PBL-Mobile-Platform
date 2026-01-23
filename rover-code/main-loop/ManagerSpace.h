@@ -49,6 +49,7 @@ namespace ManagerSpace{
 
     // -------------- HCSR Info -------------- //
 
+    portMUX_TYPE permanentStopSpinlock = portMUX_INITIALIZER_UNLOCKED;
     volatile bool permanentStop = false;        ///< Informs about the status 
 
   public:

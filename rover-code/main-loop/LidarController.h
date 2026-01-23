@@ -97,7 +97,7 @@ namespace Lidar{
         const uint32_t LIDAR_PWM_FREQ = 10000;         ///< PWM frequency.
         const uint32_t LIDAR_PWM_BITS = 11;            ///< Resolution of PWM signal. 
         const uint32_t LIDAR_PWM_CHANNEL = 2;          ///< PWM channel.
-        const uint32_t LIDAR_SERIAL_RX_BUF_LEN = 1024; ///< Size of the serial buffer 
+        const uint32_t LIDAR_SERIAL_RX_BUF_LEN = 2048; ///< Size of the serial buffer 
         const uint32_t HEX_DUMP_WIDTH = 16;            ///< Specifies how many hexadecimal numbers will be printed in the debug mode. 
 
         private:

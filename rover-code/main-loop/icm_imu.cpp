@@ -109,22 +109,22 @@ namespace ICM_IMU{
     void IMU::init(bool useDMP, int ad0_val, bool showDebug){
 
         if(showDebug)
-        imu.enableDebugging(Serial);
+            imu.enableDebugging(Serial);
 
         bool imuInitialized = false;
 
         while(!imuInitialized){
-        imu.begin(Wire, ad0_val);
+            imu.begin(Wire, ad0_val);
 
-        commStream.println("Initilization of IMU returned: ");
-        commStream.println(imu.statusString());
-        if(imu.status != ICM_20948_Stat_Ok){
-            commStream.println("IMU initialization failed. Trying again in 0.5s ...");
-            delay(500);
-        }
-        else{
-            imuInitialized = true;
-        }
+            commStream.println("Initilization of IMU returned: ");
+            commStream.println(imu.statusString());
+            if(imu.status != ICM_20948_Stat_Ok){
+                commStream.println("IMU initialization failed. Trying again in 0.5s ...");
+                delay(500);
+            }
+            else{
+                imuInitialized = true;
+            }
         }
 
         // Initially assume that initialization of DMP was successfull. 
@@ -155,7 +155,7 @@ namespace ICM_IMU{
         // Check the success
         // If operation wasn't succesfull, enter forever loop as the imu has not initialized properly
         if(DMPsuccess){
-        commStream.println("DMP - OK");
+            commStream.println("DMP - OK");
         }
         else{
             while (true){
@@ -285,20 +285,20 @@ namespace ICM_IMU{
         // Read all avaialable data from the queue iteratively and leave out only the most recent (last element)
         bool updated = false;
         while(imu.readDMPdataFromFIFO(&data) != ICM_20948_Stat_FIFONoDataAvail){
-        if((imu.status == ICM_20948_Stat_Ok) || (imu.status == ICM_20948_Stat_FIFOMoreDataAvail)){
-            // If the data is a quaternion, read it
-            if((data.header & DMP_header_bitmap_Quat9) > 0){
-            orientationQuat.q1 = ((float)data.Quat9.Data.Q1) / 1073741824.0;
-            orientationQuat.q2 = ((float)data.Quat9.Data.Q2) / 1073741824.0;
-            orientationQuat.q3 = ((float)data.Quat9.Data.Q3) / 1073741824.0;
-            updated = true;
+            if((imu.status == ICM_20948_Stat_Ok) || (imu.status == ICM_20948_Stat_FIFOMoreDataAvail)){
+                // If the data is a quaternion, read it
+                if((data.header & DMP_header_bitmap_Quat9) > 0){
+                    orientationQuat.q1 = ((float)data.Quat9.Data.Q1) / 1073741824.0;
+                    orientationQuat.q2 = ((float)data.Quat9.Data.Q2) / 1073741824.0;
+                    orientationQuat.q3 = ((float)data.Quat9.Data.Q3) / 1073741824.0;
+                    updated = true;
+                }
             }
-        }
         }
 
         // If data has been updated, calculate the q0 from q1, q2 and q3
         if(updated)
-        orientationQuat.updateQ0();
+            orientationQuat.updateQ0();
     }
 
     void IMU::getEulerAngles(EulerAngles& dest, bool refresh){

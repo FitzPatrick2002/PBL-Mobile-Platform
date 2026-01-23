@@ -164,15 +164,18 @@ namespace Odometry{
           //theta = theta + deltaTheta;
 
           // Resets the coders
+
           taskENTER_CRITICAL(&odometrySpinlock);
+
           // Save the total distance
           totalDistance[0] += coder[0];
           totalDistance[1] += coder[1];
-          totalDistance[2] += ((float)coder[0] + (float)coder[1]) / 2.0f; // If only one wheel is used 1/2 is rounded to 0.0 :(
+          totalDistance[2] += ((float)coder[0] + (float)coder[1]) / 2.0f; 
 
-          // Reset the distanc emeasurement
+          // Reset the distance emeasurement
           coder[0] = 0;
           coder[1] = 0;
+
           taskEXIT_CRITICAL(&odometrySpinlock);
 
           // Update the timer
