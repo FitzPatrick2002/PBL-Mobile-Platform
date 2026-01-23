@@ -1,0 +1,838 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>open3dApp.Visualization &mdash; Platforma_PBL_App 2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a6a68382" />
+      <link rel="stylesheet" type="text/css" href="../../_static/fonts.css?v=5583d106" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fc6fd62b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Platforma_PBL_App
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Packages</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../open3dApp.html">open3dApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">utils package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../FlaskServer.html">FlaskServer package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../QtApp.html">QtApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">main package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Platforma_PBL_App</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">open3dApp.Visualization</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for open3dApp.Visualization</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains open3d window with the current scanned session.</span>
+<span class="sd">It also provides methods of communication and callbacks.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os.path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">open3d</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">o3d</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.DataTypes</span><span class="w"> </span><span class="kn">import</span> <span class="n">LidarScan</span><span class="p">,</span> <span class="n">OdometryData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.FileManagement</span><span class="w"> </span><span class="kn">import</span> <span class="n">PCDSaver</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">utils.OperatingSystemCheck</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">open3dApp.downsampling.linux.Downsample_module</span><span class="w"> </span><span class="kn">import</span> <span class="n">DownsampleModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">open3dApp.downsampling.windows.Downsample</span><span class="w"> </span><span class="kn">import</span> <span class="n">DownsampleDefault</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">open3dApp.downsampling.MenuDialog</span><span class="w"> </span><span class="kn">import</span> <span class="n">MenuDialog</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">open3dApp.Barycentre.BarycentreAlgorithm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Barycentre</span> <span class="k">as</span> <span class="n">Barycentre</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="sd">&quot;&quot;&quot;Messages format</span>
+<span class="sd">    From flask server to o3d app:</span>
+
+<span class="sd">    Data of the new lidar scan</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &quot;lidar&quot;</span>
+<span class="sd">        payload: LidarScan</span>
+<span class="sd">    }</span>
+
+<span class="sd">    Stores info about the odometry which needs to be appended</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &quot;odometry&quot;</span>
+<span class="sd">        payload: OdometryData</span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    Stores the name of session to which we need to switch</span>
+<span class="sd">    {</span>
+<span class="sd">        type: &quot;session&quot;</span>
+<span class="sd">        name: str</span>
+<span class="sd">    }</span>
+<span class="sd">    </span>
+<span class="sd">    From o3d app to flask server:</span>
+<span class="sd">    </span>
+<span class="sd">    Specifies the names of existing sessions during application startup</span>
+<span class="sd">    {</span>
+<span class="sd">        type : &quot;sessions-config&quot;,</span>
+<span class="sd">        names : list[str]</span>
+<span class="sd">    }</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="VisualizationApp">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">VisualizationApp</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Visualizes point clouds and other geometries.</span>
+<span class="sd">        Provides a running open3d application, which communicates with other processes via a Queue.</span>
+<span class="sd">        Should be run on a different thread.</span>
+<span class="sd">        Accepts LidarScan &amp; OdometryData objects from the queue and displays them in the scene.</span>
+
+<span class="sd">    Important arguments:</span>
+<span class="sd">        _id -- ID of a geometry in the scene.</span>
+<span class="sd">                Each geometry has a name (point clouds names start with &#39;pcd_&#39;)</span>
+<span class="sd">                which ends with a unique ID.</span>
+<span class="sd">                Adding a new geometry increments this index,</span>
+<span class="sd">        _queue -- Queue from the Multiprocessing module.</span>
+<span class="sd">                   It is used to accept data from other processes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constants which index the menu states.&quot;&quot;&quot;</span>
+    <span class="n">DOWNSAMPLE</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">BARYCENTRE</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">MENU_RANDOM</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">MENU_COORD_FRAME</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">MENU_REF_PLANE</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">MENU_HEIGHT_MAP</span> <span class="o">=</span> <span class="mi">6</span>
+    <span class="n">MENU_QUIT</span> <span class="o">=</span> <span class="mi">7</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Constants which specify pcds which are always present on the scene (or at least always exist).&quot;&quot;&quot;</span>
+    <span class="n">SCENE_LIDAR_PCD</span> <span class="o">=</span> <span class="s2">&quot;lidar&quot;</span>
+    <span class="n">SCENE_ODOMETRY_PCD</span> <span class="o">=</span> <span class="s2">&quot;odometry&quot;</span>
+
+<div class="viewcode-block" id="VisualizationApp.__init__">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">queue</span> <span class="p">:</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">,</span> <span class="n">o3d_to_f</span> <span class="p">:</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Queue</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds necessary features to the gui.Application instance.</span>
+<span class="sd">            Initializes the menu, menu callbacks and callbacks which handle communication</span>
+<span class="sd">            with other processes.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            queue -- Queue used to communicate with different processes.</span>
+<span class="sd">                      Accepts LidarScan &amp; OdometryData objects, other are discarded,</span>
+<span class="sd">            o3d_to_f -- Queue used to communicate with the Flask server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup the queue, which communicates with the server.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span> <span class="o">=</span> <span class="n">queue</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_downsample_dialog</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup the queue which sends data from o3d app to flask server.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_o3d_to_f</span> <span class="o">=</span> <span class="n">o3d_to_f</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates the window and adds the scene widget (basically are where we can draw stuff)</span>
+<span class="sd">            Widget stores the real 3D scene,</span>
+<span class="sd">            Window title based on the Operating system,</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">window_title</span> <span class="o">=</span> <span class="s2">&quot;Scan Visualization on &quot;</span> <span class="o">+</span> <span class="n">utils</span><span class="o">.</span><span class="n">OperatingSystemCheck</span><span class="o">.</span><span class="n">OS_SYSTEM</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">create_window</span><span class="p">(</span><span class="n">window_title</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">768</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">SceneWidget</span><span class="p">()</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the scene properties,</span>
+<span class="sd">            The renderer specifies which window will render it?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">rendering</span><span class="o">.</span><span class="n">Open3DScene</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">renderer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">set_background</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        1st argument -- Direction,</span>
+<span class="sd">        2nd argument -- Color,</span>
+<span class="sd">        3rd argument -- Intensity</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">set_sun_light</span><span class="p">(</span>
+            <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+            <span class="mi">1000000</span>
+        <span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup the camera (camera is bound with the SceneWidget I guess?)&quot;&quot;&quot;</span>
+        <span class="n">bbox</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">AxisAlignedBoundingBox</span><span class="p">([</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span><span class="o">-</span><span class="mi">10</span><span class="p">],</span>
+                                                   <span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">setup_camera</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the scene widget as child of the main window.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">add_child</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; If there is no menubar, add it</span>
+<span class="sd">            Menubar seems to be bound to the application instance rather to a widget</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">menubar</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">options_menu</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Menu</span><span class="p">()</span>
+            <span class="n">options_menu</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s2">&quot;Downsample&quot;</span><span class="p">,</span> <span class="n">VisualizationApp</span><span class="o">.</span><span class="n">DOWNSAMPLE</span><span class="p">)</span>
+            <span class="n">options_menu</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s2">&quot;Barycentre&quot;</span><span class="p">,</span> <span class="n">VisualizationApp</span><span class="o">.</span><span class="n">BARYCENTRE</span><span class="p">)</span>
+            <span class="n">options_menu</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s2">&quot;Coordinate frame&quot;</span><span class="p">,</span> <span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_COORD_FRAME</span><span class="p">)</span>
+            <span class="n">options_menu</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s2">&quot;Ground plane &amp; sky&quot;</span><span class="p">,</span> <span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_REF_PLANE</span><span class="p">)</span>
+            <span class="n">options_menu</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s2">&quot;Height Map&quot;</span><span class="p">,</span> <span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_HEIGHT_MAP</span><span class="p">)</span>
+            <span class="n">options_menu</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s2">&quot;Quit&quot;</span><span class="p">,</span> <span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_QUIT</span><span class="p">)</span>
+
+            <span class="n">debug_menu</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Menu</span><span class="p">()</span>
+            <span class="n">debug_menu</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s2">&quot;Add Random PCD&quot;</span><span class="p">,</span> <span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_RANDOM</span><span class="p">)</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Add the instance of menu to the application.&quot;&quot;&quot;</span>
+            <span class="n">menu</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Menu</span><span class="p">()</span>
+            <span class="n">menu</span><span class="o">.</span><span class="n">add_menu</span><span class="p">(</span><span class="s2">&quot;Options&quot;</span><span class="p">,</span> <span class="n">options_menu</span><span class="p">)</span>
+            <span class="n">menu</span><span class="o">.</span><span class="n">add_menu</span><span class="p">(</span><span class="s2">&quot;Debug&quot;</span><span class="p">,</span> <span class="n">debug_menu</span><span class="p">)</span>
+            <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">menubar</span> <span class="o">=</span> <span class="n">menu</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callbacks for the menubar.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">set_on_menu_item_activated</span><span class="p">(</span><span class="n">VisualizationApp</span><span class="o">.</span><span class="n">DOWNSAMPLE</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">_downsample_window</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">set_on_menu_item_activated</span><span class="p">(</span><span class="n">VisualizationApp</span><span class="o">.</span><span class="n">BARYCENTRE</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">_barycentre_window</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">set_on_menu_item_activated</span><span class="p">(</span><span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_RANDOM</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">_on_menu_random</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">set_on_menu_item_activated</span><span class="p">(</span><span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_COORD_FRAME</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">_show_coordinate_frame</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">set_on_menu_item_activated</span><span class="p">(</span><span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_REF_PLANE</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">_toggle_reference_plane</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">set_on_menu_item_activated</span><span class="p">(</span><span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_HEIGHT_MAP</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">_toggle_height_map</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">set_on_menu_item_activated</span><span class="p">(</span><span class="n">VisualizationApp</span><span class="o">.</span><span class="n">MENU_QUIT</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">_on_menu_quit</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup callback for the tick event (run every frame).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">set_on_tick_event</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_monitor_server</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiate the file saving system.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sessions_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span> <span class="o">/</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;sessions&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span> <span class="o">=</span> <span class="n">PCDSaver</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sessions_path</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Send info about existing sessions to flask,</span>
+<span class="sd">            Flask will propagate this info to the qt app which needs it.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">existing_sessions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">get_sessions</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Sending existing sessions: </span><span class="si">{</span><span class="n">existing_sessions</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_o3d_to_f</span><span class="o">.</span><span class="n">put</span><span class="p">({</span>
+            <span class="s2">&quot;type&quot;</span> <span class="p">:</span> <span class="s2">&quot;sessions-config&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;names&quot;</span> <span class="p">:</span> <span class="n">existing_sessions</span>
+        <span class="p">})</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;By default disable the ground plan.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_show_ground</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;By default don&#39;t show the reference frame arrows.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_frame_visible</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List of geometries stores all the names of added geometries.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Init the 2 basic point clouds in the scene.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">SCENE_LIDAR_PCD</span><span class="p">]</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">SCENE_ODOMETRY_PCD</span><span class="p">]</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">()</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;By default disable the height map.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_height_map_on</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; ------------ MENU CALLBACKS ------------ &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="VisualizationApp._downsample">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._downsample">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_downsample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">percent</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the temporary csv files paths of this session,</span>
+<span class="sd">            If they don&#39;t exist, they will be created.</span>
+
+<span class="sd">            Keyword arguments:</span>
+<span class="sd">                mode -- mode of operation for the downsampling algoritm.</span>
+<span class="sd">                        0 - x percentage of lines will be filtered out.</span>
+<span class="sd">                        1 - per x lines of scan will be fitered out.</span>
+<span class="sd">                        2 - per x lines of scan will be kept.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">source_csv</span><span class="p">,</span> <span class="n">target_csv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">get_downsampling_files</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _downsample(): Csv files paths: </span><span class="si">{</span><span class="n">source_csv</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">target_csv</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Closing in the main thread.&quot;&quot;&quot;</span>
+        <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">post_to_main_thread</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">close_dialog</span><span class="p">()</span> <span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _downsample(): post_to_main_htrad done&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span><span class="p">(</span><span class="n">mode</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="ow">and</span> <span class="n">lines</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="n">mode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">utils</span><span class="o">.</span><span class="n">OperatingSystemCheck</span><span class="o">.</span><span class="n">OS_SYSTEM</span> <span class="o">==</span> <span class="s1">&#39;Linux&#39;</span><span class="p">:</span>
+                <span class="n">Linux_downsample</span> <span class="o">=</span> <span class="n">DownsampleModule</span><span class="p">()</span>
+                <span class="n">Linux_downsample</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">percent</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">source_csv</span><span class="o">.</span><span class="n">absolute</span><span class="p">()),</span><span class="nb">str</span><span class="p">(</span><span class="n">target_csv</span><span class="o">.</span><span class="n">absolute</span><span class="p">()))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">Windows_downsample</span> <span class="o">=</span> <span class="n">DownsampleDefault</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _downsample(): Window started&quot;</span><span class="p">)</span>
+                <span class="n">Windows_downsample</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">mode</span><span class="p">,</span> <span class="n">percent</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">source_csv</span><span class="o">.</span><span class="n">absolute</span><span class="p">()),</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_csv</span><span class="o">.</span><span class="n">absolute</span><span class="p">()))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _downsample(): Downsampling done&quot;</span><span class="p">)</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Then take that output from the temp path and transform it into a new session.&quot;&quot;&quot;</span>
+
+        <span class="c1">#time.sleep(3)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Overwrite the current combined.npy, add as history file as well.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">apply_downsampling_changes</span><span class="p">()</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Force redraw of the whole scene by reloading the session.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reload_session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">get_dirs</span><span class="p">()[</span><span class="s2">&quot;working&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove the unnecessary temporary files.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">clear_temp_dir</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _downsample(): Downsampling done&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._downsample_window">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._downsample_window">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_downsample_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Run a seperate window collecting all necessary args.&quot;&quot;&quot;</span>
+        <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">post_to_main_thread</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">MenuDialog</span><span class="p">(</span><span class="n">parent_window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_downsample</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._barycentre_callback">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._barycentre_callback">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_barycentre_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Closing in the main thread.&quot;&quot;&quot;</span>
+        <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">post_to_main_thread</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">close_dialog</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._barycentre_window">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._barycentre_window">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_barycentre_window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create the temporary csv files (we can use the downsampling files for now).&quot;&quot;&quot;</span>
+        <span class="n">source_csv</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">get_downsampling_files</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d _barycentre_window(): Barycenter calculation temporary files created&quot;</span><span class="p">)</span>
+
+        <span class="n">barycentre_dialog</span> <span class="o">=</span> <span class="n">Barycentre</span><span class="p">()</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">barycenter_dialog_callback</span><span class="p">():</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Handles the dialog action and closing.&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_barycentre_callback</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: barycenter_dialog_callback(): window handled&quot;</span><span class="p">)</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Retrieves barycenter data and adds it as geometry to the scene &amp; </span>
+<span class="sd">                stores in the self._scene_pcds.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">barycenter_pcd</span> <span class="o">=</span> <span class="n">barycentre_dialog</span><span class="o">.</span><span class="n">get_barycenter_as_pcd</span><span class="p">()</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: barycenter_dialog_callback(): PCD retrieved&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_pcd</span><span class="p">(</span><span class="n">pcd</span><span class="o">=</span><span class="n">barycenter_pcd</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;barycenter&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: barycenter_dialog_callback(): PCD added&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">clear_temp_dir</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: barycenter_dialog_callback(): Temporary files cleaned&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add input.&quot;&quot;&quot;</span>
+        <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">post_to_main_thread</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">barycentre_dialog</span><span class="o">.</span><span class="n">_calculate_barycentre</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">source_csv</span><span class="p">),</span>
+                                                            <span class="n">parent_window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span>
+                                                            <span class="n">callback</span><span class="o">=</span><span class="n">barycenter_dialog_callback</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._on_menu_random">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._on_menu_random">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_on_menu_random</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback for menu, which adds random point cloud to the scene.</span>
+<span class="sd">            Adds some randomly generated points in the space</span>
+<span class="sd">            self._id += 1</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate point cloud within values [-10, 10].&quot;&quot;&quot;</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="mf">20.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">)</span> <span class="o">-</span> <span class="mf">10.0</span>
+        <span class="n">new_pcd</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">()</span>
+        <span class="n">new_pcd</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">utility</span><span class="o">.</span><span class="n">Vector3dVector</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate material.&quot;&quot;&quot;</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">rendering</span><span class="o">.</span><span class="n">MaterialRecord</span><span class="p">()</span>
+        <span class="n">mat</span><span class="o">.</span><span class="n">base_color</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+            <span class="mf">1.0</span>
+        <span class="p">]</span>
+        <span class="n">mat</span><span class="o">.</span><span class="n">point_size</span> <span class="o">=</span> <span class="mf">5.0</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the new geometry to the scene.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">add_geometry</span><span class="p">(</span><span class="s2">&quot;pcd&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">),</span> <span class="n">new_pcd</span><span class="p">,</span> <span class="n">mat</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._on_menu_quit">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._on_menu_quit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_on_menu_quit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Menu callback which stops the application.&quot;&quot;&quot;</span>
+        <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">gui</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">instance</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._show_coordinate_frame">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._show_coordinate_frame">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_show_coordinate_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds the arrows for axes x, y, z.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_frame_visible</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ref_frame_visible</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">show_axes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ref_frame_visible</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If there is no reference frame in the scene, add it.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">has_geometry</span><span class="p">(</span><span class="s2">&quot;reference-frame-arrows&quot;</span><span class="p">):</span>
+            <span class="n">coordinate_frame</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">TriangleMesh</span><span class="o">.</span><span class="n">create_coordinate_frame</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">rendering</span><span class="o">.</span><span class="n">MaterialRecord</span><span class="p">()</span>
+            <span class="n">mat</span><span class="o">.</span><span class="n">base_color</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="mf">1.0</span><span class="p">,</span>
+                <span class="mf">1.0</span><span class="p">,</span>
+                <span class="mf">1.0</span><span class="p">,</span>
+                <span class="mf">1.0</span>
+            <span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">add_geometry</span><span class="p">(</span><span class="s2">&quot;reference-frame-arrows&quot;</span><span class="p">,</span> <span class="n">coordinate_frame</span><span class="p">,</span> <span class="n">mat</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">has_geometry</span><span class="p">(</span><span class="s2">&quot;reference-frame-arrows&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">remove_geometry</span><span class="p">(</span><span class="s2">&quot;reference-frame-arrows&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._toggle_reference_plane">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._toggle_reference_plane">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_toggle_reference_plane</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Toggles the ground plane and the skybox.&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_show_ground</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_show_ground</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">show_ground_plane</span><span class="p">(</span><span class="n">enable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_show_ground</span><span class="p">,</span> <span class="n">plane</span><span class="o">=</span><span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">rendering</span><span class="o">.</span><span class="n">Scene</span><span class="o">.</span><span class="n">GroundPlane</span><span class="o">.</span><span class="n">XY</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">show_skybox</span><span class="p">(</span><span class="n">enable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_show_ground</span><span class="p">)</span>
+
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If plane does not exist, create it.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">has_geometry</span><span class="p">(</span><span class="s2">&quot;ref-plane&quot;</span><span class="p">):</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Specify the bounds of the bounding box.&quot;&quot;&quot;</span>
+            <span class="n">ref_plane</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">TriangleMesh</span><span class="p">()</span><span class="o">.</span><span class="n">create_box</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">translation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">500</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="n">ref_plane</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">translation</span><span class="p">)</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Calculate the normals for the shader.&quot;&quot;&quot;</span>
+            <span class="c1">#ref_plane.compute_vertex_normals()</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Create the material for the plane and set shader.&quot;&quot;&quot;</span>
+            <span class="n">mat</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">rendering</span><span class="o">.</span><span class="n">MaterialRecord</span><span class="p">()</span>
+            <span class="c1">#mat.shader = &quot;defaultLitTransparency&quot;</span>
+            <span class="n">mat</span><span class="o">.</span><span class="n">base_color</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="mf">0.2</span><span class="p">,</span>
+                <span class="mf">0.2</span><span class="p">,</span>
+                <span class="mf">0.2</span><span class="p">,</span>
+                <span class="mf">0.1</span>
+            <span class="p">]</span>
+            <span class="n">mat</span><span class="o">.</span><span class="n">has_alpha</span><span class="o">=</span><span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">add_geometry</span><span class="p">(</span><span class="s2">&quot;ref-plane&quot;</span><span class="p">,</span> <span class="n">ref_plane</span><span class="p">,</span> <span class="n">mat</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;If it does exist, remove it.&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">remove_geometry</span><span class="p">(</span><span class="s2">&quot;ref-plane&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._toggle_height_map">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._toggle_height_map">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_toggle_height_map</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Colors all points on the scene according to their z (height) value.</span>
+<span class="sd">            Does not preserve the original colouring.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If height map is not enabled, enable it.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_height_map_on</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Enable the height map.&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_height_map_on</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Find all z-values for all points.&quot;&quot;&quot;</span>
+            <span class="n">all_z_values</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">pcd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pcd</span><span class="o">.</span><span class="n">points</span><span class="p">)</span>
+                <span class="n">all_z_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">points</span><span class="p">[</span> <span class="p">:</span> <span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Find min and max z-values.&quot;&quot;&quot;</span>
+            <span class="n">all_z_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">all_z_values</span><span class="p">)</span>
+            <span class="n">max_z</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">all_z_values</span><span class="p">)</span>
+            <span class="n">min_z</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">all_z_values</span><span class="p">)</span>
+            <span class="n">span_z</span> <span class="o">=</span> <span class="n">max_z</span> <span class="o">-</span> <span class="n">min_z</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Get the color map and paint the points.&quot;&quot;&quot;</span>
+            <span class="n">colormap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s2">&quot;viridis&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pcd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Calculate the normalized value of z each point.&quot;&quot;&quot;</span>
+                <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pcd</span><span class="o">.</span><span class="n">points</span><span class="p">)</span>
+                <span class="n">normalized_z</span> <span class="o">=</span> <span class="p">(</span><span class="n">points</span><span class="p">[</span> <span class="p">:</span> <span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">min_z</span><span class="p">)</span> <span class="o">/</span> <span class="n">span_z</span>
+
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Map the colors and apply them to pcd points.&quot;&quot;&quot;</span>
+                <span class="n">color_values</span> <span class="o">=</span> <span class="n">colormap</span><span class="p">(</span><span class="n">normalized_z</span><span class="p">)[:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+                <span class="n">pcd</span><span class="o">.</span><span class="n">colors</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">utility</span><span class="o">.</span><span class="n">Vector3dVector</span><span class="p">(</span><span class="n">color_values</span><span class="p">)</span>
+
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Define the material for the pcd.&quot;&quot;&quot;</span>
+                <span class="n">mat</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">rendering</span><span class="o">.</span><span class="n">MaterialRecord</span><span class="p">()</span>
+                <span class="n">mat</span><span class="o">.</span><span class="n">point_size</span> <span class="o">=</span> <span class="mf">5.0</span>
+
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Remove the geometry from the scene and add it back.&quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">remove_geometry</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">add_geometry</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pcd</span><span class="p">,</span> <span class="n">mat</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;If height map is already enabled, switch it off.&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_height_map_on</span> <span class="o">=</span> <span class="kc">False</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Recolor all points to random colors.&quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pcd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Remove colors from the pcd.&quot;&quot;&quot;</span>
+                <span class="n">pcd</span><span class="o">.</span><span class="n">colors</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">utility</span><span class="o">.</span><span class="n">Vector3dVector</span><span class="p">([])</span>
+
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Create the new material for the pcs.&quot;&quot;&quot;</span>
+                <span class="n">mat</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">rendering</span><span class="o">.</span><span class="n">MaterialRecord</span><span class="p">()</span>
+                <span class="n">mat</span><span class="o">.</span><span class="n">point_size</span> <span class="o">=</span> <span class="mf">5.0</span>
+                <span class="n">mat</span><span class="o">.</span><span class="n">base_color</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+                    <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+                    <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+                    <span class="mf">1.0</span>
+                <span class="p">]</span>
+
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Remove and add the pcd with a new color.&quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">remove_geometry</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">add_geometry</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pcd</span><span class="p">,</span> <span class="n">mat</span><span class="p">)</span></div>
+
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; ------------ PCD ADDING ------------ &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="VisualizationApp._interpret_message">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._interpret_message">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_interpret_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span> <span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Interprets message received from the server.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: Received a message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">match</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]:</span>
+            <span class="k">case</span> <span class="s2">&quot;lidar&quot;</span><span class="p">:</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Process new pcd, add it to the scene and save it in the session files.&quot;&quot;&quot;</span>
+
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Process the payload and turn it into a pcd.&quot;&quot;&quot;</span>
+                <span class="n">new_pcd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lidar_to_pcd</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s2">&quot;payload&quot;</span><span class="p">])</span>
+
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Add the pcd to the scene and save it in sessions files.&quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_add_pcd</span><span class="p">(</span><span class="n">pcd</span><span class="o">=</span><span class="n">new_pcd</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SCENE_LIDAR_PCD</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">add_record</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">new_pcd</span><span class="o">.</span><span class="n">points</span><span class="p">))</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Visualization received lidar data&quot;</span><span class="p">)</span>
+
+            <span class="k">case</span> <span class="s2">&quot;odometry&quot;</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s2">&quot;payload&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">payload</span><span class="p">)</span>
+                <span class="n">odometry_pcd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_odometry_to_pcd</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s2">&quot;payload&quot;</span><span class="p">])</span>
+
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Add the new odometry data as a pcd to the scene and append to path.npy of the current session.&quot;&quot;&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_add_pcd</span><span class="p">(</span><span class="n">pcd</span><span class="o">=</span><span class="n">odometry_pcd</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SCENE_ODOMETRY_PCD</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">update_position</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">odometry_pcd</span><span class="o">.</span><span class="n">points</span><span class="p">))</span>
+
+            <span class="k">case</span> <span class="s2">&quot;session&quot;</span><span class="p">:</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;Clear the scene and change currently selected session folder.</span>
+<span class="sd">                    Load the selected session data into the scene,</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: Reloading session with message: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_reload_session</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Session has been switched&quot;</span><span class="p">)</span>
+                <span class="n">contents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">get_dirs</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Session structure: </span><span class="si">{</span><span class="n">contents</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">case</span><span class="w"> </span><span class="k">_</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Visualization app received message of unknown type: </span><span class="si">{</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._reload_session">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._reload_session">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reload_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the scene and resets the self._scene_pcds dictionary.</span>
+<span class="sd">            Creates new session or selects an existing one.</span>
+<span class="sd">            Loads the &#39;combined&#39; file of the selected session into the scene with name self.SCENE_LIDAR_PCD.</span>
+
+<span class="sd">        Keyword argument:</span>
+<span class="sd">            name -- Name of the session.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Switch to different session.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">start_session</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _reload_session(): Session started: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear the scene &amp; reset the dictionary of stored pcds.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">clear_geometry</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">SCENE_LIDAR_PCD</span><span class="p">]</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">SCENE_ODOMETRY_PCD</span><span class="p">]</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _reload_session(): Geometry cleared &amp; dict resetted&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare empty pcd for the combined data.&quot;&quot;&quot;</span>
+        <span class="n">combined_pcd</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;o3d: _reload_session(): placeholder for combined pcd created&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Download data from the current session &#39;combined&#39; file.&quot;&quot;&quot;</span>
+        <span class="n">combined_arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">get_combined</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _reload_session(): Combined read from the file: </span><span class="si">{</span><span class="n">combined_arr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert the combined to point cloud.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">combined_arr</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _reload_session(): Adding points to pcd &quot;</span><span class="p">)</span>
+            <span class="n">combined_pcd</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">utility</span><span class="o">.</span><span class="n">Vector3dVector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pcd_saver</span><span class="o">.</span><span class="n">get_combined</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _reload_session(): combined file is empty, scene is loaded as empty after session switch&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;o3d: _reload_session(): Reloading done, resetting the pcd.&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the pcd to the scene.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_pcd</span><span class="p">(</span><span class="n">pcd</span><span class="o">=</span><span class="n">combined_pcd</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">SCENE_LIDAR_PCD</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._monitor_server">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._monitor_server">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_monitor_server</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Monitors the state of the queue.</span>
+<span class="sd">            If new data is received, process it.</span>
+<span class="sd">            If its is an instance of LidarData or OdometryData, accept it and display on the scene.</span>
+<span class="sd">            Other data is discarded.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True  -- when data from the queue has been accepted.</span>
+<span class="sd">                        Scene is then redrawn with new content.</span>
+<span class="sd">            False -- otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Get data if there is any in the queue.&quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+<span class="w">                </span><span class="sd">&quot;&quot;&quot;If there is no data in the queue, don&#39;t wait for it.&quot;&quot;&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;o3d: trying to get message from queue&quot;</span><span class="p">)</span>
+                <span class="n">new_message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span> <span class="c1">#.get(False)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: message intercepted: </span><span class="si">{</span><span class="n">new_message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_interpret_message</span><span class="p">(</span><span class="n">new_message</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Something went wrong in _monitor_server(): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._add_pcd">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._add_pcd">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_add_pcd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pcd</span> <span class="p">:</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">,</span> <span class="n">name</span> <span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">color</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds / appends a new pcd to the scene.</span>
+<span class="sd">            If name does not exist in the #_scene_pcds dict then a new entry will be created.</span>
+<span class="sd">            Otherwise, the new pcd will be appended to the specified point cloud and displayed in the scene.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            pcd -- Correctly processed pcd, oriented in the right coordinate frame.</span>
+<span class="sd">            name -- Specifies to which pcd in the #_scene_pcds will the new pcd be appended.</span>
+<span class="sd">            color -- List of colours.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _add_pcd(): Starting function&quot;</span><span class="p">)</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">visualization</span><span class="o">.</span><span class="n">rendering</span><span class="o">.</span><span class="n">MaterialRecord</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mat</span><span class="o">.</span><span class="n">base_color</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+                <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+                <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(),</span>
+                <span class="mf">1.0</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">color</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">mat</span><span class="o">.</span><span class="n">base_color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="n">mat</span><span class="o">.</span><span class="n">point_size</span> <span class="o">=</span> <span class="mf">5.0</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _add_pcd(): Material created&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Append new data to existing pcd,</span>
+<span class="sd">            Or create a new entry.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="n">pcd</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _add_pcd(): pcd appended to </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">pcd</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _add_pcd(): new pcd </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> created in the _scene_pcds dict&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove pcd from the scene.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">remove_geometry</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _add_pcd(): pcd </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> removed form the scene&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add it back to the scene.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">scene</span><span class="o">.</span><span class="n">add_geometry</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scene_pcds</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">mat</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _add_pcd(): pcd </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> added back to the scene&quot;</span><span class="p">)</span></div>
+
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; ------------ PCD OPERATIONS ------------ &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="VisualizationApp._lidar_to_pcd">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._lidar_to_pcd">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_lidar_to_pcd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lidar_data</span> <span class="p">:</span> <span class="n">LidarScan</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Accepts a LidarData object and turns it into a PointCloud.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            lidar_data -- Lidar data to be processed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Lidar data -- PointCloud in cartesian coordinate frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;1. Include bearing in the phi angle,</span>
+<span class="sd">            2. Convert spherical to cartesian coordinates,</span>
+<span class="sd">            3. Account for the current platform position,</span>
+<span class="sd">            4. Convert to PCD,</span>
+<span class="sd">    </span>
+<span class="sd">            2. Convert from spherical to cartesian.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">polar_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lidar_data</span><span class="o">.</span><span class="n">payload</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert from mm to m.&quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">polar_data</span><span class="p">[</span> <span class="p">:</span> <span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="mi">100</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">polar_data</span><span class="p">[</span> <span class="p">:</span> <span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="mf">3.14</span> <span class="o">/</span> <span class="mf">180.0</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">polar_data</span><span class="p">[</span> <span class="p">:</span> <span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="mf">3.14</span> <span class="o">/</span> <span class="mf">180.0</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="c1">#r * cos(phi) * sin(theta)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">phi</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="c1">#r * sin(phi) * sin(theta)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span> <span class="c1">#r * cos(theta)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;x: </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;y: </span><span class="si">{</span><span class="n">y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;z: </span><span class="si">{</span><span class="n">z</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;3. Account for scan position.&quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">lidar_data</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">x</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">lidar_data</span><span class="o">.</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">y</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert into a list of points [[x0, y0, z0], ...]&quot;&quot;&quot;</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;4. Convert to PCD.&quot;&quot;&quot;</span>
+        <span class="n">new_pcd</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">()</span>
+        <span class="n">new_pcd</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">utility</span><span class="o">.</span><span class="n">Vector3dVector</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_pcd</span></div>
+
+
+<div class="viewcode-block" id="VisualizationApp._odometry_to_pcd">
+<a class="viewcode-back" href="../../open3dApp.html#open3dApp.Visualization.VisualizationApp._odometry_to_pcd">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_odometry_to_pcd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">odometry_data</span> <span class="p">:</span> <span class="n">OdometryData</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts the OdometryData object into a 3D pcd.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            odometry_data -- OdometryData object. Data should be only in 2D format.</span>
+<span class="sd">                            (List of [x0, y0, x1, y0, ...])</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Odometry readings converted to o3d format, represented as PointCloud object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List of floats [x0, y0, x1, y1]&quot;&quot;&quot;</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">odometry_data</span><span class="o">.</span><span class="n">payload</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _odometry_to_pcd(): Converted odometry points: </span><span class="si">{</span><span class="n">points</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; Convert the flat list into ndarray of shape (N, 2)</span>
+<span class="sd">            and add z = 0 to each pair, making the shape (N, 3).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">np_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">points</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">np_points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">np_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">np_points</span><span class="p">,</span> <span class="n">zeros</span><span class="p">))</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create the pcd and return it.&quot;&quot;&quot;</span>
+        <span class="n">odometry_pcd</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">PointCloud</span><span class="p">()</span>
+        <span class="n">odometry_pcd</span><span class="o">.</span><span class="n">points</span> <span class="o">=</span> <span class="n">o3d</span><span class="o">.</span><span class="n">utility</span><span class="o">.</span><span class="n">Vector3dVector</span><span class="p">(</span><span class="n">np_points</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;o3d: _odometry_to_pcd(): Odometry conversion to pcd ok&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">odometry_pcd</span></div>
+</div>
+
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">def main():</span>
+<span class="sd">    &quot;&quot;&quot;Init the application.&quot;&quot;&quot;</span>
+<span class="sd">    o3d.visualization.gui.Application.instance.initialize()</span>
+<span class="sd">    &quot;&quot;&quot;Constructor of SpheresApp adds stuff to the application.&quot;&quot;&quot;</span>
+<span class="sd">    VisualizationApp()</span>
+<span class="sd">    &quot;&quot;&quot;Run the o3d app.&quot;&quot;&quot;</span>
+<span class="sd">    o3d.visualization.gui.Application.instance.run()</span>
+
+<span class="sd">if __name__ == &quot;__main__&quot;:</span>
+<span class="sd">    main()</span>
+<span class="sd">&#39;&#39;&#39;</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Miłosz Liniewiecki, Magdalena Rąpała, Jakub Gomola, Michał Świątczak.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

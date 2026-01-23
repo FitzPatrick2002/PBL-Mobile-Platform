@@ -39,7 +39,7 @@ class DownsampleDefault:
 
     def _downsampling_line(self):
         """Performs the downsampling algorithm for the number of lines.
-        Regardless of mode:
+            Regardless of mode:
             1 - x line is ignored,
             2 - x line is kept.
         """

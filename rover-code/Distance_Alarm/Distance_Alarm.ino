@@ -1,7 +1,7 @@
 /// @file Distance_Alarm.ino
 /// @brief Controlls two ultrasonic sensors and an LED, setting up the trigger pins via .S code.
-#define echo_uno 0
-#define trigger_uno 1
+#define echo_uno 1
+#define trigger_uno 0
 #define echo_dos 2 
 #define trigger_dos 3
 #define led_uno 6 // changed from 5
@@ -13,7 +13,7 @@ float duration_uno, distance_uno;
 float duration_dos, distance_dos;
 
 /// @brief Constant, alert the LED when the calculated distance is less than this value.
-float ALARM_DISTANCE = 15.0;
+float ALARM_DISTANCE = 10.0;
 
 /// @brief Externing functions from the Distance_Alarm.S file.
 extern "C"{

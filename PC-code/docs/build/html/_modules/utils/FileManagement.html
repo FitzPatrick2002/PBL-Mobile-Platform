@@ -1,0 +1,508 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>utils.FileManagement &mdash; Platforma_PBL_App 2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/custom.css?v=a6a68382" />
+      <link rel="stylesheet" type="text/css" href="../../_static/fonts.css?v=5583d106" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=fc6fd62b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Platforma_PBL_App
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Packages</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../open3dApp.html">open3dApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">utils package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../FlaskServer.html">FlaskServer package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../QtApp.html">QtApp package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../main.html">main package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Platforma_PBL_App</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">utils.FileManagement</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for utils.FileManagement</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the PCDSaver utility class managing the scan sessions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span>
+
+<div class="viewcode-block" id="PCDSaver">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PCDSaver</span><span class="p">:</span>
+<div class="viewcode-block" id="PCDSaver.__init__">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span> <span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiates the PCDSaver class meant to store the scan sessions.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            Root -- The root directory where data from driving sessions is saved.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span> <span class="o">=</span> <span class="n">root</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">root</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Path </span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2"> is not directory. Root dir for PcdSaver set to empty string.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_working_dir -- Current working directory within the _root_dir. (path to folder session-N)&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_history_records_no -- Number of records in the history folder of the current working directory.</span>
+<span class="sd">                                        If no directory is selected its zero.</span>
+<span class="sd">                                        Updated every time working directory is selected.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_history_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_combined_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of history records.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_history_records_no</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+    <span class="c1"># -------------------- Start / End Session -------------------- #</span>
+
+<div class="viewcode-block" id="PCDSaver.start_session">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.start_session">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">start_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new folder where data from current session will be stored.</span>
+<span class="sd">            Session folder structure looks as such:</span>
+<span class="sd">                * session-N</span>
+<span class="sd">                    * history</span>
+<span class="sd">                        - scan-0.npy</span>
+<span class="sd">                        - scan-1.npy</span>
+<span class="sd">                        ...</span>
+<span class="sd">                    * temp // &lt;- Creation in progress TODO</span>
+<span class="sd">                    - path.npy</span>
+<span class="sd">                    - combined.npy</span>
+
+<span class="sd">            history dir - Stores historical scans (each separately).</span>
+<span class="sd">            temp - stores temporary files (like .csv files generated for the downsampling algorithm).</span>
+<span class="sd">            path.npy - stores combined odometry data.</span>
+<span class="sd">            combined.npy - stores combined point cloud scans.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            name -- Name of the session directory. If such folder does not exist it will be created</span>
+<span class="sd">                     with necessary subfolders.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Select working directory.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span> <span class="o">/</span> <span class="n">name</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If the directory does not yet exist, create it.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Add history folder.&quot;&quot;&quot;</span>
+            <span class="n">history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">/</span> <span class="s2">&quot;history&quot;</span>
+            <span class="n">history</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Add temp folder.&quot;&quot;&quot;</span>
+            <span class="n">temp_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">/</span> <span class="s2">&quot;temp&quot;</span>
+            <span class="n">temp_folder</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Add the path file and the combined file.&quot;&quot;&quot;</span>
+            <span class="n">combined</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">/</span> <span class="s2">&quot;combined.npy&quot;</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">/</span> <span class="s2">&quot;path.npy&quot;</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Create the combined.npy and path.npy files&quot;&quot;&quot;</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">combined</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]),</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;New directory created&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Setup names of frequently used files.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_history_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">/</span> <span class="s2">&quot;history&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_combined_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">/</span> <span class="s2">&quot;combined.npy&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">/</span> <span class="s2">&quot;path.npy&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">/</span> <span class="s2">&quot;temp&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse the history folder and count the number of files in it.&quot;&quot;&quot;</span>
+        <span class="n">history_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_history_folder</span><span class="p">)</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;scan-&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.npy&quot;</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_history_records_no</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">history_files</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;History files count: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_history_records_no</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.end_session">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.end_session">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">end_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deselects the working directory and resets all private fields of the class.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_history_folder</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_combined_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_history_records_no</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+    <span class="c1"># -------------------- Modification -------------------- #</span>
+
+<div class="viewcode-block" id="PCDSaver.add_record">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.add_record">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pts</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a new history record in the history folder of the current working directory.</span>
+<span class="sd">            Record will be names scan-K.npy, where K is the number of the scan.</span>
+<span class="sd">            Appends the points to the combined.npy file.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            pts -- Numpy array of shape (N, 3), which stores the points in cartesian reference frame.</span>
+<span class="sd">                    N - number of points in the cloud.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span> <span class="o">==</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Working dir is empty. Cannot add new point cloud.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If a list of floats was given, transform it to ndarray.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># Or was it (-1, 3)?</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: add_record(): Shape of the accepted array is: </span><span class="si">{</span><span class="n">pts</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create new .npy file in history.&quot;&quot;&quot;</span>
+        <span class="n">new_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_history_folder</span> <span class="o">/</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;scan-</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_history_records_no</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">new_file</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">pts</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: add_record(): New history file created&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Increment the counter of history records.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_history_records_no</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Append points to the combined.pcd.&quot;&quot;&quot;</span>
+        <span class="n">combined_arr</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_combined_file</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: add_record(): Combined file read&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">combined_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">combined_arr</span> <span class="o">=</span> <span class="n">pts</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">combined_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">combined_arr</span><span class="p">,</span> <span class="n">pts</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_combined_file</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">combined_arr</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.update_position">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.update_position">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_position</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pos</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Appends the points to the path.npy file.</span>
+<span class="sd">            In case array of shape (N, 2) is provided, z-coordinate is assumed to be equal 0.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            pos -- np.ndarray of shape (N, 2) or (N, 3).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span><span class="si">}</span><span class="s2"> (path file) cannot be opened.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;If z position is not given, assume z = 0.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">pos</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+
+        <span class="n">path_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">path_data</span> <span class="o">=</span> <span class="n">pos</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">path_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">path_data</span><span class="p">,</span> <span class="n">pos</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the updated path file.&quot;&quot;&quot;</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">path_data</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+    <span class="c1"># -------------------- Temporary Files  -------------------- #</span>
+
+<div class="viewcode-block" id="PCDSaver.prepare_for_downsampling">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.prepare_for_downsampling">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">prepare_for_downsampling</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Copies the combined.npy data and stores it in temp folder as [session-name]-downsample-source.csv.</span>
+<span class="sd">            Creates an empty file [session-name]-downsample-target.csv where the downsampling content should be stored.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: convert_combined_to_csv(): Entered&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the numpy table from file.&quot;&quot;&quot;</span>
+        <span class="n">combined_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_combined_file</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: convert_combined_to_csv(): File read&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Store the copied data in the source csv in temp folder.&quot;&quot;&quot;</span>
+        <span class="n">csv_src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span>
+        <span class="n">csv_src</span> <span class="o">=</span> <span class="n">csv_src</span> <span class="o">/</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;-downsample-source.csv&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: convert_combined_to_csv(): Csv paths created&quot;</span><span class="p">)</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="n">csv_src</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="n">combined_arr</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;;&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: convert_combined_to_csv(): CSV saved&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create the target csv where downsampling will dump the results.&quot;&quot;&quot;</span>
+        <span class="n">csv_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span> <span class="o">/</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;-downsample-target.csv&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_target</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: convert_combined_to_csv(): CSV created&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.clear_temp_dir">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.clear_temp_dir">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear_temp_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the contents of the temporary directory (temp) which belong to the current session.&quot;&quot;&quot;</span>
+        <span class="n">temp_contents</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">temp_contents</span><span class="p">:</span>
+            <span class="n">elem_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span> <span class="o">/</span> <span class="n">f</span>
+            <span class="k">if</span> <span class="n">elem_dir</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">elem_dir</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FileManager: Successfully deleted temporary file: </span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FIleManager: Could not find </span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s2"> in temp dir to delete it&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.get_downsampling_files">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.get_downsampling_files">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_downsampling_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Path</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the csv files which are needed for downsampling.</span>
+<span class="sd">            Paths are returned in such order: (source, target)</span>
+<span class="sd">            If they do not exist, they are created first.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple[Path, Path] -- (source, target).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Prepare the directory names.&quot;&quot;&quot;</span>
+        <span class="n">src_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span> <span class="o">/</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;-downsample-source.csv&quot;</span><span class="p">)</span>
+        <span class="n">target_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span> <span class="o">/</span>  <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;-downsample-target.csv&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: get_downsampling_files(): Names of dirs prepared&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if they exist &amp; create them if they do not.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">src_dir</span><span class="o">.</span><span class="n">is_file</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">target_dir</span><span class="o">.</span><span class="n">is_file</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prepare_for_downsampling</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: get_downsampling_files(): Source dir or target does not exist, creating...&quot;</span><span class="p">)</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the paths.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">src_dir</span><span class="p">,</span> <span class="n">target_dir</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.apply_downsampling_changes">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.apply_downsampling_changes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">apply_downsampling_changes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the current session after the downsampling procedure.</span>
+<span class="sd">            Clears the contents of the combined file and writes the downsampled version into it.</span>
+<span class="sd">            Stores the downsampled version of combined as a normal history file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create pcd from the csv file which holds outcomes.&quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">target_csv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_downsampling_files</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: apply_downsampling_changes(): target_csv: </span><span class="si">{</span><span class="n">target_csv</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">downsampled_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">target_csv</span><span class="o">.</span><span class="n">absolute</span><span class="p">()),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span> <span class="n">invalid_raise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: apply_downsampling_changes(): target_csv has been read, adding donwsampled version to history and overwriting...&quot;</span><span class="p">)</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Clear the combined.npy.&quot;&quot;&quot;</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_combined_file</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)),</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># open(self._combined_file, &quot;w&quot;).close()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: apply_downsampling_changes(): Clearing done&quot;</span><span class="p">)</span>
+
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Store the downsampled data in history and in the combined file.&quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_record</span><span class="p">(</span><span class="n">downsampled_arr</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: apply_downsampling_changes(): Record added - OK&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PCDSaver: apply_downsampling_changes(): ERROR: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.get_session_temp_files">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.get_session_temp_files">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_session_temp_files</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the list of temporary files associated with currently running session.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[Path]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the names of files which contain the name of the currently used directory.&quot;&quot;&quot;</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span> <span class="o">/</span> <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Filter out things that are not files.&quot;&quot;&quot;</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">is_file</span><span class="p">()]</span>
+
+        <span class="k">return</span> <span class="n">names</span></div>
+
+
+    <span class="c1"># -------------------- Getters -------------------- #</span>
+
+<div class="viewcode-block" id="PCDSaver.get_combined">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.get_combined">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_combined</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns data from the combined.npy</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Combined data from all scans from selected session.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Selected directory does not exist / is Null: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1"># Read the combined.npy file and return it</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_combined_file</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">combined</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.get_scan_data">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.get_scan_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_scan_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span> <span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns data from a particular scan.</span>
+<span class="sd">            If such scan does not exist, empty np.ndarray is returned.</span>
+
+<span class="sd">        Keyword arguments:</span>
+<span class="sd">            idx -- Number of the scan.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Scan data from history file &#39;scan-{idx}.npy&#39;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scan_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_history_folder</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;scan-</span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">.npy&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">scan_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Scan in file: </span><span class="si">{</span><span class="n">scan_file</span><span class="si">}</span><span class="s2"> could not have been opened&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="n">scan_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">scan_file</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">scan_data</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.get_path">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.get_path">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns data from the path.npy file as np.ndarray of shape (N, 3),</span>
+<span class="sd">            where N is the number of saved position.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray -- of shape(N, 3) with saved positions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not open: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span><span class="si">}</span><span class="s2"> which should contain the path data.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+        <span class="n">path_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">path_data</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.get_sessions">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.get_sessions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_sessions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns list with sessions names from the root folder.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sessions</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span><span class="p">)</span><span class="o">.</span><span class="n">iterdir</span><span class="p">()</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="n">sessions</span></div>
+
+
+<div class="viewcode-block" id="PCDSaver.get_dirs">
+<a class="viewcode-back" href="../../utils.html#utils.FileManagement.PCDSaver.get_dirs">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dirs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a list of all directories in such order:</span>
+<span class="sd">            root, working dir, working history dir, temp dir, working combined file, working path file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[Path]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dirs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;root&quot;</span>     <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_root_dir</span><span class="p">,</span>
+            <span class="s2">&quot;working&quot;</span>  <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_working_dir</span><span class="p">,</span>
+            <span class="s2">&quot;history&quot;</span>  <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_history_folder</span><span class="p">,</span>
+            <span class="s2">&quot;temp&quot;</span>     <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_temp_folder</span><span class="p">,</span>
+            <span class="s2">&quot;combined&quot;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combined_file</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span>     <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_path_file</span>
+        <span class="p">}</span>
+        <span class="c1"># dirs = [s for s in [self._root_dir, self._working_dir, self._history_folder, self._temp_folder, self._combined_file, self._path_file]]</span>
+        <span class="k">return</span> <span class="n">dirs</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Miłosz Liniewiecki, Magdalena Rąpała, Jakub Gomola, Michał Świątczak.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
