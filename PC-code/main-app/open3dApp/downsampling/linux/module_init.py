@@ -22,7 +22,7 @@ class LinuxModule:
         self.__module_name = module_name
         self._device_path: str = device_path
         self.__module_file = f"{self.__module_name}.ko"
-        print(self.__module_name, self.__module_file)
+        print("Module ",self.__module_name, " initiation script.\nCompiling and then loading the module:\n")
 
     def _run_cmd(self, command: str, need_sudo=False) -> Tuple[bool, str, str]:
         """Runs the command specified with or without superuser permission.
@@ -64,21 +64,23 @@ class LinuxModule:
         success, out, err = self._run_cmd(["lsmod"])
         return MODULE_NAME in out
 
-    def _loading_module(self) -> bool:
+    def _loading_module(self) -> Tuple[bool, str, str]:
         """Loads the module with insmod command, which requires superuser."""
         success, out, err = self._run_cmd(["insmod", self.__module_file], need_sudo=True)
-        if not success:
+        if success:
+            print(f"Module {self._device_path} loaded successfully.")
+        else:
             print(f"Module {self._device_path} failed to load: {err}")
             exit(1)
-        return success
+        return success, out, err
 
-    def _unloading_module(self) -> bool:
+    def _unloading_module(self) -> Tuple[bool, str, str]:
         """Unloads the module without the .ko suffix, which requires superuser."""
         success, out, err = self._run_cmd(["rmmod", self.__module_name], need_sudo=True)
         if not success:
             print(f"Module {self._device_path} failed to unload: {err}")
             exit(1)
-        return success
+        return success, out, err
     
     def _check_device(self) -> bool:
         """Checks whether the character device exists."""
@@ -123,16 +125,16 @@ class LinuxModule:
 def main():
     """Tries to compile and load the module."""
     module = LinuxModule(module_name=MODULE_NAME, device_path=DEVICE_PATH)
-    if(module._is_ko() == False):
+    if module._is_ko() == False:
         success, out, err = module._compile_module()
-        if(success):
-            print("Module successfully compiled\n")
-    if(module.is_module_loaded() == False):
+    else:
+        print("Module is compiled.\n")
+    if module.is_module_loaded() == False:
         success, out, err = module._loading_module()
-        if(success):
-            print("Module successfully loaded\n")
+    else:
+        print("Module is loaded.\n")
 
-    if(module._check_device()== False):
+    if module._check_device()== False:
         raise FileNotFoundError ("Character device /dev/scan does not exist\n")
 
 if __name__ == "__main__":
