@@ -203,7 +203,7 @@ void constructMessage(message& new_message)
   new_message.select = false;
   new_message.state = last_man_state;
 
-  if(new_message.state!= SCANNING || new_message.state!= UPLOADING)
+  if(new_message.state!= SCANNING && new_message.state!= UPLOADING)
   {
     if((abs(x-last_x)>3) || (abs(y-last_y)>3)){
       last_x = x; last_y = y;
@@ -228,7 +228,7 @@ void constructMessage(message& new_message)
     new_message.b_b = true;
     if(new_message.state != SCANNING || new_message.state != ROVER_INIT || new_message.state != IMU_CALIBRATION)
     {
-      new_message.state = UPLOADING;
+      new_message.state = ROVER_INIT;
     }
   }
   if(!(buttons & (1UL << BUTTON_X)))
@@ -239,7 +239,7 @@ void constructMessage(message& new_message)
 
   if(!(buttons & (1UL << BUTTON_Y)))
   {
-    if(new_message.state!= SCANNING || new_message.state!= UPLOADING || last_man_state != STATUS_UPDATE || new_message.state != ROVER_INIT || new_message.state != IMU_CALIBRATION)
+    if(new_message.state!= SCANNING && new_message.state!= UPLOADING && last_man_state != STATUS_UPDATE && new_message.state != ROVER_INIT && new_message.state != IMU_CALIBRATION)
     {
       new_message.state = STATUS_UPDATE;
     }
@@ -247,7 +247,7 @@ void constructMessage(message& new_message)
   }
   if(!(buttons & (1UL << BUTTON_SELECT))) //for IMU_CALIBRATION
   { 
-    if(new_message.state!= SCANNING || new_message.state!= UPLOADING || new_message.state != ROVER_INIT)
+    if(new_message.state!= SCANNING && new_message.state!= UPLOADING && new_message.state != ROVER_INIT)
     {
       new_message.state = IMU_CALIBRATION;
     }
@@ -258,10 +258,6 @@ void constructMessage(message& new_message)
     new_message.start = true;
     send_message();
     Serial.println("Sending a message");
-  }
-  if(!(buttons & (1UL << BUTTON_X)) && !(buttons & (1UL << BUTTON_Y))) //combo for init
-  {
-    new_message.state = ROVER_INIT;
   }
 
   last_man_state = new_message.state;
